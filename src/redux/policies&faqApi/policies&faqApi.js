@@ -5,7 +5,7 @@ const policiesAndFaqApi = api.injectEndpoints({
     getFAQs: builder.query({
       query: () => {
         return {
-          url: `/faq`,
+          url: `/faqs`,
           method: "GET",
         };
       },

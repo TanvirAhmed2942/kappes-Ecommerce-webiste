@@ -28,7 +28,7 @@ export default function FAQSection() {
         errorMessage = error.message;
       }
 
-      toast.showError(errorMessage);
+      toast.showError("Failed to fetch FAQs: " + errorMessage);
     }
   }, [error, toast]);
 
@@ -44,38 +44,6 @@ export default function FAQSection() {
       answer: faq.answer,
     })) || [];
   console.log("faqItems", faqItems);
-
-  //   {
-  //     id: 1,
-  //     question: "How can I track my order?",
-  //     answer:
-  //       "To register, simply visit our website or mobile app and sign up with your phone number. Then, complete your profile, provide your business details, and you're ready to start selling!",
-  //   },
-  //   {
-  //     id: 2,
-  //     question: "Is there any fee to create a seller account?",
-  //     answer:
-  //       "No, creating a seller account on The Canuck Mall is completely free. There are no registration fees or monthly subscription charges to get started. We only charge a small commission on successful sales.",
-  //   },
-  //   {
-  //     id: 3,
-  //     question: "How do I list my products for sale?",
-  //     answer:
-  //       "After creating your seller account, you can add products by navigating to your seller dashboard. Click on 'Add Products', fill in the required details including product name, description, images, price, and inventory quantity. Once submitted, our team will review your listing and approve it within 24-48 hours.",
-  //   },
-  //   {
-  //     id: 4,
-  //     question: "What happens if a customer requests a return?",
-  //     answer:
-  //       "When a customer requests a return, you'll receive a notification in your seller dashboard. You'll have 24 hours to review and respond to the request. If approved, the customer will ship the item back. Once you confirm receipt of the returned item, the refund will be processed according to your return policy.",
-  //   },
-  //   {
-  //     id: 5,
-  //     question: "What is the Payment Policy of The Canuck Mall?",
-  //     answer:
-  //       "The Canuck Mall processes payments to sellers on a weekly basis. After a sale is completed and the return period has passed, the payment will be transferred to your registered bank account. We deduct our commission fee before transferring the funds. You can track all your transactions in the 'Payments' section of your seller dashboard.",
-  //   },
-  // ];
 
   // Function to toggle FAQ open/close
   const toggleFAQ = (id) => {
