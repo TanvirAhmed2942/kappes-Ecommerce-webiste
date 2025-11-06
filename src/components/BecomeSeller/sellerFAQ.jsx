@@ -52,7 +52,7 @@ export default function SellerFAQ() {
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-12 md:py-16">
-      <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-10 ">
+      <h2 className="text-2xl md:text-3xl lg:text-4xl text-center mb-10 font-comfortaa font-extrabold md:leading-14">
         Seller Frequently Asked
         <br className="hidden sm:block " /> Questions (FAQs)
       </h2>
@@ -69,7 +69,7 @@ export default function SellerFAQ() {
               aria-expanded={openFAQ === faq.id}
               aria-controls={`faq-answer-${faq.id}`}
             >
-              <span className="text-base md:text-lg font-medium">
+              <span className="text-base md:text-lg font-bold font-comfortaa">
                 {faq.question}
               </span>
               <motion.span
@@ -122,7 +122,7 @@ export default function SellerFAQ() {
                   id={`faq-answer-${faq.id}`}
                   className="overflow-hidden"
                 >
-                  <div className="p-4 md:p-5 pt-2 text-sm md:text-base text-gray-600 border-t border-gray-100">
+                  <div className="p-4 md:p-5 pt-2 text-sm md:text-base text-gray-600 border-t border-gray-100 font-comfortaa">
                     {faq.answer}
                   </div>
                 </motion.div>

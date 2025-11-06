@@ -2,6 +2,7 @@ import FAQSection from "@/common/components/faqs";
 import SellerBanner from "@/components/BecomeSeller/banner";
 import SimpleSteps from "@/components/BecomeSeller/simpleSteps";
 import WhySellOnCanuckMall from "@/components/BecomeSeller/whySell";
+import SellerFAQ from "@/components/BecomeSeller/sellerFAQ";
 
 function BecomeSeller() {
   return (
@@ -18,7 +19,7 @@ function BecomeSeller() {
       <SellerBanner />
       <WhySellOnCanuckMall />
       <SimpleSteps />
-      <FAQSection />
+      <SellerFAQ />
     </div>
   );
 }
