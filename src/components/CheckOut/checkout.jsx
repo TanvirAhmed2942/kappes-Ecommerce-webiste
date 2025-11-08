@@ -54,12 +54,15 @@ function Checkout() {
         </TableHeader>
         <TableBody>
           {cartItems.length > 0 ? (
-            cartItems.map((item) => {
+            cartItems.map((item, index) => {
               const itemPrice = parseFloat(item.price) || 0;
               const subTotal = itemPrice * (item.quantity || 1);
+              const uniqueKey = `${item?.id || "item"}-${item?.size || ""}-${
+                item?.color || ""
+              }-${index}`;
 
               return (
-                <TableRow key={item.id}>
+                <TableRow key={uniqueKey}>
                   <TableCell className="font-medium">
                     <Image
                       src={item.productImage || "/assets/bag.png"}
