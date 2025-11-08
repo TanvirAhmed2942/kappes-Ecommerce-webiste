@@ -17,6 +17,7 @@ import { getImageUrl } from "@/redux/baseUrl";
 import provideIcon from "@/common/components/provideIcon";
 import { addFav, removeFav, isFav } from "@/features/productSlice";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const ProductRecomendation = () => {
   const navigationPrevRef = useRef(null);
@@ -108,10 +109,12 @@ const ProductRecomendation = () => {
         <h2 className="text-3xl font-extrabold font-comfortaa">
           Recommended for you
         </h2>
-        <button className="flex items-center text-gray-600 hover:text-gray-800 hover:underline transition">
-          See all
-          <IoArrowForward className="ml-2 rotate-[-45deg]" />
-        </button>
+        <Link href="/recommended-products">
+          <button className="flex items-center text-gray-600 hover:text-gray-800 hover:underline transition">
+            See all
+            <IoArrowForward className="ml-2 rotate-[-45deg]" />
+          </button>
+        </Link>
       </div>
 
       {/* Swiper Carousel */}

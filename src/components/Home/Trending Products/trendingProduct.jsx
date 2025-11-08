@@ -13,6 +13,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import useTrendingProducts from "@/hooks/useTrendingProducts";
 import { getImageUrl } from "@/redux/baseUrl";
+import Link from "next/link";
 
 const TrendingProduct = () => {
   const { trendingProducts, isLoading, error } = useTrendingProducts();
@@ -37,10 +38,12 @@ const TrendingProduct = () => {
         <h2 className="text-3xl font-extrabold font-comfortaa">
           Trending Products
         </h2>
-        <button className="flex items-center text-gray-600 hover:text-gray-800 hover:underline transition">
-          See all
-          <IoArrowForward className="ml-2 rotate-[-45deg]" />
-        </button>
+        <Link href="/trnding-products">
+          <button className="flex items-center text-gray-600 hover:text-gray-800 hover:underline transition">
+            See all
+            <IoArrowForward className="ml-2 rotate-[-45deg]" />
+          </button>
+        </Link>
       </div>
 
       {/* Swiper Carousel */}
