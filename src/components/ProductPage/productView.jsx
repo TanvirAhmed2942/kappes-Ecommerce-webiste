@@ -64,6 +64,8 @@ function ProductView() {
   const { slugDetails, isValidVariantSlug, isVariantAvailable } =
     useProductSlug(productDetails, selectedVariant);
 
+  // console.log("productDetails", productDetails);
+
   // Initialize variant selection when product details load
   useEffect(() => {
     if (productDetails) {
@@ -439,15 +441,18 @@ function ProductView() {
               selectedVariant={selectedVariant}
             />
 
-            <Card className="mb-6 mt-6">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="bg-gray-800 text-white p-2 rounded-full">
-                    <span className="text-xs">
-                      {productDetails.shopId?.name
-                        ?.substring(0, 2)
-                        .toUpperCase() || "SH"}
-                    </span>
+            <Card className="my-6 py-2">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center justify-start gap-4">
+                  <div className="bg-gray-800 text-white  rounded-full border flex items-center gap-2">
+                    <Image
+                      src={`${getImageUrl}/${productDetails.shopId?.logo}`}
+                      alt={productDetails.shopId?.name}
+                      priority
+                      width={50}
+                      height={50}
+                      className="rounded-full h-10 w-10 object-cover"
+                    />
                   </div>
                   <div>
                     <p className="font-bold">

@@ -1,36 +1,58 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   InputOTP,
   InputOTPGroup,
-  InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import {
   useResendOtpMutation,
   useVerifyEmailMutation,
 } from "@/redux/authApi/authApi";
+import { useVerifyBusinessMutation } from "@/redux/servicesApi/servicsApi";
 import useToast from "@/hooks/useShowToast";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import VerificationSuccess from "@/common/components/verificationSuccess";
 import { Content } from "@/app/auth/forgot-password/verify-otp/page";
+import useUser from "@/hooks/useUser";
 
 export default function OTPverification() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const email = searchParams.get("email");
   const forgot = searchParams.get("forgot");
   const [countdown, setCountdown] = useState(57);
+  const [timerKey, setTimerKey] = useState(0); // Key to restart timer
   const router = useRouter();
+
+  // Check if we're on business verification route
+  const isBusinessVerification = pathname?.includes(
+    "/business-listing/verification"
+  );
+
+  // Get user email from useUser hook for business verification
+  const { userEmail: userEmailFromHook, profileData } = useUser();
+
+  // Determine which email to use
+  const verificationEmail = isBusinessVerification
+    ? profileData?.data?.email || userEmailFromHook || email
+    : email;
+
   useEffect(() => {
     if (email || forgot) {
       console.log("Query params:", { email, forgot });
     }
-  }, [email, forgot]);
+    if (isBusinessVerification) {
+      console.log("Business verification - using email:", verificationEmail);
+    }
+  }, [email, forgot, isBusinessVerification, verificationEmail]);
 
   const [verifyEmail, { isLoading }] = useVerifyEmailMutation();
+  const [verifyBusiness, { isLoading: isVerifyingBusiness }] =
+    useVerifyBusinessMutation();
   const [resendOtp, { isLoading: isResendOtpLoading }] = useResendOtpMutation();
   const { showSuccess, showError } = useToast();
   const {
@@ -47,52 +69,106 @@ export default function OTPverification() {
   // Watch OTP value to enable/disable submit button
   const otpValue = watch("otp");
 
-  // Countdown timer for resend
+  const intervalRef = useRef(null);
+
+  // Countdown timer for resend - only restarts when timerKey changes
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 500);
-      return () => clearTimeout(timer);
+    // Clear any existing interval before setting up a new one
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
-  }, [countdown]);
+
+    // Reset countdown to initial value when timer restarts
+    setCountdown(57);
+
+    // Set up the interval
+    intervalRef.current = setInterval(() => {
+      setCountdown((prevCountdown) => {
+        // Stop the timer when countdown reaches 0
+        if (prevCountdown <= 1) {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          return 0;
+        }
+        return prevCountdown - 1;
+      });
+    }, 1000);
+
+    // Cleanup function
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [timerKey]); // Only restart when timerKey changes
 
   const onSubmit = async (data) => {
     console.log("OTP Value:", data.otp);
 
-    if (!email) {
+    if (!verificationEmail) {
       showError("Email is required for verification");
       return;
     }
 
     try {
-      const response = await verifyEmail({
-        oneTimeCode: Number(data.otp),
-        email: email,
-      });
-      console.log(response);
-      if (response.data?.success === true) {
-        showSuccess(response.data?.message);
+      let response;
 
-        // Save verifyToken from the correct path in response
-        const verifyToken = response.data?.data?.verifyToken;
-        if (verifyToken) {
-          localStorage.setItem("verifyToken", verifyToken);
-          console.log("Verify token saved:", verifyToken);
+      if (isBusinessVerification) {
+        // Use business verification API
+        response = await verifyBusiness({
+          email: verificationEmail,
+          oneTimeCode: Number(data.otp),
+        }).unwrap();
+      } else {
+        // Use regular email verification API
+        response = await verifyEmail({
+          oneTimeCode: Number(data.otp),
+          email: verificationEmail,
+        });
+      }
+
+      console.log(response);
+
+      if (response?.success === true || response?.data?.success === true) {
+        const successMessage =
+          response?.message ||
+          response?.data?.message ||
+          "Verification successful";
+        showSuccess(successMessage);
+
+        // Save verifyToken from the correct path in response (only for regular verification)
+        if (!isBusinessVerification) {
+          const verifyToken =
+            response?.data?.data?.verifyToken || response?.data?.verifyToken;
+          if (verifyToken) {
+            localStorage.setItem("verifyToken", verifyToken);
+            console.log("Verify token saved:", verifyToken);
+          }
         }
 
-        if (forgot === "true") {
+        if (isBusinessVerification) {
+          // Stay on the same page or navigate as needed
+          // The VerificationSuccess component will handle the UI
+        } else if (forgot === "true") {
           router.push("/auth/reset-password");
         } else {
           router.push("/auth/login");
         }
       } else {
-        const errorMessage = response.data?.message || "Verification failed";
+        const errorMessage =
+          response?.message || response?.data?.message || "Verification failed";
         showError(errorMessage);
       }
     } catch (error) {
       console.log("Verification error:", error);
       const errorMessage =
-        error.data?.message ||
-        error.data?.error?.[0]?.message ||
+        error?.data?.message ||
+        error?.data?.errorMessages?.[0]?.message ||
+        error?.data?.error?.[0]?.message ||
         "Invalid OTP. Please try again.";
       showError(errorMessage);
     }
@@ -100,19 +176,30 @@ export default function OTPverification() {
 
   const handleResend = async () => {
     console.log("Resend OTP requested");
-    setCountdown(57); // Reset countdown
+
+    if (!verificationEmail) {
+      showError("Email is required to resend OTP");
+      return;
+    }
 
     try {
-      const response = await resendOtp({ email: email });
+      const response = await resendOtp({ email: verificationEmail });
       console.log(response);
       if (response.data?.success === true) {
         showSuccess(response.data?.message);
+        // Restart timer by incrementing timerKey
+        setTimerKey((prev) => prev + 1);
       } else {
         const errorMessage = response.data?.message || "Failed to resend OTP";
         showError(errorMessage);
       }
     } catch (error) {
       console.log("Resend OTP error:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.data?.errorMessages?.[0]?.message ||
+        "Failed to resend OTP. Please try again.";
+      showError(errorMessage);
     }
   };
 
@@ -174,6 +261,11 @@ export default function OTPverification() {
 
           <p className="text-center text-gray-600 text-sm px-6">
             A code has been sent to your email
+            {isBusinessVerification && verificationEmail && (
+              <span className="block mt-1 text-xs text-gray-500">
+                ({verificationEmail})
+              </span>
+            )}
           </p>
 
           {countdown > 0 ? (
@@ -184,9 +276,10 @@ export default function OTPverification() {
             <button
               type="button"
               onClick={handleResend}
-              className="text-center text-red-700 text-sm font-bold px-6 underline hover:text-red-800 w-full bg-transparent border-none cursor-pointer"
+              disabled={isResendOtpLoading}
+              className="text-center text-red-700 text-sm font-bold px-6 underline hover:text-red-800 w-full bg-transparent border-none cursor-pointer disabled:opacity-50"
             >
-              Resend OTP
+              {isResendOtpLoading ? "Sending..." : "Resend OTP"}
             </button>
           )}
 
@@ -194,9 +287,11 @@ export default function OTPverification() {
             onClick={handleSubmit(onSubmit)}
             className="w-full bg-red-700 hover:bg-red-800 text-white disabled:opacity-50"
             size="lg"
-            disabled={isSubmitting || otpValue?.length < 4}
+            disabled={
+              isSubmitting || isVerifyingBusiness || otpValue?.length < 4
+            }
           >
-            {isSubmitting ? "Verifying..." : "Verify"}
+            {isSubmitting || isVerifyingBusiness ? "Verifying..." : "Verify"}
           </Button>
         </div>
       </CardContent>

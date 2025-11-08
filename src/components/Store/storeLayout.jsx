@@ -46,6 +46,8 @@ function StoreLayout() {
     followers: shopData?.data?.totalFollowers,
     rating: shopData?.data?.rating,
   };
+
+  const shopBanner = shopData?.data?.banner;
   console.log(shopInfo);
 
   return (

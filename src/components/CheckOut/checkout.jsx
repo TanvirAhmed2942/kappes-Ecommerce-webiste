@@ -14,6 +14,7 @@ import CartControlButton from "./CartControlButton";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/hooks/useCart";
+import { getImageUrl } from "@/redux/baseUrl";
 
 function Checkout() {
   // Use our custom hook to get cart data
@@ -65,7 +66,10 @@ function Checkout() {
                 <TableRow key={uniqueKey}>
                   <TableCell className="font-medium">
                     <Image
-                      src={item.productImage || "/assets/bag.png"}
+                      src={
+                        `${getImageUrl}/${item.productImage}` ||
+                        "/assets/bag.png"
+                      }
                       alt={item.name || "Product Image"}
                       width={50}
                       height={50}

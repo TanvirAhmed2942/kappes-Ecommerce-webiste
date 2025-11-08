@@ -102,8 +102,8 @@ function SearchBox({
   };
 
   return (
-    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex w-full">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative flex w-full">
         <input
           type="text"
           value={inputValue}
@@ -118,23 +118,22 @@ function SearchBox({
         >
           <FiSearch className="text-white text-lg" />
         </button>
+        {suggestions.length > 0 && (
+          <ul className="absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+            {suggestions.map((suggestion) => (
+              <Link
+                href={`/trades-&-services/${suggestion.id}`}
+                key={suggestion.id}
+                onClick={() => handleSelectSuggestion(suggestion)}
+              >
+                <li className="px-4 py-2 text-sm sm:text-base cursor-pointer hover:bg-gray-100">
+                  {suggestion.serviceName}
+                </li>
+              </Link>
+            ))}
+          </ul>
+        )}
       </div>
-
-      {suggestions.length > 0 && (
-        <ul className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-          {suggestions.map((suggestion) => (
-            <Link
-              href={`/trades-&-services/${suggestion.id}`}
-              key={suggestion.id}
-              onClick={() => handleSelectSuggestion(suggestion)}
-            >
-              <li className="px-4 py-2 text-sm sm:text-base cursor-pointer hover:bg-gray-100">
-                {suggestion.serviceName}
-              </li>
-            </Link>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }

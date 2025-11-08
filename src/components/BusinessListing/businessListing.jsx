@@ -24,7 +24,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload } from "lucide-react";
 import * as RPNInput from "react-phone-number-input";
 import flags from "react-phone-number-input/flags";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAddBusinessMutation } from "@/redux/servicesApi/servicsApi";
+import useToast from "@/hooks/useShowToast";
 
 // Business type options
 const businessTypes = [
@@ -72,7 +74,11 @@ const cities = [
 ];
 
 export default function BusinessListingForm() {
+  const router = useRouter();
+  const toast = useToast();
+  const [addBusiness, { isLoading }] = useAddBusinessMutation();
   const [logoFile, setLogoFile] = useState(null);
+  const [bannerFile, setBannerFile] = useState(null);
   const [coverFile, setCoverFile] = useState(null);
 
   const form = useForm({
@@ -82,27 +88,121 @@ export default function BusinessListingForm() {
       businessEmail: "",
       phone: "",
       shortDescription: "",
+      service: "",
       province: "",
       territory: "",
       city: "",
       detailAddress: "",
+      country: "Canada",
     },
   });
 
-  const onSubmit = (data) => {
-    // Include file data
-    const formData = {
-      ...data,
-      logo: logoFile,
-      coverPhoto: coverFile,
-    };
-    console.log(formData);
-    // Here you would typically send this data to your backend
+  const onSubmit = async (data) => {
+    try {
+      // Create FormData object
+      const formData = new FormData();
+
+      // Prepare the business data object matching API structure
+      const businessData = {
+        name: data.businessName,
+        type:
+          data.businessType === "Retail"
+            ? "RETAIL"
+            : data.businessType === "Restaurant"
+            ? "RESTAURANT"
+            : data.businessType === "Healthcare"
+            ? "HEALTHCARE"
+            : data.businessType === "Technology"
+            ? "TECHNOLOGY"
+            : data.businessType === "Education"
+            ? "EDUCATION"
+            : data.businessType === "Professional Services"
+            ? "PROFESSIONAL_SERVICES"
+            : data.businessType === "Construction"
+            ? "CONSTRUCTION"
+            : data.businessType === "Manufacturing"
+            ? "MANUFACTURING"
+            : data.businessType === "Entertainment"
+            ? "ENTERTAINMENT"
+            : data.businessType === "Other"
+            ? "OTHER"
+            : "",
+        email: data.businessEmail,
+        phone: data.phone,
+        description: data.shortDescription,
+        address: {
+          province: data.province || "",
+          city: data.city || "",
+          territory: data.territory || "",
+          country: data.country || "Canada",
+          detail_address: data.detailAddress || "",
+        },
+        service: data.service || "",
+        working_hours: [], // You can add working hours fields later if needed
+      };
+
+      // Add the data as JSON string under 'data' key
+      formData.append("data", JSON.stringify(businessData));
+
+      // Add files if they exist
+      if (logoFile) {
+        formData.append("logo", logoFile);
+      }
+      if (bannerFile) {
+        formData.append("banner", bannerFile);
+      }
+      if (coverFile) {
+        formData.append("coverPhoto", coverFile);
+      }
+
+      // Log FormData for debugging
+      console.log("Business FormData:");
+      for (let [key, value] of formData.entries()) {
+        if (key === "data") {
+          console.log(key, JSON.parse(value));
+        } else {
+          console.log(key, value instanceof File ? value.name : value);
+        }
+      }
+
+      const response = await addBusiness({ data: formData }).unwrap();
+      console.log("Success:", response);
+
+      if (response?.success) {
+        toast.showSuccess(
+          response.message || "Business listing created successfully!"
+        );
+        // Navigate to verification page after successful submission
+        router.push("/business-listing/verification");
+      } else {
+        toast.showError(
+          response?.message || "Failed to create business listing"
+        );
+      }
+    } catch (error) {
+      console.error("Error submitting business:", error);
+      // Extract error message
+      let errorMessage = "Failed to create business listing";
+      if (error?.data?.errorMessages && error.data.errorMessages.length > 0) {
+        errorMessage = error.data.errorMessages[0].message;
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      toast.showError(errorMessage);
+    }
   };
 
   const handleLogoChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setLogoFile(e.target.files[0]);
+    }
+  };
+
+  const handleBannerChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setBannerFile(e.target.files[0]);
     }
   };
 
@@ -240,6 +340,25 @@ export default function BusinessListingForm() {
                     />
 
                     <FormField
+                      control={form.control}
+                      name="service"
+                      rules={{ required: "Service is required" }}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Service*</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter your service name"
+                              {...field}
+                              className="bg-white"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
                       name="logo"
                       render={() => (
                         <FormItem>
@@ -273,6 +392,40 @@ export default function BusinessListingForm() {
                     />
 
                     <FormField
+                      name="banner"
+                      render={() => (
+                        <FormItem>
+                          <FormLabel>Banner*</FormLabel>
+                          <FormControl>
+                            <div
+                              className="border rounded flex items-center justify-center p-2 h-10 bg-white cursor-pointer"
+                              onClick={() =>
+                                document.getElementById("banner-upload").click()
+                              }
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              <span className="text-sm">Upload banner</span>
+                              <input
+                                id="banner-upload"
+                                type="file"
+                                accept="image/*"
+                                multiple={true}
+                                className="hidden bg-white"
+                                onChange={handleBannerChange}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                          {bannerFile && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {bannerFile.name}
+                            </p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
                       name="coverPhoto"
                       render={() => (
                         <FormItem>
@@ -285,7 +438,9 @@ export default function BusinessListingForm() {
                               }
                             >
                               <Upload className="h-4 w-4 mr-2" />
-                              <span className="text-sm">Upload logo</span>
+                              <span className="text-sm">
+                                Upload cover photo
+                              </span>
                               <input
                                 id="cover-upload"
                                 type="file"
@@ -451,14 +606,13 @@ export default function BusinessListingForm() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Link href="business-listing/verification">
-                    <Button
-                      type="submit"
-                      className="bg-red-700 hover:bg-red-800 text-white px-8"
-                    >
-                      Continue
-                    </Button>
-                  </Link>
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="bg-red-700 hover:bg-red-800 text-white px-8 disabled:opacity-50"
+                  >
+                    {isLoading ? "Submitting..." : "Continue"}
+                  </Button>
                 </div>
               </form>
             </Form>
