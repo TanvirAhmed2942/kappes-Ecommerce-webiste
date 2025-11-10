@@ -42,53 +42,79 @@
 
 import Image from "next/image";
 import { Heart } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { removeFav, showFav } from "@/features/productSlice";
+import useFavProducts from "@/hooks/useFavProducts";
+import { getImageUrl } from "@/redux/baseUrl";
 
 export default function WishListCard({ product }) {
-  const dispatch = useDispatch();
-  const {
-    id,
-    name,
-    productImage,
-    originalPrice,
-    discountPrice,
-    rating,
-    reviews,
-  } = product;
+  const { removeFromFavorites, isLoading } = useFavProducts();
 
-  const hasDiscount = discountPrice?.[0];
+  const productId = product._id || product.id;
+  const name = product.name;
+  const productImage = product.images || product.productImage;
+  const originalPrice = product.basePrice || product.originalPrice || 0;
+  const discountPrice =
+    product.product_variant_Details?.[0]?.variantPrice || product.discountPrice;
+  const rating = product.avg_rating || product.rating || 0;
+  const reviews = product.totalReviews || product.reviews || 0;
+
+  const hasDiscount = Array.isArray(discountPrice)
+    ? discountPrice?.[0]
+    : discountPrice && discountPrice > originalPrice;
   let discountedPrice = originalPrice;
 
   if (hasDiscount) {
-    const [_, discountType, value] = discountPrice;
-    discountedPrice =
-      discountType === "percent"
-        ? originalPrice * (1 - value / 100)
-        : originalPrice - value;
+    if (Array.isArray(discountPrice)) {
+      const [_, discountType, value] = discountPrice;
+      discountedPrice =
+        discountType === "percent"
+          ? originalPrice * (1 - value / 100)
+          : originalPrice - value;
+    } else {
+      discountedPrice = discountPrice;
+    }
   }
+
+  const handleRemove = async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (productId) {
+      await removeFromFavorites(productId);
+    }
+  };
+
+  const imageSrc = productImage?.[0]
+    ? `${getImageUrl}${
+        productImage[0].startsWith("/")
+          ? productImage[0]
+          : `/${productImage[0]}`
+      }`
+    : "/assets/fallback.jpg";
 
   return (
     <div className="bg-white rounded-xl border shadow-sm overflow-hidden w-full h-fit max-w-xs sm:max-w-sm md:max-w-[260px] relative hover:shadow-md transition">
       <button
-        className="absolute top-3 right-3 text-red-500 z-50"
-        onClick={() => dispatch(removeFav(id))}
+        className={`absolute top-3 right-3 text-red-500 z-50 ${
+          isLoading ? "opacity-50 cursor-wait" : ""
+        }`}
+        onClick={handleRemove}
+        disabled={isLoading}
+        title="Remove from wishlist"
       >
         <Heart size={18} fill="red" />
       </button>
 
       <div className="w-full aspect-square relative mb-3">
         <Image
-          src={productImage?.[0] || "/assets/fallback.jpg"}
-          alt={name}
-          layout="fill"
-          objectFit="contain"
+          src={imageSrc}
+          alt={name || "Product"}
+          fill
+          className="object-contain"
         />
       </div>
 
       <div className="px-4 pb-3">
         <h3 className="text-sm font-medium text-gray-900 mb-1 truncate">
-          {name}
+          {name || "Product Name"}
         </h3>
 
         <div className="flex items-center gap-2">
@@ -101,9 +127,11 @@ export default function WishListCard({ product }) {
             </span>
           )}
         </div>
-        <div className="text-yellow-400 text-sm mt-1">
-          ⭐ {rating} ({reviews} reviews)
-        </div>
+        {rating > 0 && (
+          <div className="text-yellow-400 text-sm mt-1">
+            ⭐ {rating.toFixed(1)} ({reviews} reviews)
+          </div>
+        )}
       </div>
     </div>
   );

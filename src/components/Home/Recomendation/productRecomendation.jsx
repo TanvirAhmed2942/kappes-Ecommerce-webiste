@@ -15,7 +15,7 @@ import { incrementViewCount } from "@/features/productSlice/productsSlice";
 import { useDispatch } from "react-redux";
 import { getImageUrl } from "@/redux/baseUrl";
 import provideIcon from "@/common/components/provideIcon";
-import { addFav, removeFav, isFav } from "@/features/productSlice";
+import useFavProducts from "@/hooks/useFavProducts";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -27,17 +27,31 @@ const ProductRecomendation = () => {
   const { recommendedProducts, isLoading, error, hasProducts } =
     useRecommendedProducts();
 
+  // Favorite products hook
+  const {
+    isFavProduct,
+    toggleFavorite,
+    isLoading: isFavLoading,
+  } = useFavProducts();
+
   // Handle product click/view
   const handleProductView = (productId) => {
     dispatch(incrementViewCount(productId));
     router.push(`/product-page/${productId}`);
   };
 
-  const handleHeartClick = (productId) => {
-    if (isFav(productId)) {
-      dispatch(removeFav(productId));
-    } else {
-      dispatch(addFav(productId));
+  // Handle heart/favorite click
+  const handleHeartClick = async (e, product) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const productId = product._id || product.id;
+    if (!productId) return;
+
+    try {
+      await toggleFavorite(productId, product);
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
     }
   };
 
@@ -170,10 +184,17 @@ const ProductRecomendation = () => {
               >
                 {/* Heart Icon */}
                 <div
-                  className="absolute top-3 right-3 text-red-500 text-xl cursor-pointer hover:scale-110 transition-transform z-10"
-                  onClick={() => handleHeartClick(product._id)}
+                  className={`absolute top-3 right-3 text-red-500 text-xl cursor-pointer hover:scale-110 transition-transform z-10 ${
+                    isFavLoading ? "opacity-50 cursor-wait" : ""
+                  }`}
+                  onClick={(e) => handleHeartClick(e, product)}
+                  title={
+                    isFavProduct(product._id || product.id)
+                      ? "Remove from favorites"
+                      : "Add to favorites"
+                  }
                 >
-                  {isFav(product._id)
+                  {isFavProduct(product._id || product.id)
                     ? provideIcon({ name: "heart_black" })
                     : provideIcon({ name: "heart" })}
                 </div>

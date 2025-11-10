@@ -125,6 +125,43 @@ const productApi = api.injectEndpoints({
         };
       },
     }),
+    addToFavProduct: builder.mutation({
+      query: (productId) => {
+        return {
+          url: `/wishlist`,
+          method: "POST",
+          body: { productId: productId },
+        };
+      },
+      invalidatesTags: ["WISHLIST", "PRODUCT"],
+      transformResponse: (response) => {
+        return response;
+      },
+    }),
+    removeFromFavProduct: builder.mutation({
+      query: (productId) => {
+        return {
+          url: `/wishlist/${productId}`,
+          method: "DELETE",
+        };
+      },
+      invalidatesTags: ["WISHLIST", "PRODUCT"],
+      transformResponse: (response) => {
+        return response;
+      },
+    }),
+    getFavProducts: builder.query({
+      query: () => {
+        return {
+          url: `/wishlist`,
+          method: "GET",
+        };
+      },
+      providesTags: ["WISHLIST"],
+      transformResponse: (response) => {
+        return response;
+      },
+    }),
   }),
   overrideExisting: true,
 });
@@ -139,6 +176,9 @@ export const {
   useUpdateProductMutation,
   useGetReviewByProductIdQuery,
   useGetShopProductsQuery,
+  useAddToFavProductMutation,
+  useRemoveFromFavProductMutation,
+  useGetFavProductsQuery,
 } = productApi;
 
 // Export directly to ensure it's available
