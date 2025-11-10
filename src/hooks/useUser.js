@@ -1,11 +1,12 @@
 import { useSelector, useDispatch } from "react-redux";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect } from "react";
 import {
   selectUser,
   selectUserProfile,
   selectUserName,
   selectUserEmail,
   selectUserImage,
+  selectUserId,
   setUser,
   clearUser,
 } from "@/features/userSlice/userSlice";
@@ -20,6 +21,7 @@ const useUser = () => {
   const userName = useSelector(selectUserName);
   const userEmail = useSelector(selectUserEmail);
   const userImage = useSelector(selectUserImage);
+  const userIdFromRedux = useSelector(selectUserId);
 
   // Get user profile from API
   const {
@@ -28,6 +30,24 @@ const useUser = () => {
     error,
     refetch,
   } = useGetUserProfileQuery();
+
+  // Get userId from Redux or fallback to profileData
+  const userId = useMemo(() => {
+    return userIdFromRedux || profileData?.data?._id || null;
+  }, [userIdFromRedux, profileData?.data?._id]);
+
+  // Automatically sync profileData to Redux when available
+  // This ensures userId and all user data is available in Redux for other components
+  useEffect(() => {
+    if (profileData?.data && profileData.success && profileData.data._id) {
+      const profileUserId = profileData.data._id;
+      // Sync to Redux if userId is missing or different
+      if (!userIdFromRedux || userIdFromRedux !== profileUserId) {
+        dispatch(setUser(profileData.data));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileData?.data?._id, profileData?.success, userIdFromRedux, dispatch]);
 
   const updateUserProfile = useCallback(
     (userData) => {
@@ -55,7 +75,7 @@ const useUser = () => {
     userName,
     userEmail,
     userImage,
-
+    userId,
     // API Data
     profileData,
     isLoading,

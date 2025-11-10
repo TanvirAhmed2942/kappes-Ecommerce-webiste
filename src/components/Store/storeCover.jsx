@@ -3,11 +3,65 @@ import { useState } from "react";
 import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import Link from "next/link";
 import { getImageUrl } from "@/redux/baseUrl";
-
+import { useCreateChatMutation } from "@/redux/shopuserChatApi/shopuserChatApi";
+import { useSelector } from "react-redux";
+import { selectUserId } from "@/features/userSlice/userSlice";
+import useToast from "@/hooks/useShowToast";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 const StoreCover = ({ shopInfo }) => {
   const [following, setFollowing] = useState(false);
+  const [createChat, { isLoading }] = useCreateChatMutation();
+  const storeId = useParams().id;
+  const userId = useSelector(selectUserId);
+  const toast = useToast();
+  // console.log("current user ID", userId, "store ID", storeId);
+  const router = useRouter();
+  const handleCreateChat = async () => {
+    if (!userId || !storeId) {
+      toast.showError("Unable to create chat. Missing required information.");
+      return;
+    }
+
+    try {
+      const response = await createChat({
+        participants: [
+          {
+            participantId: userId,
+            participantType: "User",
+          },
+          {
+            participantId: storeId,
+            participantType: "Shop",
+          },
+        ],
+      }).unwrap();
+
+      console.log(response);
+
+      if (response?.success) {
+        toast.showSuccess(response?.message || "Chat created successfully!");
+        router.push(`/chat/${response?.data?._id}`);
+      } else {
+        toast.showError(response?.message || "Failed to create chat");
+      }
+    } catch (error) {
+      console.log(error);
+      // Extract error message from different possible error structures
+      let errorMessage = "Failed to create chat. Please try again.";
+
+      if (error?.data?.errorMessages && error.data.errorMessages.length > 0) {
+        errorMessage = error.data.errorMessages[0].message;
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      toast.showError(errorMessage);
+    }
+  };
 
   return (
     <div className="w-full  mx-auto overflow-hidden">
@@ -61,15 +115,15 @@ const StoreCover = ({ shopInfo }) => {
             </div>
 
             <div className="flex gap-2 mt-2 md:mt-0">
-              <Link href="/chat/454">
-                <Button
-                  variant="outline"
-                  className="flex-1 md:flex-none bg-green-500 hover:bg-green-600 text-white border-none"
-                >
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  Message
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                className="flex-1 md:flex-none bg-green-500 hover:bg-green-600 text-white border-none disabled:opacity-50"
+                onClick={handleCreateChat}
+                // disabled={!userId || isLoading || !shopInfo?.id}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                {isLoading ? "Creating..." : "Message"}
+              </Button>
 
               <Button
                 variant={following ? "outline" : "default"}
