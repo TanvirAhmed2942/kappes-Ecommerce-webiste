@@ -12,7 +12,10 @@ import {
   useResendOtpMutation,
   useVerifyEmailMutation,
 } from "@/redux/authApi/authApi";
-import { useVerifyBusinessMutation } from "@/redux/servicesApi/servicsApi";
+import {
+  useVerifyBusinessEmailMutation,
+  useResendBusinessOtpMutation,
+} from "@/redux/servicesApi/servicsApi";
 import useToast from "@/hooks/useShowToast";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import VerificationSuccess from "@/common/components/verificationSuccess";
@@ -24,7 +27,7 @@ export default function OTPverification() {
   const pathname = usePathname();
   const email = searchParams.get("email");
   const forgot = searchParams.get("forgot");
-  const [countdown, setCountdown] = useState(57);
+  const [countdown, setCountdown] = useState(30);
   const [timerKey, setTimerKey] = useState(0); // Key to restart timer
   const router = useRouter();
 
@@ -33,13 +36,15 @@ export default function OTPverification() {
     "/business-listing/verification"
   );
 
-  // Get user email from useUser hook for business verification
+  // Get user email from useUser hook (fallback for regular verification if needed)
   const { userEmail: userEmailFromHook, profileData } = useUser();
 
   // Determine which email to use
+  // For business verification: prioritize email from URL params (passed from business listing form)
+  // For regular verification: use email from URL params (standard flow)
   const verificationEmail = isBusinessVerification
-    ? profileData?.data?.email || userEmailFromHook || email
-    : email;
+    ? email || profileData?.data?.email || userEmailFromHook
+    : email || userEmailFromHook;
 
   useEffect(() => {
     if (email || forgot) {
@@ -50,10 +55,15 @@ export default function OTPverification() {
     }
   }, [email, forgot, isBusinessVerification, verificationEmail]);
 
+  // User verification mutations (for regular user verification)
   const [verifyEmail, { isLoading }] = useVerifyEmailMutation();
-  const [verifyBusiness, { isLoading: isVerifyingBusiness }] =
-    useVerifyBusinessMutation();
   const [resendOtp, { isLoading: isResendOtpLoading }] = useResendOtpMutation();
+
+  // Business verification mutations (for business verification only)
+  const [verifyBusinessEmail, { isLoading: isVerifyingBusiness }] =
+    useVerifyBusinessEmailMutation();
+  const [resendBusinessOtp, { isLoading: isResendBusinessOtpLoading }] =
+    useResendBusinessOtpMutation();
   const { showSuccess, showError } = useToast();
   const {
     control,
@@ -80,7 +90,7 @@ export default function OTPverification() {
     }
 
     // Reset countdown to initial value when timer restarts
-    setCountdown(57);
+    setCountdown(30);
 
     // Set up the interval
     intervalRef.current = setInterval(() => {
@@ -119,12 +129,12 @@ export default function OTPverification() {
 
       if (isBusinessVerification) {
         // Use business verification API
-        response = await verifyBusiness({
+        response = await verifyBusinessEmail({
           email: verificationEmail,
           oneTimeCode: Number(data.otp),
         }).unwrap();
       } else {
-        // Use regular email verification API
+        // Use regular email verification API (user verification)
         response = await verifyEmail({
           oneTimeCode: Number(data.otp),
           email: verificationEmail,
@@ -183,7 +193,15 @@ export default function OTPverification() {
     }
 
     try {
-      const response = await resendOtp({ email: verificationEmail });
+      let response;
+      if (isBusinessVerification) {
+        // Use business resend OTP API
+        response = await resendBusinessOtp({ email: verificationEmail });
+      } else {
+        // Use regular user resend OTP API
+        response = await resendOtp({ email: verificationEmail });
+      }
+
       console.log(response);
       if (response.data?.success === true) {
         showSuccess(response.data?.message);
@@ -261,7 +279,7 @@ export default function OTPverification() {
 
           <p className="text-center text-gray-600 text-sm px-6">
             A code has been sent to your email
-            {isBusinessVerification && verificationEmail && (
+            {verificationEmail && (
               <span className="block mt-1 text-xs text-gray-500">
                 ({verificationEmail})
               </span>
@@ -276,10 +294,12 @@ export default function OTPverification() {
             <button
               type="button"
               onClick={handleResend}
-              disabled={isResendOtpLoading}
+              disabled={isResendOtpLoading || isResendBusinessOtpLoading}
               className="text-center text-red-700 text-sm font-bold px-6 underline hover:text-red-800 w-full bg-transparent border-none cursor-pointer disabled:opacity-50"
             >
-              {isResendOtpLoading ? "Sending..." : "Resend OTP"}
+              {isResendOtpLoading || isResendBusinessOtpLoading
+                ? "Sending..."
+                : "Resend OTP"}
             </button>
           )}
 

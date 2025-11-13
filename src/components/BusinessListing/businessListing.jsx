@@ -29,18 +29,7 @@ import { useAddBusinessMutation } from "@/redux/servicesApi/servicsApi";
 import useToast from "@/hooks/useShowToast";
 
 // Business type options
-const businessTypes = [
-  "Restaurant",
-  "Retail",
-  "Healthcare",
-  "Technology",
-  "Education",
-  "Professional Services",
-  "Construction",
-  "Manufacturing",
-  "Entertainment",
-  "Other",
-];
+const businessTypes = ["Retail", "Wholesale"];
 
 // Province options
 const provinces = [
@@ -105,28 +94,8 @@ export default function BusinessListingForm() {
       // Prepare the business data object matching API structure
       const businessData = {
         name: data.businessName,
-        type:
-          data.businessType === "Retail"
-            ? "RETAIL"
-            : data.businessType === "Restaurant"
-            ? "RESTAURANT"
-            : data.businessType === "Healthcare"
-            ? "HEALTHCARE"
-            : data.businessType === "Technology"
-            ? "TECHNOLOGY"
-            : data.businessType === "Education"
-            ? "EDUCATION"
-            : data.businessType === "Professional Services"
-            ? "PROFESSIONAL_SERVICES"
-            : data.businessType === "Construction"
-            ? "CONSTRUCTION"
-            : data.businessType === "Manufacturing"
-            ? "MANUFACTURING"
-            : data.businessType === "Entertainment"
-            ? "ENTERTAINMENT"
-            : data.businessType === "Other"
-            ? "OTHER"
-            : "",
+        type: data.businessType === "Retail" ? "RETAIL" : "WHOLESALE",
+
         email: data.businessEmail,
         phone: data.phone,
         description: data.shortDescription,
@@ -173,7 +142,9 @@ export default function BusinessListingForm() {
           response.message || "Business listing created successfully!"
         );
         // Navigate to verification page after successful submission
-        router.push("/business-listing/verification");
+        router.push(
+          `/business-listing/verification?email=${response?.data?.email}`
+        );
       } else {
         toast.showError(
           response?.message || "Failed to create business listing"
