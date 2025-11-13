@@ -45,8 +45,12 @@ function ServiceLayout() {
   }
 
   // Destructure service details with fallbacks
+  // Handle banner as array for carousel
+  const bannerArray = selectedService.banner || [];
+  console.log(bannerArray);
+
   const {
-    banner = "/assets/tradesAndServies/servicePromo.png",
+    coverPhoto = "/assets/tradesAndServies/servicePromo.png",
     logo = "/assets/logo.png",
     name = "Service Name",
     totalReviews = 0,
@@ -57,7 +61,7 @@ function ServiceLayout() {
   return (
     <div className="px-4 lg:px-32">
       <FrontCover
-        coverPhoto={banner}
+        coverPhoto={coverPhoto}
         logo={logo}
         name={name}
         totalReviews={totalReviews}
@@ -65,7 +69,7 @@ function ServiceLayout() {
         rating={<StarRating rating={avg_rating} className="mt-2" />}
       />
       <div className="flex flex-col md:flex md:flex-row md:gap-10 lg:gap-5 lg:px-0 md:justify-between justify-between">
-        <ServicePromotion />
+        <ServicePromotion bannerImages={bannerArray} />
         <RightAside />
       </div>
     </div>
