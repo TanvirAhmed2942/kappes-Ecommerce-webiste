@@ -10,6 +10,14 @@ const productApi = api.injectEndpoints({
         };
       },
     }),
+    getCategory: builder.query({
+      query: () => {
+        return {
+          url: `/category`,
+          method: "GET",
+        };
+      },
+    }),
     getRecommendedProducts: builder.query({
       query: () => {
         return {
@@ -179,6 +187,7 @@ export const {
   useAddToFavProductMutation,
   useRemoveFromFavProductMutation,
   useGetFavProductsQuery,
+  useGetCategoryQuery,
 } = productApi;
 
 // Export directly to ensure it's available
