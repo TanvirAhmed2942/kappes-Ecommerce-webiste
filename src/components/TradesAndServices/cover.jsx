@@ -1,29 +1,48 @@
 "use client";
 import SearchBox from "@/common/components/searchBox";
 import Image from "next/image";
-import React from "react";
+import React, { useMemo } from "react";
+import { useGetBusinessListQuery } from "@/redux/servicesApi/servicsApi";
+import { useRouter } from "next/navigation";
 
 function Cover() {
-  const searchServices = [
-    { id: 1, serviceName: "Fresh Painting" },
-    { id: 2, serviceName: "Dentist" },
-    { id: 3, serviceName: "Car Wash" },
-    { id: 4, serviceName: "GC Bakery" },
-    { id: 5, serviceName: "Cake Storys" },
-    { id: 6, serviceName: "Sharlan PhotoStudio" },
-    { id: 7, serviceName: "Abby Clothing" },
-    { id: 8, serviceName: "Strawberry" },
-    { id: 9, serviceName: "Smith Rent a Car" },
-    { id: 10, serviceName: "Fire Safety Store" },
-    { id: 11, serviceName: "Fishing Accessories" },
-  ];
+  const router = useRouter();
+  const { data: businessList, isLoading, error } = useGetBusinessListQuery();
+
+  // Transform businesses from API to SearchBox format
+  const searchServices = useMemo(() => {
+    if (!businessList?.success || !businessList?.data?.businesses) {
+      return [];
+    }
+    return businessList.data.businesses.map((business) => ({
+      id: business._id,
+      serviceName: business.name || business.service || "Business",
+    }));
+  }, [businessList]);
 
   const handleSearch = (searchTerm) => {
-    const found = searchServices.some(
+    if (!searchTerm.trim()) return;
+
+    // Find matching business
+    const found = searchServices.find(
       (service) =>
         service.serviceName.toLowerCase() === searchTerm.toLowerCase()
     );
-    console.log("Search found:", found);
+
+    if (found) {
+      // Navigate to the business page
+      router.push(`/trades-&-services/services/${found.id}`);
+    } else {
+      // If exact match not found, search for partial matches
+      const partialMatch = searchServices.find((service) =>
+        service.serviceName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      if (partialMatch) {
+        router.push(`/trades-&-services/services/${partialMatch.id}`);
+      } else {
+        console.log("No business found matching:", searchTerm);
+      }
+    }
   };
   return (
     <div>
