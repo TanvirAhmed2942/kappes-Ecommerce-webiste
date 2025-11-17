@@ -54,6 +54,18 @@ const cartApi = api.injectEndpoints({
         };
       },
     }),
+    applyPromoCode: builder.mutation({
+      query: ({ data, couponCode }) => {
+        return {
+          url: `/coupon/${couponCode}`,
+          method: "POST",
+          body: data,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
+      },
+    }),
   }),
   overrideExisting: true,
 });
@@ -64,4 +76,5 @@ export const {
   useUpdateMyCartMutation,
   useRemoveFromCartMutation,
   usePlaceOrderMutation,
+  useApplyPromoCodeMutation,
 } = cartApi;

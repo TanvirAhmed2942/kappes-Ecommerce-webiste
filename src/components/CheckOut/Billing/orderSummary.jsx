@@ -2,7 +2,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
-import { usePlaceOrderMutation } from "@/redux/cartApi/cartApi";
+import {
+  usePlaceOrderMutation,
+  useApplyPromoCodeMutation,
+} from "@/redux/cartApi/cartApi";
 import useToast from "@/hooks/useShowToast";
 import useUser from "@/hooks/useUser";
 import {
@@ -37,7 +40,12 @@ export default function OrderSummary({
   const { cartItems, totalAmount, formatCurrency, apiResponse, refetch } =
     useCart();
   const [placeOrder, { isLoading: isPlacingOrder }] = usePlaceOrderMutation();
+  const [applyPromoCode, { isLoading: isApplyingPromo }] =
+    useApplyPromoCodeMutation();
   const [promoCode, setPromoCode] = useState("");
+  const [appliedPromoCode, setAppliedPromoCode] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [discountedPrice, setDiscountedPrice] = useState(0);
   const [isAgreed, setIsAgreed] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -51,8 +59,67 @@ export default function OrderSummary({
       0
     );
   const shippingFee = itemCost > 0 ? 29.0 : 0.0; // free shipping if no items
-  const discount = promoCode ? 0.0 : 0.0; // Will be calculated by backend if coupon is valid
-  const total = itemCost + shippingFee - discount;
+  const orderAmount = itemCost + shippingFee; // Total before discount
+  const total =
+    discountedPrice > 0 ? discountedPrice : orderAmount - discountAmount;
+
+  // Get shopId from cart items (assuming all items are from the same shop, or use first shop)
+  const getShopId = () => {
+    if (cartItems.length === 0) return null;
+    // Get the first shopId from cart items
+    return cartItems[0]?.shopId || null;
+  };
+
+  const handleApplyPromoCode = async () => {
+    if (!promoCode.trim()) {
+      toast.showError("Please enter a promo code");
+      return;
+    }
+
+    const shopId = getShopId();
+    if (!shopId) {
+      toast.showError(
+        "Unable to apply promo code. Cart is empty or missing shop information."
+      );
+      return;
+    }
+
+    const orderAmountValue = orderAmount;
+
+    try {
+      const response = await applyPromoCode({
+        data: {
+          shopId: shopId,
+          orderAmount: orderAmountValue,
+        },
+        couponCode: promoCode.trim(),
+      }).unwrap();
+
+      if (response?.success && response?.data) {
+        const { discountAmount: discount, discountedPrice: discounted } =
+          response.data;
+        setDiscountAmount(discount || 0);
+        setDiscountedPrice(discounted || orderAmountValue - (discount || 0));
+        setAppliedPromoCode(promoCode.trim());
+        toast.showSuccess(
+          response?.message || "Promo code applied successfully!"
+        );
+      } else {
+        toast.showError(response?.message || "Failed to apply promo code");
+      }
+    } catch (error) {
+      console.error("Failed to apply promo code:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.data?.error?.[0]?.message ||
+        "Invalid promo code. Please try again.";
+      toast.showError(errorMessage);
+      // Reset promo code state on error
+      setDiscountAmount(0);
+      setDiscountedPrice(0);
+      setAppliedPromoCode("");
+    }
+  };
 
   const handlePlaceOrder = async () => {
     if (!deliveryOption) {
@@ -107,9 +174,9 @@ export default function OrderSummary({
           paymentMethod: paymentMethod,
         };
 
-        // Add coupon if provided
-        if (promoCode) {
-          orderData.coupon = promoCode;
+        // Add coupon if provided and applied
+        if (appliedPromoCode) {
+          orderData.coupon = appliedPromoCode;
         }
 
         return placeOrder(orderData).unwrap();
@@ -154,11 +221,22 @@ export default function OrderSummary({
             value={promoCode}
             onChange={(e) => setPromoCode(e.target.value)}
             className="flex-grow"
+            disabled={isApplyingPromo}
           />
-          <Button variant="destructive" className="bg-red-700 hover:bg-red-800">
-            Apply
+          <Button
+            variant="destructive"
+            className="bg-red-700 hover:bg-red-800"
+            onClick={handleApplyPromoCode}
+            disabled={!promoCode || isApplyingPromo}
+          >
+            {isApplyingPromo ? "Applying..." : "Apply"}
           </Button>
         </div>
+        {appliedPromoCode && (
+          <div className="text-sm text-green-600">
+            Promo code "{appliedPromoCode}" applied successfully!
+          </div>
+        )}
 
         {/* Cost Breakdown */}
         <Card>
@@ -174,10 +252,12 @@ export default function OrderSummary({
                 <span>{formatCurrency(shippingFee)}</span>
               </div>
 
-              {discount > 0 && (
+              {discountAmount > 0 && (
                 <div className="flex justify-between">
                   <span>Discount</span>
-                  <span>-{formatCurrency(discount)}</span>
+                  <span className="text-green-600">
+                    -{formatCurrency(discountAmount)}
+                  </span>
                 </div>
               )}
 
@@ -382,18 +462,18 @@ export default function OrderSummary({
                     <span className="text-gray-600">Shipping Fee:</span>
                     <span>{formatCurrency(shippingFee)}</span>
                   </div>
-                  {discount > 0 && (
+                  {discountAmount > 0 && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Discount:</span>
                       <span className="text-green-600">
-                        -{formatCurrency(discount)}
+                        -{formatCurrency(discountAmount)}
                       </span>
                     </div>
                   )}
-                  {promoCode && (
+                  {appliedPromoCode && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Promo Code:</span>
-                      <span className="text-blue-600">{promoCode}</span>
+                      <span className="text-blue-600">{appliedPromoCode}</span>
                     </div>
                   )}
                   <div className="border-t pt-2 mt-2 flex justify-between font-semibold">
