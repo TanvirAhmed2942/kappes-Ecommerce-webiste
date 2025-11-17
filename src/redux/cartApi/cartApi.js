@@ -42,6 +42,18 @@ const cartApi = api.injectEndpoints({
         };
       },
     }),
+    placeOrder: builder.mutation({
+      query: (data) => {
+        return {
+          url: `/order/create`,
+          method: "POST",
+          body: data,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
+      },
+    }),
   }),
   overrideExisting: true,
 });
@@ -51,4 +63,5 @@ export const {
   useAddToCartMutation,
   useUpdateMyCartMutation,
   useRemoveFromCartMutation,
+  usePlaceOrderMutation,
 } = cartApi;

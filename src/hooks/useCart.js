@@ -66,6 +66,7 @@ export function useCart() {
         size: item.variantId?.storage || item.variantId?.ram || null,
         variantId: item.variantId?._id || item.variantId?.id, // Variant ID for updates
         productId: productId, // Product ID for updates (can be null)
+        shopId: item.shopId, // Shop ID for order creation
         // Add any other fields your UI might need
         totalItemPrice: item.totalPrice,
         variant: item.variantId, // Store full variant object for reference
@@ -188,5 +189,6 @@ export function useCart() {
     updateCart,
     updateQuantity,
     refetch,
+    apiResponse, // Return raw API response for order creation
   };
 }
