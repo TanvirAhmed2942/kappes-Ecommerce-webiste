@@ -40,9 +40,7 @@ function Checkout() {
     <div className="w-full md:w-[90%] px-4 py-10 md:px-10 md:py-15 mx-auto min-h-screen">
       <Table>
         <TableCaption>
-          {cartItems.length > 0
-            ? "Your shopping cart items"
-            : "Your cart is empty"}
+          {cartItems.length > 0 ? "Your shopping cart items" : null}
         </TableCaption>
         <TableHeader>
           <TableRow>
@@ -111,7 +109,7 @@ function Checkout() {
             <TableRow>
               <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                 Your cart is empty.
-                <Link href="/" className="text-blue-500 hover:underline ml-1">
+                <Link href="/" className="text-red-700 hover:underline ml-1">
                   Continue shopping
                 </Link>
               </TableCell>

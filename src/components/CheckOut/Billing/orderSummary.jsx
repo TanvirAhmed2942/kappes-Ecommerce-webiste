@@ -127,7 +127,7 @@ export default function OrderSummary({
       refetch();
 
       // Redirect to success page
-      router.push("/check-out/billing-procedure/order-place-success");
+      router.push(responses?.[0]?.data?.url);
     } catch (error) {
       console.error("Failed to place order:", error);
       const errorMessage =
