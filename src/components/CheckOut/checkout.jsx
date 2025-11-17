@@ -67,8 +67,11 @@ function Checkout() {
                   <TableCell className="font-medium">
                     <Image
                       src={
-                        `${getImageUrl}/${item.productImage}` ||
-                        "/assets/bag.png"
+                        item.productImage?.startsWith("http")
+                          ? item.productImage
+                          : item.productImage
+                          ? `${getImageUrl}${item.productImage}`
+                          : "/assets/bag.png"
                       }
                       alt={item.name || "Product Image"}
                       width={50}
@@ -82,12 +85,11 @@ function Checkout() {
                         {item.name || item.productName || "Product Name"}
                       </span>
                       <span className="text-xs text-gray-500">
-                        {item.size && `Size: ${item.size} `}
-                        {item.color && `Color: ${item.color}`}
-                        {item.description &&
-                          !item.size &&
-                          !item.color &&
-                          item.description}
+                        {item.color && `Color: ${item.color} `}
+                        {item.size && `Size: ${item.size}`}
+                        {item.variant?.storage &&
+                          `Storage: ${item.variant.storage} `}
+                        {item.variant?.ram && `RAM: ${item.variant.ram}`}
                       </span>
                     </div>
                   </TableCell>
@@ -96,6 +98,7 @@ function Checkout() {
                     <CartControlButton
                       itemId={item.id}
                       currentQuantity={item.quantity || 1}
+                      item={item}
                     />
                   </TableCell>
                   <TableCell className="text-right">
