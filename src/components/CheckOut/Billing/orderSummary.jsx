@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
 import { usePlaceOrderMutation } from "@/redux/cartApi/cartApi";
 import useToast from "@/hooks/useShowToast";
+import useUser from "@/hooks/useUser";
 import {
   Card,
   CardContent,
@@ -14,7 +15,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import Link from "next/link";
+import Image from "next/image";
+import { getImageUrl } from "@/redux/baseUrl";
 
 export default function OrderSummary({
   deliveryOption,
@@ -23,11 +33,15 @@ export default function OrderSummary({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const { user, profileData } = useUser();
   const { cartItems, totalAmount, formatCurrency, apiResponse, refetch } =
     useCart();
   const [placeOrder, { isLoading: isPlacingOrder }] = usePlaceOrderMutation();
   const [promoCode, setPromoCode] = useState("");
   const [isAgreed, setIsAgreed] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const userData = profileData?.data || user;
 
   // Calculate totals from cart
   const itemCost =
@@ -173,6 +187,13 @@ export default function OrderSummary({
                   {formatCurrency(total)}
                 </span>
               </div>
+
+              <p
+                className="text-red-700 font-medium cursor-pointer hover:underline"
+                onClick={() => setIsSheetOpen(true)}
+              >
+                View Details
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -214,6 +235,179 @@ export default function OrderSummary({
           {isPlacingOrder ? "Placing Order..." : "Place Order"}
         </Button>
       </CardFooter>
+
+      {/* Order Details Sheet */}
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent
+          side="right"
+          className="max-w-[400px] p-4 sm:max-w-lg overflow-y-auto"
+        >
+          <SheetHeader>
+            <SheetTitle>Order Details</SheetTitle>
+            <SheetDescription>
+              Review your order items and billing information
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="mt-6 space-y-6">
+            {/* Products Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Products</h3>
+              <div className="space-y-3">
+                {cartItems.length > 0 ? (
+                  cartItems.map((item, index) => (
+                    <Card key={index} className="p-4">
+                      <div className="flex gap-4">
+                        <div className="relative w-20 h-20 flex-shrink-0">
+                          <Image
+                            src={
+                              item.productImage?.startsWith("http")
+                                ? item.productImage
+                                : item.productImage
+                                ? `${getImageUrl}${item.productImage}`
+                                : "/assets/bag.png"
+                            }
+                            alt={item.name || "Product"}
+                            fill
+                            className="object-cover rounded-md"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm truncate">
+                            {item.name || item.productName || "Product"}
+                          </h4>
+                          <div className="mt-1 space-y-1 text-xs text-gray-600">
+                            {item.color && (
+                              <p>
+                                <span className="font-medium">Color:</span>{" "}
+                                {item.color}
+                              </p>
+                            )}
+                            {item.size && (
+                              <p>
+                                <span className="font-medium">Size:</span>{" "}
+                                {item.size}
+                              </p>
+                            )}
+                            {item.variant?.storage && (
+                              <p>
+                                <span className="font-medium">Storage:</span>{" "}
+                                {item.variant.storage}
+                              </p>
+                            )}
+                            {item.variant?.ram && (
+                              <p>
+                                <span className="font-medium">RAM:</span>{" "}
+                                {item.variant.ram}
+                              </p>
+                            )}
+                          </div>
+                          <div className="mt-2 flex justify-between items-center">
+                            <span className="text-xs text-gray-500">
+                              Qty: {item.quantity}
+                            </span>
+                            <span className="font-semibold text-sm">
+                              {formatCurrency(
+                                (item.price || 0) * (item.quantity || 1)
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">No items in cart</p>
+                )}
+              </div>
+            </div>
+
+            {/* Billing Information Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">
+                Billing Information
+              </h3>
+              <Card className="p-4">
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-600">Name:</span>
+                    <p className="mt-1">
+                      {userData?.full_name || "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Phone:</span>
+                    <p className="mt-1">{userData?.phone || "Not provided"}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">
+                      Shipping Address:
+                    </span>
+                    <p className="mt-1">{shippingAddress || "Not provided"}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">
+                      Delivery Option:
+                    </span>
+                    <p className="mt-1">{deliveryOption || "Not selected"}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">
+                      Payment Method:
+                    </span>
+                    <p className="mt-1">
+                      {paymentMethod === "Cod"
+                        ? "COD (Cash on Delivery)"
+                        : paymentMethod === "Online"
+                        ? "Online (Stripe)"
+                        : paymentMethod === "Card"
+                        ? "Card (Credit/Debit)"
+                        : paymentMethod || "Not selected"}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Order Summary Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+              <Card className="p-4">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Item Cost:</span>
+                    <span>{formatCurrency(itemCost)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Shipping Fee:</span>
+                    <span>{formatCurrency(shippingFee)}</span>
+                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Discount:</span>
+                      <span className="text-green-600">
+                        -{formatCurrency(discount)}
+                      </span>
+                    </div>
+                  )}
+                  {promoCode && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Promo Code:</span>
+                      <span className="text-blue-600">{promoCode}</span>
+                    </div>
+                  )}
+                  <div className="border-t pt-2 mt-2 flex justify-between font-semibold">
+                    <span>Total:</span>
+                    <span className="text-red-700">
+                      {formatCurrency(total)}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </Card>
   );
 }
