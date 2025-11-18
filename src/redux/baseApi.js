@@ -26,6 +26,7 @@ export const api = createApi({
     "CART",
     "ORDER",
     "WISHLIST",
+    "Messages",
   ],
 });
 

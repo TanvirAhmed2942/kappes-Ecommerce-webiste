@@ -5,24 +5,46 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { getImageUrl } from "@/redux/baseUrl";
 import { useCreateChatMutation } from "@/redux/shopuserChatApi/shopuserChatApi";
-import { useSelector } from "react-redux";
-import { selectUserId } from "@/features/userSlice/userSlice";
 import useToast from "@/hooks/useShowToast";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import useAuth from "@/hooks/useAuth";
+import useUser from "@/hooks/useUser";
 const StoreCover = ({ shopInfo }) => {
   const [following, setFollowing] = useState(false);
   const [createChat, { isLoading }] = useCreateChatMutation();
-  const storeId = useParams().id;
-  const userId = useSelector(selectUserId);
+  const params = useParams();
+  const storeId = params?.id;
+  const { userId } = useUser();
+  const { isLoggedIn } = useAuth();
+
   const toast = useToast();
-  // console.log("current user ID", userId, "store ID", storeId);
   const router = useRouter();
+
   const handleCreateChat = async () => {
-    if (!userId || !storeId) {
-      toast.showError("Unable to create chat. Missing required information.");
+    if (!isLoggedIn) {
+      toast.showError("Please login to Message this Seller.");
       return;
     }
+
+    // Better error messages to identify which value is missing
+    if (!userId) {
+      console.error("Missing userId:", userId);
+      toast.showError(
+        "Unable to create chat. User information not available. Please try refreshing the page."
+      );
+      return;
+    }
+
+    if (!storeId) {
+      console.error("Missing storeId:", storeId);
+      toast.showError(
+        "Unable to create chat. Store information not available."
+      );
+      return;
+    }
+
+    console.log("Creating chat with userId:", userId, "storeId:", storeId);
 
     try {
       const response = await createChat({

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { MoreVertical, Send, Image, Smile, Minimize2, X } from "lucide-react";
 import {
@@ -8,13 +8,96 @@ import {
   minimizeChat,
   markAllAsRead,
 } from "../../features/chatSlice";
+import {
+  useCreateMessageMutation,
+  useGetMessagesQuery,
+} from "@/redux/chatApi/chatApi";
+import useToast from "@/hooks/useShowToast";
+import useAuth from "@/hooks/useAuth";
+import { getImageUrl } from "@/redux/baseUrl";
 
 const ChatBox = ({ selectedChat }) => {
   const dispatch = useDispatch();
-  const { messages, isTyping, isChatOpen, isMinimized, unreadCount } =
-    useSelector((state) => state.chat);
+  const { isTyping, isChatOpen, isMinimized, unreadCount } = useSelector(
+    (state) => state.chat
+  );
   const [inputMessage, setInputMessage] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const { userId } = useAuth();
+  const chatId = selectedChat?.chatId || selectedChat?.id;
+
+  // Fetch messages from API
+  const { data: messagesData, isLoading: isLoadingMessages } =
+    useGetMessagesQuery(chatId, {
+      skip: !chatId, // Skip query if no chatId
+    });
+
+  const [createMessage, { isLoading: isSendingMessage }] =
+    useCreateMessageMutation();
+  const toast = useToast();
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  // Transform API messages to UI format
+  const messages = useMemo(() => {
+    if (!messagesData?.data?.messages || !userId) {
+      return [];
+    }
+
+    return messagesData.data.messages.map((msg) => {
+      // Determine if message is from current user
+      // Check multiple possible structures for sender ID
+      let senderId = null;
+
+      // API returns sender as a string ID directly
+      if (typeof msg.sender === "string") {
+        senderId = msg.sender;
+      } else if (msg.sender?.participantId) {
+        // If sender is an object with participantId
+        senderId =
+          typeof msg.sender.participantId === "object"
+            ? msg.sender.participantId._id
+            : msg.sender.participantId;
+      } else if (msg.senderId) {
+        // Direct senderId field
+        senderId = msg.senderId;
+      } else if (msg.sender?._id) {
+        // Sender object with _id
+        senderId = msg.sender._id;
+      }
+
+      // Compare userId (convert both to strings for reliable comparison)
+      // If senderId matches userId, it's from the current user
+      const isFromUser = senderId && String(senderId) === String(userId);
+
+      // Get image URL if exists
+      const getImageUrlFull = (imagePath) => {
+        if (!imagePath) return null;
+        if (imagePath.startsWith("http")) return imagePath;
+        return `${getImageUrl}${
+          imagePath.startsWith("/") ? imagePath.slice(1) : imagePath
+        }`;
+      };
+
+      return {
+        id: msg._id,
+        text: msg.text || msg.content || "",
+        sender: isFromUser ? "user" : "seller",
+        timestamp: msg.createdAt
+          ? new Date(msg.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+        isRead: msg.isRead || false,
+        images: msg.image ? [getImageUrlFull(msg.image)] : null,
+      };
+    });
+  }, [messagesData, userId]);
 
   // Auto-scroll to bottom when new messages are added
   const scrollToBottom = () => {
@@ -32,11 +115,82 @@ const ChatBox = ({ selectedChat }) => {
     }
   }, [isChatOpen, isMinimized, unreadCount, dispatch]);
 
-  const handleSendMessage = () => {
-    if (inputMessage.trim() === "" || !selectedChat) return;
+  const handleSendMessage = async () => {
+    if ((inputMessage.trim() === "" && !selectedImage) || !selectedChat) return;
 
-    dispatch(sendMessage(inputMessage.trim()));
-    setInputMessage("");
+    try {
+      // Create FormData
+      const formData = new FormData();
+
+      // Add data as JSON string
+      const messageData = {
+        chatId: selectedChat.chatId || selectedChat.id,
+        text: inputMessage.trim() || "",
+      };
+      formData.append("data", JSON.stringify(messageData));
+
+      // Add image if selected
+      if (selectedImage) {
+        formData.append("image", selectedImage);
+      }
+
+      // Send message via API
+      const response = await createMessage(formData).unwrap();
+
+      if (response?.success) {
+        // Clear input and image
+        setInputMessage("");
+        setSelectedImage(null);
+        setImagePreview(null);
+
+        // Messages will automatically refetch due to cache invalidation
+        // Optionally show success toast
+        // toast.showSuccess("Message sent successfully");
+      } else {
+        toast.showError(response?.message || "Failed to send message");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.data?.errorMessages?.[0]?.message ||
+        "Failed to send message. Please try again.";
+      toast.showError(errorMessage);
+    }
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.showError("Please select an image file");
+        return;
+      }
+
+      // Validate file size (e.g., max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.showError("Image size should be less than 5MB");
+        return;
+      }
+
+      setSelectedImage(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -97,140 +251,166 @@ const ChatBox = ({ selectedChat }) => {
             </p>
           </div>
         </div>
-
-        {/* Header Actions */}
-        {/* <div className="flex items-center space-x-2">
-          <button
-            onClick={handleMinimizeChat}
-            className="p-1 hover:bg-gray-100 rounded"
-          >
-            <Minimize2 className="h-4 w-4 text-gray-500" />
-          </button>
-          <button
-            onClick={handleCloseChat}
-            className="p-1 hover:bg-gray-100 rounded"
-          >
-            <X className="h-4 w-4 text-gray-500" />
-          </button>
-        </div> */}
       </div>
 
       {/* Chat Messages */}
       <div className="flex-1 p-4 overflow-y-auto">
-        <div className="space-y-6">
-          {messages.map((msg) => (
-            <div key={msg.id} className="space-y-2">
-              <div
-                className={`flex ${
-                  msg.sender === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div className="max-w-[75%]">
-                  {msg.sender !== "user" && (
-                    <div className="flex items-center mb-1 space-x-2">
-                      <img
-                        src={selectedChat.avatar}
-                        alt={selectedChat.name}
-                        className="h-6 w-6 rounded-full"
-                      />
-                      <span className="text-xs text-gray-500">
-                        {msg.timestamp}
-                      </span>
-                    </div>
-                  )}
+        {isLoadingMessages ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500 mx-auto mb-2"></div>
+              <p className="text-gray-500">Loading messages...</p>
+            </div>
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <p className="text-gray-500">No messages yet</p>
+              <p className="text-sm text-gray-400 mt-1">
+                Start the conversation by sending a message
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {messages.map((msg) => (
+              <div key={msg.id} className="space-y-2">
+                <div
+                  className={`flex ${
+                    msg.sender === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div className="max-w-[75%]">
+                    {msg.sender !== "user" && (
+                      <div className="flex items-center mb-1 space-x-2">
+                        <img
+                          src={selectedChat.avatar}
+                          alt={selectedChat.name}
+                          className="h-6 w-6 rounded-full"
+                        />
+                        <span className="text-xs text-gray-500">
+                          {msg.timestamp}
+                        </span>
+                      </div>
+                    )}
 
-                  <div className="relative group">
-                    <div
-                      className={`p-3 rounded-lg ${
-                        msg.sender === "user"
-                          ? "bg-red-700 text-white"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      <p>{msg.text}</p>
-
-                      {/* Images (if any) */}
-                      {msg.images && (
-                        <div className="mt-2 flex space-x-2">
-                          {msg.images.map((img, i) => (
-                            <div key={i} className="rounded-lg overflow-hidden">
-                              <img
-                                src={img}
-                                alt={`Attachment ${i + 1}`}
-                                className="h-20 w-auto"
-                              />
-                            </div>
-                          ))}
-                          {msg.moreImages && (
-                            <div className="h-20 w-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                              <span className="font-semibold">
-                                +{msg.moreImages}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <button className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <MoreVertical className="h-4 w-4 text-gray-400" />
-                    </button>
-                  </div>
-
-                  {msg.sender === "user" && (
-                    <div className="flex justify-end items-center mt-1">
-                      <span className="text-xs text-gray-500 mr-2">
-                        {msg.timestamp}
-                      </span>
-                      <span
-                        className={`h-2 w-2 rounded-full ${
-                          msg.isRead ? "bg-green-500" : "bg-gray-400"
+                    <div className="relative group">
+                      <div
+                        className={`p-3 rounded-lg ${
+                          msg.sender === "user"
+                            ? "bg-red-700 text-white"
+                            : "bg-gray-100 text-gray-800"
                         }`}
-                      ></span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+                      >
+                        <p>{msg.text}</p>
 
-          {/* Typing Indicator */}
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="max-w-[75%]">
-                <div className="flex items-center mb-1 space-x-2">
-                  <img
-                    src={selectedChat.avatar}
-                    alt={selectedChat.name}
-                    className="h-6 w-6 rounded-full"
-                  />
-                  <span className="text-xs text-gray-500">Typing...</span>
-                </div>
-                <div className="bg-gray-100 p-3 rounded-lg">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.1s" }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    ></div>
+                        {/* Images (if any) */}
+                        {msg.images && msg.images.length > 0 && (
+                          <div className="mt-2 flex space-x-2">
+                            {msg.images.map((img, i) => (
+                              <div
+                                key={i}
+                                className="rounded-lg overflow-hidden"
+                              >
+                                <img
+                                  src={img}
+                                  alt={`Attachment ${i + 1}`}
+                                  className="h-20 w-auto object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <MoreVertical className="h-4 w-4 text-gray-400" />
+                      </button>
+                    </div>
+
+                    {msg.sender === "user" && (
+                      <div className="flex justify-end items-center mt-1">
+                        <span className="text-xs text-gray-500 mr-2">
+                          {msg.timestamp}
+                        </span>
+                        <span
+                          className={`h-2 w-2 rounded-full ${
+                            msg.isRead ? "bg-green-500" : "bg-gray-400"
+                          }`}
+                        ></span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            ))}
 
-          <div ref={messagesEndRef} />
-        </div>
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="max-w-[75%]">
+                  <div className="flex items-center mb-1 space-x-2">
+                    <img
+                      src={selectedChat.avatar}
+                      alt={selectedChat.name}
+                      className="h-6 w-6 rounded-full"
+                    />
+                    <span className="text-xs text-gray-500">Typing...</span>
+                  </div>
+                  <div className="bg-gray-100 p-3 rounded-lg">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+        )}
       </div>
 
       {/* Message Input */}
       <div className="p-4 border-t bg-white flex-shrink-0">
+        {/* Image Preview */}
+        {imagePreview && (
+          <div className="mb-2 relative inline-block">
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="h-20 w-20 object-cover rounded-lg"
+            />
+            <button
+              onClick={handleRemoveImage}
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs hover:bg-red-600"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         <div className="flex items-center space-x-2">
-          <button className="p-2 hover:bg-gray-100 rounded-full">
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 hover:bg-gray-100 rounded-full"
+            type="button"
+          >
             <Image className="h-5 w-5 text-gray-500" />
           </button>
 
@@ -240,6 +420,7 @@ const ChatBox = ({ selectedChat }) => {
             placeholder="Type something ..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
             onKeyDown={handleKeyDown}
+            disabled={isSendingMessage}
           />
 
           <button className="p-2 hover:bg-gray-100 rounded-full">
@@ -248,9 +429,16 @@ const ChatBox = ({ selectedChat }) => {
 
           <button
             onClick={handleSendMessage}
-            className="bg-red-600 hover:bg-red-700 text-white rounded-full h-9 w-9 flex items-center justify-center p-0 transition-colors"
+            disabled={
+              isSendingMessage || (!inputMessage.trim() && !selectedImage)
+            }
+            className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-full h-9 w-9 flex items-center justify-center p-0 transition-colors"
           >
-            <Send className="h-4 w-4" />
+            {isSendingMessage ? (
+              <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>

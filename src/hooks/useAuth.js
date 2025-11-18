@@ -10,6 +10,7 @@ import {
   logout,
 } from "@/features/authSlice/authSlice";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
 const useAuth = () => {
   const dispatch = useDispatch();
@@ -19,6 +20,30 @@ const useAuth = () => {
   const reduxIsLoggedIn = useSelector(selectIsLoggedIn);
   const accessToken = useSelector(selectAccessToken);
   const role = useSelector(selectRole);
+
+  // Decode JWT token to get userId
+  const getUserId = () => {
+    try {
+      // Check if we're in browser environment
+      if (typeof window === "undefined") return null;
+
+      // Get token from Redux or localStorage
+      const token = accessToken || localStorage.getItem("accessToken");
+
+      if (!token) return null;
+
+      // Decode the token
+      const decoded = jwtDecode(token);
+
+      // Return userId (common JWT fields: _id, id, userId, sub)
+      return decoded._id || decoded.id || decoded.userId || decoded.sub || null;
+    } catch (error) {
+      console.error("Error decoding JWT token:", error);
+      return null;
+    }
+  };
+
+  const userId = getUserId();
 
   // Determine if user is logged in
   const isLoggedIn = (() => {
@@ -56,6 +81,7 @@ const useAuth = () => {
     isLoggedIn,
     role,
     accessToken,
+    userId,
 
     // Actions
     login: loginUser,

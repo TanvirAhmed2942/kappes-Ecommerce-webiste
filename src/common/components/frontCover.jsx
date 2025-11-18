@@ -35,7 +35,7 @@ const FrontCover = ({ coverPhoto, logo, name, totalReviews, description }) => {
               width={1000}
               height={1000}
               alt="storeLogo"
-              className="w-24 h-24 border-2 rounded-lg"
+              className="w-24 h-24 border-2 rounded-lg bg-white"
             />
           </div>
           {/* </Avatar> */}
