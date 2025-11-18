@@ -1,15 +1,16 @@
-import { useSelector, useDispatch } from "react-redux";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
+  clearUser,
   selectUser,
-  selectUserProfile,
-  selectUserName,
   selectUserEmail,
   selectUserImage,
+  selectUserName,
+  selectUserProfile,
   setUser,
-  clearUser,
-} from "@/features/userSlice/userSlice";
-import { useGetUserProfileQuery } from "@/redux/userprofileApi/userprofileApi";
+} from "../../src/features/userSlice/userSlice";
+import { useGetUserProfileQuery } from '../redux/userprofileApi/userprofileApi';
+
 
 const useUser = () => {
   const dispatch = useDispatch();

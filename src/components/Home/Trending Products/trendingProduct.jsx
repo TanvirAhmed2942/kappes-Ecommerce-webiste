@@ -1,18 +1,18 @@
 "use client";
-import React, { useRef, useEffect } from "react";
-import { IoArrowForward } from "react-icons/io5";
-import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useRef } from "react";
+import { IoArrowForward } from "react-icons/io5";
+import { Card } from "../../../components/ui/card";
 // Import Swiper and required modules
-import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 // Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
-import useTrendingProducts from "@/hooks/useTrendingProducts";
-import { getImageUrl } from "@/redux/baseUrl";
+import useTrendingProducts from "../../../hooks/useTrendingProducts";
+import { getImageUrl } from "../../../redux/baseUrl";
 
 const TrendingProduct = () => {
   const { trendingProducts, isLoading, error } = useTrendingProducts();

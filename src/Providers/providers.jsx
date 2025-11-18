@@ -1,12 +1,12 @@
 "use client";
 
-import { Provider, useSelector } from "react-redux";
-import { store, persistor } from "../store";
-import { PersistGate } from "redux-persist/integration/react";
-import Chat from "@/common/components/chatComponent";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { Provider, useSelector } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
 import { Toaster } from "sonner";
+import Chat from '../common/components/chatComponent';
+import { persistor, store } from "../store";
 
 // Wrapper to access Redux + pathname within Provider
 function ChatWrapper({ children }) {

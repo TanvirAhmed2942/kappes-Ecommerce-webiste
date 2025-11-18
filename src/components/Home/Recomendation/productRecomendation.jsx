@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef } from "react";
 import { IoArrowForward } from "react-icons/io5";
-import { Card } from "@/components/ui/card";
+import { Card } from "../../../components/ui/card";
 import Image from "next/image";
 // Import Swiper and required modules
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -10,12 +10,12 @@ import { Autoplay, Navigation } from "swiper/modules";
 // Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
-import useRecommendedProducts from "@/hooks/useRecommendedProducts";
-import { incrementViewCount } from "@/features/productSlice/productsSlice";
+import useRecommendedProducts from "../../../hooks/useRecommendedProducts";
+import { incrementViewCount } from "../../../features/productSlice/productsSlice";
 import { useDispatch } from "react-redux";
-import { getImageUrl } from "@/redux/baseUrl";
-import provideIcon from "@/common/components/provideIcon";
-import { addFav, removeFav, isFav } from "@/features/productSlice";
+import { getImageUrl } from "../../../redux/baseUrl";
+import provideIcon from "../../../common/components/provideIcon";
+import { addFav, removeFav, isFav } from "../../../features/productSlice";
 import { useRouter } from "next/navigation";
 
 const ProductRecomendation = () => {

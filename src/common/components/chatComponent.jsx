@@ -1,19 +1,19 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { X, Send, Minimize2, Maximize2, MessageCircle } from "lucide-react";
+import { Maximize2, MessageCircle, Minimize2, Send, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { BsAppIndicator } from "react-icons/bs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useDispatch, useSelector } from "react-redux";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import {
   closeChat,
-  minimizeChat,
-  maximizeChat,
-  sendMessage,
   markAllAsRead,
+  maximizeChat,
+  minimizeChat,
   openChat,
   pinChat,
-} from "@/features/chatSlice";
+  sendMessage,
+} from "../../features/chatSlice";
 
 function Chat() {
   const dispatch = useDispatch();
@@ -115,9 +115,8 @@ function Chat() {
     <div className="fixed bottom-4 right-4 z-50">
       {/* Chat Window */}
       <div
-        className={`bg-white rounded-lg shadow-2xl border ${
-          isMinimized ? "w-80 h-16" : "w-80 h-96"
-        } transition-all duration-300`}
+        className={`bg-white rounded-lg shadow-2xl border ${isMinimized ? "w-80 h-16" : "w-80 h-96"
+          } transition-all duration-300`}
       >
         {/* Header */}
         <div className="bg-red-700 text-white p-3 rounded-t-lg flex items-center justify-between">
@@ -183,24 +182,21 @@ function Chat() {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${
-                    message.sender === "user" ? "justify-end" : "justify-start"
-                  }`}
+                  className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"
+                    }`}
                 >
                   <div
-                    className={`max-w-[70%] p-2 rounded-lg relative ${
-                      message.sender === "user"
+                    className={`max-w-[70%] p-2 rounded-lg relative ${message.sender === "user"
                         ? "bg-red-700 text-white"
                         : "bg-gray-100 text-gray-800"
-                    }`}
+                      }`}
                   >
                     <p className="text-sm">{message.text}</p>
                     <p
-                      className={`text-xs mt-1 ${
-                        message.sender === "user"
+                      className={`text-xs mt-1 ${message.sender === "user"
                           ? "text-red-100"
                           : "text-gray-500"
-                      }`}
+                        }`}
                     >
                       {message.timestamp}
                     </p>

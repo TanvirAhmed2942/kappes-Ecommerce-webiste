@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useGetRecommendedProductsQuery } from "@/redux/productApi/productApi";
+import { useGetRecommendedProductsQuery } from "../redux/productApi/productApi";
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectRecommendedProducts,
@@ -9,7 +9,7 @@ import {
   setLoading,
   setError,
   clearError,
-} from "@/features/productSlice/productsSlice";
+} from "../features/productSlice/productsSlice";
 
 const useRecommendedProducts = () => {
   const dispatch = useDispatch();

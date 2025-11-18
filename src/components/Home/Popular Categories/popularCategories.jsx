@@ -7,11 +7,11 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel";
+} from "../../../components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
 import Link from "next/link";
-import useCategory from "@/hooks/useCategory";
+import useCategory from "../../../hooks/useCategory";
 function PopularCategories() {
   const { categories, isLoading, hasCategories } = useCategory();
   console.log("categories from API", categories);
