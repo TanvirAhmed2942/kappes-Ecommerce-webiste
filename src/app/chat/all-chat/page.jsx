@@ -1,5 +1,7 @@
+"use client";
 import MessagingApp from "@/components/Chat/messagingApp";
 import React from "react";
+import { withAuth } from "@/Providers/AuthGuard";
 
 function Page() {
   return (
@@ -9,4 +11,4 @@ function Page() {
   );
 }
 
-export default Page;
+export default withAuth(Page);

@@ -36,7 +36,7 @@ export const AuthGuard = ({ children }) => {
   return isLoggedIn ? (
     children
   ) : (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-white backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-xl text-center opacity-90 space-y-4">
         <p className="text-red-600 font-semibold mb-4">Access Denied</p>
         <p className="text-gray-700">Please log in to access this page</p>
