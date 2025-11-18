@@ -27,6 +27,7 @@ export const api = createApi({
     "ORDER",
     "WISHLIST",
     "Messages",
+    "ChatList",
   ],
 });
 

@@ -36,7 +36,7 @@ const ChatBox = ({ selectedChat }) => {
   const [createMessage, { isLoading: isSendingMessage }] =
     useCreateMessageMutation();
   const toast = useToast();
-  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const fileInputRef = useRef(null);
 
   // Transform API messages to UI format
@@ -45,7 +45,22 @@ const ChatBox = ({ selectedChat }) => {
       return [];
     }
 
-    return messagesData.data.messages.map((msg) => {
+    // Ensure messages are shown chronologically (oldest at the top, newest at the bottom)
+    const sortedMessages = [...messagesData.data.messages].sort((a, b) => {
+      const timeA = a.createdAt
+        ? new Date(a.createdAt).getTime()
+        : a.updatedAt
+        ? new Date(a.updatedAt).getTime()
+        : 0;
+      const timeB = b.createdAt
+        ? new Date(b.createdAt).getTime()
+        : b.updatedAt
+        ? new Date(b.updatedAt).getTime()
+        : 0;
+      return timeA - timeB;
+    });
+
+    return sortedMessages.map((msg) => {
       // Determine if message is from current user
       // Check multiple possible structures for sender ID
       let senderId = null;
@@ -101,7 +116,12 @@ const ChatBox = ({ selectedChat }) => {
 
   // Auto-scroll to bottom when new messages are added
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   };
 
   useEffect(() => {
@@ -254,7 +274,7 @@ const ChatBox = ({ selectedChat }) => {
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 p-4 overflow-y-auto">
+      <div className="flex-1 p-4 overflow-y-auto" ref={messagesContainerRef}>
         {isLoadingMessages ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
@@ -373,8 +393,6 @@ const ChatBox = ({ selectedChat }) => {
                 </div>
               </div>
             )}
-
-            <div ref={messagesEndRef} />
           </div>
         )}
       </div>

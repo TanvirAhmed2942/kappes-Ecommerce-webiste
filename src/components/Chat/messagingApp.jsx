@@ -5,8 +5,12 @@ import { useRouter, useParams } from "next/navigation";
 import { openChat, closeChat } from "../../features/chatSlice";
 import Sidebar from "./chatSidebar";
 import ChatBox from "./chatBox";
-import { useGetChatforUserQuery } from "@/redux/chatApi/chatApi";
-import useUser from "@/hooks/useUser";
+import {
+  useGetChatforUserQuery,
+  useGetChatListShopOwnerQuery,
+  useGetShopIdQuery,
+} from "@/redux/chatApi/chatApi";
+import useAuth from "@/hooks/useAuth";
 import { getImageUrl } from "@/redux/baseUrl";
 
 const MessagingApp = () => {
@@ -15,9 +19,43 @@ const MessagingApp = () => {
   const params = useParams();
   const { currentSeller, isChatOpen } = useSelector((state) => state.chat);
   const [selectedChat, setSelectedChat] = useState(null);
-  const { userId } = useUser();
+  const { userId, isVendor, role } = useAuth();
 
-  const { data: chatsData, isLoading } = useGetChatforUserQuery();
+  // Determine if user is vendor - check both isVendor flag and role
+  const isVendorUser = isVendor || role === "VENDOR";
+
+  // First, fetch shop ID for vendors
+  const { data: shopIdData, isLoading: isLoadingShopId } = useGetShopIdQuery(
+    undefined,
+    {
+      skip: !isVendorUser, // Only fetch if user is vendor
+    }
+  );
+
+  // Extract shop ID from the response
+  const shopId = useMemo(() => {
+    if (!shopIdData?.data) return null;
+    return shopIdData.data._id || shopIdData.data.id || null;
+  }, [shopIdData]);
+
+  // Conditionally fetch chat list based on user type
+  // If role is VENDOR, use shop owner API, otherwise use user API
+  const { data: userChatsData, isLoading: isLoadingUserChats } =
+    useGetChatforUserQuery(undefined, {
+      skip: isVendorUser, // Skip if user is vendor
+    });
+
+  const { data: shopChatsData, isLoading: isLoadingShopChats } =
+    useGetChatListShopOwnerQuery(shopId, {
+      skip: !isVendorUser || !shopId, // Only fetch if user is vendor and has shopId
+    });
+
+  // Use appropriate data based on user type
+  // If role is VENDOR, use shop chats data, otherwise use user chats data
+  const chatsData = isVendorUser ? shopChatsData : userChatsData;
+  const isLoading = isVendorUser
+    ? isLoadingShopId || isLoadingShopChats
+    : isLoadingUserChats;
 
   // Transform API response to format expected by Sidebar
   const users = useMemo(() => {
@@ -25,13 +63,20 @@ const MessagingApp = () => {
 
     return chatsData.data.chats
       .map((chat) => {
-        // Find the other participant (not the current user)
+        // For vendors/shop owners: find User participants (customers)
+        // For regular users: find Shop participants or other Users
         const otherParticipant = chat.participants.find((participant) => {
-          if (participant.participantType === "User") {
-            return participant.participantId?._id !== userId;
+          if (isVendorUser) {
+            // Vendor sees User participants (customers)
+            return participant.participantType === "User";
+          } else {
+            // Regular user sees Shop participants or other Users
+            if (participant.participantType === "User") {
+              return participant.participantId?._id !== userId;
+            }
+            // For Shop type, always include
+            return participant.participantType === "Shop";
           }
-          // For Shop type, always include (shops are not users)
-          return participant.participantType === "Shop";
         });
 
         if (!otherParticipant) return null;
@@ -50,6 +95,25 @@ const MessagingApp = () => {
           }`;
         };
 
+        // Get last message timestamp for sorting (most recent activity first)
+        // Priority: lastMessage.createdAt > chat.updatedAt > chat.createdAt
+        let lastMessageTimestamp = 0;
+
+        if (chat.lastMessage?.createdAt) {
+          // If lastMessage is an object with createdAt
+          lastMessageTimestamp = new Date(chat.lastMessage.createdAt).getTime();
+        } else if (
+          chat.lastMessage &&
+          typeof chat.lastMessage === "object" &&
+          chat.lastMessage.createdAt
+        ) {
+          lastMessageTimestamp = new Date(chat.lastMessage.createdAt).getTime();
+        } else if (chat.updatedAt) {
+          lastMessageTimestamp = new Date(chat.updatedAt).getTime();
+        } else if (chat.createdAt) {
+          lastMessageTimestamp = new Date(chat.createdAt).getTime();
+        }
+
         return {
           id: chat._id,
           chatId: chat._id,
@@ -62,7 +126,9 @@ const MessagingApp = () => {
           lastMessage: chat.lastMessage
             ? typeof chat.lastMessage === "string"
               ? chat.lastMessage
-              : chat.lastMessage.content || "No messages yet"
+              : chat.lastMessage.content ||
+                chat.lastMessage.text ||
+                "No messages yet"
             : "No messages yet",
           isOnline: true, // You can update this based on your online status logic
           lastSeen: chat.lastMessage?.createdAt
@@ -70,10 +136,16 @@ const MessagingApp = () => {
             : "Never",
           participantType: otherParticipant.participantType,
           participantId: participantId?._id,
+          lastMessageTimestamp, // Add timestamp for sorting
         };
       })
-      .filter(Boolean); // Remove null entries
-  }, [chatsData, userId]);
+      .filter(Boolean) // Remove null entries
+      .sort((a, b) => {
+        // Sort by last message timestamp (most recent first)
+        // If no timestamp, put at the end
+        return b.lastMessageTimestamp - a.lastMessageTimestamp;
+      });
+  }, [chatsData, userId, isVendorUser]);
 
   // Sync selectedChat with URL parameter
   useEffect(() => {
@@ -137,7 +209,7 @@ const MessagingApp = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center w-full h-[85vh] bg-gray-50">
+      <div className="flex items-center justify-center w-full h-full bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading chats...</p>
@@ -147,9 +219,9 @@ const MessagingApp = () => {
   }
 
   return (
-    <div className="flex flex-col md:flex-row border w-full h-[85vh] bg-gray-50 lg:px-32">
+    <div className="flex flex-col md:flex-row border w-full h-full bg-gray-50 lg:px-32 overflow-hidden">
       {/* Mobile Sidebar (Horizontal on top) */}
-      <div className="md:hidden w-full border-b max-h-48">
+      <div className="md:hidden w-full border-b flex-shrink-0 max-h-48 overflow-hidden">
         <Sidebar
           users={users}
           selectedChat={selectedChat}
@@ -159,7 +231,7 @@ const MessagingApp = () => {
       </div>
 
       {/* Desktop Sidebar (Vertical) */}
-      <div className="hidden md:block w-80 border-r">
+      <div className="hidden md:block w-80 border-r h-full overflow-hidden">
         <Sidebar
           users={users}
           selectedChat={selectedChat}

@@ -9,6 +9,7 @@ const chatApi = api.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["ChatList"],
     }),
     createMessage: builder.mutation({
       query: (formData) => {
@@ -21,15 +22,22 @@ const chatApi = api.injectEndpoints({
       invalidatesTags: (result, error, arg) => {
         // Extract chatId from FormData
         const dataString = arg.get("data");
+        const invalidatedTags = [];
+
         if (dataString) {
           try {
             const data = JSON.parse(dataString);
-            return [{ type: "Messages", id: data.chatId }];
+            // Invalidate messages for this chat
+            invalidatedTags.push({ type: "Messages", id: data.chatId });
           } catch (e) {
-            return [];
+            // Ignore parse errors
           }
         }
-        return [];
+
+        // Also invalidate chat lists to refresh the sorted order
+        // This ensures the chat list is re-fetched and re-sorted after sending a message
+        invalidatedTags.push({ type: "ChatList" });
+        return invalidatedTags;
       },
     }),
     getMessages: builder.query({
@@ -43,6 +51,23 @@ const chatApi = api.injectEndpoints({
         { type: "Messages", id: chatId },
       ],
     }),
+    getShopId: builder.query({
+      query: () => {
+        return {
+          url: `/shop/my-shops`,
+          method: "GET",
+        };
+      },
+    }),
+    getChatListShopOwner: builder.query({
+      query: (shopId) => {
+        return {
+          url: `/chat/shop/${shopId}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["ChatList"],
+    }),
   }),
   overrideExisting: true,
 });
@@ -51,4 +76,6 @@ export const {
   useGetChatforUserQuery,
   useCreateMessageMutation,
   useGetMessagesQuery,
+  useGetChatListShopOwnerQuery,
+  useGetShopIdQuery,
 } = chatApi;
