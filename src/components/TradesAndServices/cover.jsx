@@ -4,6 +4,7 @@ import Image from "next/image";
 import React, { useMemo } from "react";
 import { useGetBusinessListQuery } from "@/redux/servicesApi/servicsApi";
 import { useRouter } from "next/navigation";
+import { Button } from "../ui/button";
 
 function Cover() {
   const router = useRouter();
@@ -65,6 +66,12 @@ function Cover() {
               searchServices={searchServices}
               onSearch={handleSearch}
             />
+            <Button
+              className="bg-kappes hover:bg-red-700 px-4 sm:px-5 lg:px-6 text-white rounded-r-md flex items-center justify-center mx-auto mt-4"
+              onClick={() => router.push("/trades-&-services/all-services")}
+            >
+              See All
+            </Button>
           </div>
         </div>
       </div>
