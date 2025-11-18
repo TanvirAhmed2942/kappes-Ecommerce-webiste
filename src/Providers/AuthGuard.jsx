@@ -40,12 +40,20 @@ export const AuthGuard = ({ children }) => {
       <div className="bg-white p-6 rounded-lg shadow-xl text-center opacity-90 space-y-4">
         <p className="text-red-600 font-semibold mb-4">Access Denied</p>
         <p className="text-gray-700">Please log in to access this page</p>
-        <Button
-          className="bg-kappes hover:bg-red-800 text-white"
-          onClick={() => router.replace("/auth/login")}
-        >
-          Login
-        </Button>
+        <div className="flex gap-2 justify-center">
+          <Button
+            className="bg-kappes hover:bg-red-800 text-white"
+            onClick={() => router.back()}
+          >
+            Go Back
+          </Button>
+          <Button
+            className="bg-kappes hover:bg-red-800 text-white"
+            onClick={() => router.replace("/auth/login")}
+          >
+            Login
+          </Button>
+        </div>
       </div>
     </div>
   );

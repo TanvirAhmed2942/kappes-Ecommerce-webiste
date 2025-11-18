@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { MoreVertical, Send, Image, Smile, Minimize2, X } from "lucide-react";
 import {
@@ -15,6 +15,8 @@ import {
 import useToast from "@/hooks/useShowToast";
 import useAuth from "@/hooks/useAuth";
 import { getImageUrl } from "@/redux/baseUrl";
+import useSocket from "@/hooks/useSocket";
+import { api } from "@/redux/baseApi";
 
 const ChatBox = ({ selectedChat }) => {
   const dispatch = useDispatch();
@@ -28,16 +30,82 @@ const ChatBox = ({ selectedChat }) => {
   const chatId = selectedChat?.chatId || selectedChat?.id;
 
   // Fetch messages from API
-  const { data: messagesData, isLoading: isLoadingMessages } =
-    useGetMessagesQuery(chatId, {
-      skip: !chatId, // Skip query if no chatId
-    });
+  const {
+    data: messagesData,
+    isLoading: isLoadingMessages,
+    refetch,
+  } = useGetMessagesQuery(chatId, {
+    skip: !chatId, // Skip query if no chatId
+  });
 
   const [createMessage, { isLoading: isSendingMessage }] =
     useCreateMessageMutation();
   const toast = useToast();
   const messagesContainerRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Auto-scroll to bottom when new messages are added
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  // Handle real-time message from socket
+  const handleSocketMessage = useCallback(
+    (socketMessage) => {
+      // Verify the message is for the current chat
+      if (socketMessage.chatId !== chatId) {
+        return;
+      }
+
+      // Update RTK Query cache with the new message
+      dispatch(
+        api.util.updateQueryData("getMessages", chatId, (draft) => {
+          // Check if message already exists (avoid duplicates)
+          const messageExists = draft?.data?.messages?.some(
+            (msg) => msg._id === socketMessage._id
+          );
+
+          if (!messageExists) {
+            // Add new message to the messages array
+            if (draft?.data?.messages) {
+              draft.data.messages.push(socketMessage);
+            } else if (draft?.data) {
+              draft.data.messages = [socketMessage];
+            } else {
+              draft.data = { messages: [socketMessage] };
+            }
+          }
+        })
+      );
+
+      // Also invalidate chat list to update last message
+      dispatch(api.util.invalidateTags(["ChatList"]));
+
+      // Scroll to bottom when new message arrives
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+    },
+    [chatId, dispatch]
+  );
+
+  // Set up socket listener for real-time messages
+  const socketEventName = chatId ? `getMessage::${chatId}` : null;
+
+  // Log socket event name for debugging
+  useEffect(() => {
+    if (chatId) {
+      console.log("Socket listening for chatId:", chatId);
+      console.log("Socket event name:", socketEventName);
+    }
+  }, [chatId, socketEventName]);
+
+  useSocket(socketEventName, handleSocketMessage);
 
   // Transform API messages to UI format
   const messages = useMemo(() => {
@@ -113,16 +181,6 @@ const ChatBox = ({ selectedChat }) => {
       };
     });
   }, [messagesData, userId]);
-
-  // Auto-scroll to bottom when new messages are added
-  const scrollToBottom = () => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTo({
-        top: messagesContainerRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-  };
 
   useEffect(() => {
     scrollToBottom();
