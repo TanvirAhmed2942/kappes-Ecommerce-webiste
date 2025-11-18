@@ -86,7 +86,7 @@ function TopNav() {
       {/* Right Section */}
       <div className="flex items-center justify-center gap-4 mt-2 sm:mt-0">
         {/* Messages Icon - Desktop only */}
-        <Link href="/chat/454" className="relative hidden sm:block">
+        <Link href="/chat/all-chat" className="relative hidden sm:block">
           <Button
             onClick={handleOpenChat}
             className="relative flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none bg-white shadow-none w-12 h-12 rounded-full hover:bg-gray-300 cursor-pointer"
@@ -200,7 +200,7 @@ function TopNav() {
 
               {/* Messages - Mobile and Desktop */}
               <div className="mt-6 px-4 block">
-                <Link href="/chat/454" className="w-full">
+                <Link href="/chat/all-chat" className="w-full">
                   <Button
                     className="w-full justify-start gap-3 hover:bg-kappes"
                     onClick={handleOpenChat}
