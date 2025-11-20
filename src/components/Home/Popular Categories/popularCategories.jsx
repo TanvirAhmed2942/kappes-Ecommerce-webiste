@@ -108,9 +108,9 @@ function PopularCategories() {
                     <div className="flex flex-col items-center p-4 gap-2">
                       <div className="w-24 h-24 rounded-full bg-gray-100 p-4 flex ring-1 items-center justify-center overflow-hidden">
                         <Image
+                          src={`${getImageUrl}${category?.image}`}
                           width={80}
                           height={80}
-                          src={`${getImageUrl}${category?.image}`}
                           alt={category.name}
                           className="object-contain"
                         />
