@@ -13,6 +13,7 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "asif7001.binarybards.online",
+        pathname: "/**",
       },
     ],
   },
