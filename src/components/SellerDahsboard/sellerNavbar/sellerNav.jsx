@@ -57,6 +57,7 @@ const SellerNav = () => {
   const handleLogoutConfirm = () => {
     setIsLogoutModalOpen(false);
     handleLogout();
+    router.push("/auth/become-seller-login");
   };
 
   // Handle logout cancellation

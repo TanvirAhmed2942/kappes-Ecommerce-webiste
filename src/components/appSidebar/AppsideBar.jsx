@@ -14,12 +14,12 @@ import {
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
+import useAuth from '../../hooks/useAuth';
 const AppSidebar = () => {
   const [activeItem, setActiveItem] = useState('Overview');
   const pathname = usePathname();
   const router = useRouter();
-
+  const { logout } = useAuth();
   const menuItems = [
     { icon: LayoutGrid, label: 'Overview', active: true, path: '/seller/overview' },
     { icon: Package, label: 'Product', path: '/seller/product' },
@@ -30,8 +30,12 @@ const AppSidebar = () => {
     { icon: Star, label: 'Reviews', path: '/seller/review' },
     { icon: UserCog, label: 'Admin Role', path: '/seller/admin' },
     { icon: Lock, label: 'Change Password', path: '/seller/change-password' },
-    { icon: LogOut, label: 'Logout' },
+    { icon: LogOut, label: 'Logout'},
   ];
+  const handleLogout = () => {
+    logout();
+    router.push('/auth/become-seller-login');
+  };
 
   useEffect(() => {
     const currentMenuItem = menuItems.find(item => item.path === pathname);
@@ -46,7 +50,7 @@ const AppSidebar = () => {
       router.push(item.path);
     }
     if (item.label === 'Logout') {
-      console.log('Logout clicked');
+      handleLogout();
     }
   };
 
