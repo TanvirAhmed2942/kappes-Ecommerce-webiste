@@ -1,8 +1,8 @@
 "use client";
-import SearchBox from "@/common/components/searchBox";
+import SearchBox from "../../common/components/searchBox";
 import Image from "next/image";
 import React, { useMemo } from "react";
-import { useGetBusinessListQuery } from "@/redux/servicesApi/servicsApi";
+import { useGetBusinessListQuery } from "../../redux/servicesApi/servicsApi";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 

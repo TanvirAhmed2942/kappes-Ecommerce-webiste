@@ -5,14 +5,14 @@ import {
   useGetBusinessListQuery,
   useGetBusinessByIdQuery,
   useSendMessageMutation,
-} from "@/redux/servicesApi/servicsApi";
+} from "../redux/servicesApi/servicsApi";
 import {
   setServices,
   setSelectedService,
   clearSelectedService,
   setLoading,
   setError,
-} from "@/features/servieSlice/serviceSlice";
+} from "../features/servieSlice/serviceSlice";
 
 const useService = () => {
   const dispatch = useDispatch();

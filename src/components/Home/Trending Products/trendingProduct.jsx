@@ -11,8 +11,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 // Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
-import useTrendingProducts from "@/hooks/useTrendingProducts";
-import { getImageUrl } from "@/redux/baseUrl";
+import useTrendingProducts from "../../../hooks/useTrendingProducts";
+import { getImageUrl } from "../../../redux/baseUrl";
 import Link from "next/link";
 
 const TrendingProduct = () => {

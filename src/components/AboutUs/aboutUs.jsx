@@ -1,4 +1,4 @@
-import provideIcon from "@/common/components/provideIcon";
+import provideIcon from "../../common/components/provideIcon";
 import Image from "next/image";
 
 export default function AboutUs() {

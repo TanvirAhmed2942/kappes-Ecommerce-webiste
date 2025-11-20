@@ -5,12 +5,12 @@ import {
   setLoading,
   setError,
   clearError,
-} from "@/features/productSlice/productsSlice";
-import { useGetAllProductsQuery } from "@/redux/productApi/productApi";
+} from "../features/productSlice/productsSlice";
+import { useGetAllProductsQuery } from "../redux/productApi/productApi";
 import {
   findBestMatchingVariant,
   getAvailableVariantSpecs,
-} from "@/utils/productUtils";
+} from "../utils/productUtils";
 
 const useProductDetails = () => {
   const dispatch = useDispatch();

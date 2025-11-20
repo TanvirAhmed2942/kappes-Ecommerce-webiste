@@ -11,12 +11,12 @@ import {
 import {
   useCreateMessageMutation,
   useGetMessagesQuery,
-} from "@/redux/chatApi/chatApi";
-import useToast from "@/hooks/useShowToast";
-import useAuth from "@/hooks/useAuth";
-import { getImageUrl } from "@/redux/baseUrl";
-import useSocket from "@/hooks/useSocket";
-import { api } from "@/redux/baseApi";
+} from "../../redux/chatApi/chatApi";
+import useToast from "../../hooks/useShowToast";
+import useAuth from "../../hooks/useAuth";
+import { getImageUrl } from "../../redux/baseUrl";
+import useSocket from "../../hooks/useSocket";
+import { api } from "../../redux/baseApi";
 
 const ChatBox = ({ selectedChat }) => {
   const dispatch = useDispatch();

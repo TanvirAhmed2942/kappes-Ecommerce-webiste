@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
 import { useSelector } from "react-redux";
-import CarouselPlay from "@/common/components/carousel";
-import { getImageUrl } from "@/redux/baseUrl";
+import CarouselPlay from "../../../common/components/carousel";
+import { getImageUrl } from "../../../redux/baseUrl";
 
 function ServicePromotion({ bannerImages = [] }) {
   // Get services from Redux state

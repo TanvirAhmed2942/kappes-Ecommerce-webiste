@@ -3,24 +3,24 @@ import React, { useEffect } from "react";
 import { Heart, Minus, Plus, MessageCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
 import Image from "next/image";
-import { addCart } from "@/features/cartSlice";
-import { openChat } from "@/features/chatSlice";
-import provideIcon from "@/common/components/provideIcon";
+import { addCart } from "../../features/cartSlice";
+import { openChat } from "../../features/chatSlice";
+import provideIcon from "../../common/components/provideIcon";
 import Link from "next/link";
-import useProductDetails from "@/hooks/useProductDetails";
-import useProductVariantSelection from "@/hooks/useProductVariantSelection";
-import useProductSlug from "@/hooks/useProductSlug";
-import { getImageUrl } from "@/redux/baseUrl";
+import useProductDetails from "../../hooks/useProductDetails";
+import useProductVariantSelection from "../../hooks/useProductVariantSelection";
+import useProductSlug from "../../hooks/useProductSlug";
+import { getImageUrl } from "../../redux/baseUrl";
 import ProductSpecs from "./ProductSpecs";
-import { isProductInStock } from "@/utils/productUtils";
+import { isProductInStock } from "../../utils/productUtils";
 import { useRouter } from "next/navigation";
-import { useAddToCartMutation } from "@/redux/cartApi/cartApi";
-import useToast from "@/hooks/useShowToast";
-import { useCart } from "@/hooks/useCart";
+import { useAddToCartMutation } from "../../redux/cartApi/cartApi";
+import useToast from "../../hooks/useShowToast";
+import { useCart } from "../../hooks/useCart";
 
 function ProductView() {
   const dispatch = useDispatch();

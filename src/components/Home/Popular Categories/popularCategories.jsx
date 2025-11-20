@@ -11,8 +11,10 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
 import Link from "next/link";
-import useCategory from "@/hooks/useCategory";
-import { getImageUrl } from "@/redux/baseUrl";
+
+
+import useCategory from "../../../hooks/useCategory"  ;
+import { getImageUrl } from "../../../redux/baseUrl";
 function PopularCategories() {
   const { categories, isLoading, hasCategories } = useCategory();
   console.log("categories from API", categories);

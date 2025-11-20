@@ -1,9 +1,9 @@
 "use client";
-import FrontCover from "@/common/components/frontCover";
+import FrontCover from "../../../common/components/frontCover";
 import React from "react";
 import ServicePromotion from "./servicePromotion";
 import RightAside from "./rightAside";
-import useService from "@/hooks/useService";
+import useService from "../../../hooks/useService";
 import { Star } from "lucide-react";
 
 // Shadcn-style StarRating component

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { io } from "socket.io-client";
-import { getSocketUrl } from "@/redux/baseUrl";
+import { getSocketUrl } from "../redux/baseUrl";
 
 const useSocket = (eventName, callback) => {
   const socketRef = useRef(null);

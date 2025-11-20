@@ -1,4 +1,4 @@
-import CarouselPlay from "@/common/components/carousel";
+import CarouselPlay from "../../common/components/carousel";
 import React from "react";
 
 function StoreBanner({ shopBanner }) {

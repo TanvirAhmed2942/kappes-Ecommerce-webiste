@@ -1,10 +1,10 @@
-"use client";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+  "use client";
+import { Input } from "../../../components/ui/input";
+import { Button } from "../../../components/ui/button";
+import { Textarea } from "../../../components/ui/textarea";
 import React, { useState } from "react";
-import useService from "@/hooks/useService";
-import useToast from "@/hooks/useShowToast";
+import useService from "../../../hooks/useService";
+import useToast from "../../../hooks/useShowToast";
 import { useSelector } from "react-redux";
 
 export default function SendMessage() {

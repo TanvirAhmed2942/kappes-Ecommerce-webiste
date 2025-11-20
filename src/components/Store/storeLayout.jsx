@@ -4,9 +4,9 @@ import StoreCover from "./storeCover";
 import StoreBanner from "./storeBanner";
 import Filter from "../Shop/filter";
 import ShopProductList from "../Shop/productList";
-import { useStoreShop } from "@/hooks/useStoreShop";
+import { useStoreShop } from "../../hooks/useStoreShop";
 import { useParams } from "next/navigation";
-import { useGetShopbyIdQuery } from "@/redux/shopApi/shopApi";
+import { useGetShopbyIdQuery } from "../../redux/shopApi/shopApi";
 function StoreLayout() {
   // Get store ID from URL params
   const params = useParams();

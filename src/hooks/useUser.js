@@ -3,6 +3,8 @@ import { useCallback, useMemo, useEffect } from "react";
 import {
   clearUser,
   selectUser,
+  selectUserProfile,
+  selectUserName,
   selectUserEmail,
   selectUserImage,
   selectUserId,
@@ -16,7 +18,7 @@ const useUser = () => {
 
   // Get user data from Redux store
   const user = useSelector(selectUser);
-  const userProfile = useSelector(selectUserProfile);
+  const userProfile = useSelector(selectUser);
   const userName = useSelector(selectUserName);
   const userEmail = useSelector(selectUserEmail);
   const userImage = useSelector(selectUserImage);

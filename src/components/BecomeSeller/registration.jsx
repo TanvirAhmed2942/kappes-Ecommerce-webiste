@@ -6,10 +6,10 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+} from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
+import { Label } from "../../components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import {
@@ -19,9 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useGetCategoryQuery } from "@/redux/productApi/productApi";
-import { useCreateSellerMutation } from "@/redux/sellerApi/sellerApi";
-import useToast from "@/hooks/useShowToast";
+  import { useGetCategoryQuery } from "../../redux/productApi/productApi";
+import { useCreateSellerMutation } from "../../redux/sellerApi/sellerApi";
+import useToast from "../../hooks/useShowToast";
 import { useRouter } from "next/navigation";
 
 export default function SellerRegistrationForm() {

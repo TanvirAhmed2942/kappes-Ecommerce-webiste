@@ -1,12 +1,12 @@
 import {
   useGetMyCartQuery,
   useUpdateMyCartMutation,
-} from "@/redux/cartApi/cartApi";
-import { selectCartItems } from "@/features/cartSlice";
+} from "../redux/cartApi/cartApi";
+import { selectCartItems } from "../features/cartSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { useDebounce } from "./useDebounce";
 import { useState, useEffect, useRef } from "react";
-import useToast from "@/hooks/useShowToast";
+import useToast from "../hooks/useShowToast";
 
 export function useCart() {
   const toast = useToast();

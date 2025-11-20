@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useGetProductsByShopQuery } from "@/redux/shopApi/shopApi";
+import { useGetProductsByShopQuery } from "../redux/shopApi/shopApi";
 
 export function useStoreShop(shopId) {
   // State for managing products and UI states

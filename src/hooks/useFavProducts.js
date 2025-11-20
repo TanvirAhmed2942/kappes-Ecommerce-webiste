@@ -4,7 +4,7 @@ import {
   useGetFavProductsQuery,
   useAddToFavProductMutation,
   useRemoveFromFavProductMutation,
-} from "@/redux/productApi/productApi";
+} from "../redux/productApi/productApi";
 import {
   setFavProducts,
   addToFavProduct,
@@ -16,7 +16,7 @@ import {
   selectFavProductIds,
   selectFavProductsLoading,
   selectFavProductsError,
-} from "@/features/favProductSlice.js/favProductSlice";
+} from "../features/favProductSlice.js/favProductSlice";
 
 /**
  * Custom hook for managing favorite products (wishlist)

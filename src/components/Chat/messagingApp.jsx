@@ -9,9 +9,9 @@ import {
   useGetChatforUserQuery,
   useGetChatListShopOwnerQuery,
   useGetShopIdQuery,
-} from "@/redux/chatApi/chatApi";
-import useAuth from "@/hooks/useAuth";
-import { getImageUrl } from "@/redux/baseUrl";
+} from "../../redux/chatApi/chatApi";
+import useAuth from "../../hooks/useAuth";
+import { getImageUrl } from "../../redux/baseUrl";
 
 const MessagingApp = () => {
   const dispatch = useDispatch();

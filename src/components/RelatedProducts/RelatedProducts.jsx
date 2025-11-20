@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef } from "react";
 import { IoArrowForward } from "react-icons/io5";
-import { Card } from "@/components/ui/card";
+import { Card } from "../ui/card";
 import Image from "next/image";
 // Import Swiper and required modules
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -10,20 +10,20 @@ import { Autoplay, Navigation } from "swiper/modules";
 // Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
-import { incrementViewCount } from "@/features/productSlice/productsSlice";
+import { incrementViewCount } from "../../features/productSlice/productsSlice";
 import { useDispatch } from "react-redux";
-import { getImageUrl } from "@/redux/baseUrl";
-import provideIcon from "@/common/components/provideIcon";
-import { addFav, removeFav, isFav } from "@/features/productSlice";
+import { getImageUrl } from "../../redux/baseUrl";
+import provideIcon from "../../common/components/provideIcon";
+import { addFav, removeFav, isFav } from "../../features/productSlice";
 import { useRouter, useParams } from "next/navigation";
 import {
   useGetRelatedProductsQuery,
   useGetRecommendedProductsQuery,
-} from "@/redux/productApi/productApi";
+} from "../../redux/productApi/productApi";
 import { useEffect, useState } from "react";
-import { useGetAllProductsQuery } from "@/redux/productApi/productApi";
+import { useGetAllProductsQuery } from "../../redux/productApi/productApi";
 import { usePathname } from "next/navigation";
-import useProductDetails from "@/hooks/useProductDetails";
+import useProductDetails from "../../hooks/useProductDetails";
 
 const RelatedProducts = () => {
   const navigationPrevRef = useRef(null);

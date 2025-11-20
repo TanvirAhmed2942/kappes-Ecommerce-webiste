@@ -9,24 +9,24 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+} from "../../components/ui/form";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
+import { Textarea } from "../../components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "../../components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Upload } from "lucide-react";
 import * as RPNInput from "react-phone-number-input";
 import flags from "react-phone-number-input/flags";
 import { useRouter } from "next/navigation";
-import { useAddBusinessMutation } from "@/redux/servicesApi/servicsApi";
-import useToast from "@/hooks/useShowToast";
+import { useAddBusinessMutation } from "../../redux/servicesApi/servicsApi";
+import useToast from "../../hooks/useShowToast";
 
 // Business type options
 const businessTypes = ["Retail", "Wholesale"];

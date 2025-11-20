@@ -1,11 +1,11 @@
 "use client";
 import React, { useEffect, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+  import { Card, CardContent } from "../../components/ui/card";
+import { Progress } from "../../components/ui/progress";
 import { Star } from "lucide-react";
 import Image from "next/image";
-import useProductReviews from "@/hooks/useProductReviews";
-import { getImageUrl } from "@/redux/baseUrl";
+import useProductReviews from "../../hooks/useProductReviews";
+import { getImageUrl } from "../../redux/baseUrl";
 
 function ReviewAndFeedback() {
   const { reviews, isLoading, error } = useProductReviews();

@@ -13,9 +13,9 @@ import "swiper/css/navigation";
 import useRecommendedProducts from "../../../hooks/useRecommendedProducts";
 import { incrementViewCount } from "../../../features/productSlice/productsSlice";
 import { useDispatch } from "react-redux";
-import { getImageUrl } from "@/redux/baseUrl";
-import provideIcon from "@/common/components/provideIcon";
-import useFavProducts from "@/hooks/useFavProducts";
+import { getImageUrl } from "../../../redux/baseUrl";
+import provideIcon from "../../../common/components/provideIcon";
+import useFavProducts from "../../../hooks/useFavProducts";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 

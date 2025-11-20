@@ -1,15 +1,15 @@
 "use client";
 import { useState } from "react";
 import { MessageSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../../components/ui/button";
 import Image from "next/image";
-import { getImageUrl } from "@/redux/baseUrl";
-import { useCreateChatMutation } from "@/redux/shopuserChatApi/shopuserChatApi";
-import useToast from "@/hooks/useShowToast";
+import { getImageUrl } from "../../redux/baseUrl";
+import { useCreateChatMutation } from "../../redux/shopuserChatApi/shopuserChatApi";
+import useToast from "../../hooks/useShowToast";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import useAuth from "@/hooks/useAuth";
-import useUser from "@/hooks/useUser";
+import useAuth from "../../hooks/useAuth";
+import useUser from "../../hooks/useUser";
 const StoreCover = ({ shopInfo }) => {
   const [following, setFollowing] = useState(false);
   const [createChat, { isLoading }] = useCreateChatMutation();

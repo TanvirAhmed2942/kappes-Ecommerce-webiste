@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import useAuth from "@/hooks/useAuth";
-import useToast from "@/hooks/useShowToast";
-import { Button } from "@/components/ui/button";
+import useAuth from "../hooks/useAuth";
+import useToast from "../hooks/useShowToast";
+import { Button } from "../components/ui/button";
 
 export const AuthGuard = ({ children }) => {
   const { isLoggedIn } = useAuth();
