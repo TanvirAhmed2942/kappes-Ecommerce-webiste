@@ -1,4 +1,4 @@
-import SellerSignUpForm from "@/components/BecomeSeller/sellerSignUp";
+import SellerSignUpForm from "../../../components/BecomeSeller/sellerSignUp";
 import React from "react";
 
 function SellerSignUp() {

@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { Plus, Minus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useGetFAQsQuery } from "@/redux/policies&faqApi/policies&faqApi";
-import useToast from "@/hooks/useShowToast";
+import { useGetFAQsQuery } from "../../redux/policies&faqApi/policies&faqApi";
+import useToast from "../../hooks/useShowToast";
 
 export default function FAQSection() {
   const { data: faqs, isLoading, error } = useGetFAQsQuery();
@@ -55,7 +55,7 @@ export default function FAQSection() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-12 md:py-16">
+    <div className="w-full max-w-4xl mx-auto px-4 py-12 md:py-16 min-h-screen">
       <h2 className="text-2xl md:text-3xl lg:text-4xl text-center mb-10 font-comfortaa font-extrabold md:leading-14">
         Frequently Asked Questions (FAQs)
       </h2>

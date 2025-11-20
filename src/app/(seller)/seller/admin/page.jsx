@@ -1,15 +1,15 @@
 "use client";
 
-import { Button } from '@/components/ui/button';
+import { Button } from '../../../../components/ui/button';
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '../../../../components/ui/dialog' ;
+import { Input } from '../../../../components/ui/input';
+import { Label } from '../../../../components/ui/label';
 import {
   Table,
   TableBody,
@@ -17,7 +17,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '../../../../components/ui/table';
 import { Eye, EyeOff, Pencil, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 

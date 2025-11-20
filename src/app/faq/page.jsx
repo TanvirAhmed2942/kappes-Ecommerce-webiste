@@ -1,5 +1,6 @@
-import FAQSection from "@/common/components/faqs";
+
 import React from "react";
+import FAQSection from "../../common/components/faqs";
 
 function FaqPage() {
   return (

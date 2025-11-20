@@ -1,19 +1,19 @@
 "use client";
 import { useState } from "react";
 import { Calendar, Copy, ShoppingBag } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "../../components/ui/tooltip";
 import { toast } from "sonner";
-import { useGetCouponsQuery } from "@/redux/couponApi/couponApi";
+import { useGetCouponsQuery } from "../../redux/couponApi/couponApi";
 import Image from "next/image";
-import { getImageUrl } from "@/redux/baseUrl";
+import { getImageUrl } from "../../redux/baseUrl";
 
 const PromoCodeList = () => {
   const { data: couponsData, isLoading, error } = useGetCouponsQuery();

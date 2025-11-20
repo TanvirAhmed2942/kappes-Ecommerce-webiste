@@ -1,8 +1,8 @@
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "../../components/ui/card"; 
 import { GrLocation } from "react-icons/gr";
 import Image from "next/image";
 import Link from "next/link";
-import { getImageUrl } from "@/redux/baseUrl";
+import { getImageUrl } from "../../redux/baseUrl";
 
 export default function ShopBrandCard({ brandInfo }) {
   const { id, name, address, logo, cover } = brandInfo;

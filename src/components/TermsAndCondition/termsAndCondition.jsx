@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
-import { useGetTermsAndConditionsQuery } from "@/redux/policies&faqApi/policies&faqApi";
-import useToast from "@/hooks/useShowToast";
+import { useGetTermsAndConditionsQuery } from "../../redux/policies&faqApi/policies&faqApi";
+import useToast from "../../hooks/useShowToast";
 
 function TermsAndCondition() {
   const {
@@ -32,7 +32,7 @@ function TermsAndCondition() {
   }
 
   return (
-    <div className="px-8 sm:px-14 md:px-20 lg:px-32 py-10">
+    <div className="px-8 sm:px-14 md:px-20 lg:px-32 py-10 min-h-screen">
       <h2 className="text-2xl md:text-3xl lg:text-4xl  text-center mb-10 font-comfortaa font-extrabold md:leading-14">
         Terms & Conditions
       </h2>

@@ -1,5 +1,5 @@
 import React from "react";
-import TrendingProductsLayout from "@/components/tendingProducts/trendingProductsLayout";
+import TrendingProductsLayout from "../../components/tendingProducts/trendingProductsLayout";
 
 function page() {
   return <TrendingProductsLayout />;

@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Progress } from '../../../../components/ui/progress';
+import { ScrollArea } from '../../../../components/ui/scroll-area';
 import { Star } from 'lucide-react';
 
 export default function ProductReviews() {

@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useGetFAQsQuery } from "@/redux/policies&faqApi/policies&faqApi";
-import useToast from "@/hooks/useShowToast";
+import { useGetFAQsQuery } from "../../redux/policies&faqApi/policies&faqApi";
+import useToast from "../../hooks/useShowToast";
 export default function SellerFAQ() {
   const [openFAQ, setOpenFAQ] = useState(1);
   const { data: faqs, isLoading, error } = useGetFAQsQuery();
