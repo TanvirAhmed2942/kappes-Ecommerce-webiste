@@ -67,19 +67,28 @@ export default function SellerLogin() {
       const response = await loginUser(loginCredentials).unwrap();
 
       if (response?.success === true) {
-        toast.showSuccess("Login successful!", {
-          description: "You are now logged in.",
-        });
+        const userRole = response?.data?.role;
 
         // Update auth state
         authLogin({
-          role: response?.data?.role,
+          role: userRole,
           accessToken: response?.data?.accessToken,
           refreshToken: response?.data?.refreshToken,
         });
 
-        // Redirect based on role or to seller dashboard
-        router.push("/");
+        // Only redirect to seller dashboard if role is VENDOR
+        if (userRole === "VENDOR") {
+          toast.showSuccess("Login successful!", {
+            description: "You are now logged in.",
+          });
+          router.push("/seller/overview");
+        } else {
+          toast.showError("Access Denied", {
+            description: "Only vendors can access the seller dashboard.",
+          });
+          // Redirect to home or appropriate page for non-vendors
+          router.push("/");
+        }
       } else {
         toast.showError("Login failed", {
           description:
@@ -137,7 +146,7 @@ export default function SellerLogin() {
   };
 
   return (
-    <Card className="h-full bg-[#f7e8e5] w-[25rem]">
+    <Card className="h-full bg-[#f7e8e5] ">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center text-red-700">
           Welcome to the Canuck Mall
