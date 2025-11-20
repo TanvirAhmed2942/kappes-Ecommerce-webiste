@@ -9,6 +9,7 @@ const userprofileApi = api.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["UserProfile"],
     }),
     updateUserProfile: builder.mutation({
       query: ({ data }) => {
@@ -18,6 +19,7 @@ const userprofileApi = api.injectEndpoints({
           body: data,
         };
       },
+      invalidatesTags: ["UserProfile"],
     }),
     getMyOrders: builder.query({
       query: () => {

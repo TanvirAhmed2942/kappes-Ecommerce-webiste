@@ -23,6 +23,7 @@ export const api = createApi({
     "CATEGORY",
     "BRAND",
     "USER",
+    "UserProfile",
     "CART",
     "ORDER",
     "WISHLIST",

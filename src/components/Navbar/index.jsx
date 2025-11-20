@@ -1,14 +1,12 @@
+"use client";
 import React from "react";
 import TopNav from "./topnav";
 import BottomNav from "./bottmnav";
-
-function NavBar() {
-  return (
-    <div>
-      <TopNav />
-      <BottomNav />
-    </div>
-  );
-}
+import SellerNav from "../SellerDahsboard/sellerNavbar/sellerNav";
+import useAuth from "../../hooks/useAuth";
+const NavBar = () => {
+  const { role } = useAuth();
+  return role === "VENDOR" ? <SellerNav /> : (<><TopNav /><BottomNav /></>);
+};
 
 export default NavBar;
