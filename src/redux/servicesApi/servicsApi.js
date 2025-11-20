@@ -28,6 +28,46 @@ const servicesApi = api.injectEndpoints({
         };
       },
     }),
+    addBusiness: builder.mutation({
+      query: ({ data }) => {
+        return {
+          url: `/business/create`,
+          method: "POST",
+          body: data,
+          formData: true,
+        };
+      },
+    }),
+    verifyBusiness: builder.mutation({
+      query: (data) => {
+        return {
+          url: `/business/verify-email`,
+          method: "POST",
+          body: data, // { email: string, oneTimeCode: number }
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
+      },
+    }),
+    verifyBusinessEmail: builder.mutation({
+      query: (data) => {
+        return {
+          url: `/business/verify-email`,
+          method: "POST",
+          body: data,
+        };
+      },
+    }),
+    resendBusinessOtp: builder.mutation({
+      query: (data) => {
+        return {
+          url: `/business/resend-otp`,
+          method: "POST",
+          body: data,
+        };
+      },
+    }),
   }),
   overrideExisting: true,
 });
@@ -36,4 +76,8 @@ export const {
   useGetBusinessListQuery,
   useGetBusinessByIdQuery,
   useSendMessageMutation,
+  useAddBusinessMutation,
+  useVerifyBusinessMutation,
+  useVerifyBusinessEmailMutation,
+  useResendBusinessOtpMutation,
 } = servicesApi;

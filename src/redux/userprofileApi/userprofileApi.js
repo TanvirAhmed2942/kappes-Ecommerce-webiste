@@ -19,9 +19,20 @@ const userprofileApi = api.injectEndpoints({
         };
       },
     }),
+    getMyOrders: builder.query({
+      query: () => {
+        return {
+          url: "/order/my-orders",
+          method: "GET",
+        };
+      },
+    }),
   }),
   overrideExisting: true,
 });
 
-export const { useGetUserProfileQuery, useUpdateUserProfileMutation } =
-  userprofileApi;
+export const {
+  useGetUserProfileQuery,
+  useUpdateUserProfileMutation,
+  useGetMyOrdersQuery,
+} = userprofileApi;

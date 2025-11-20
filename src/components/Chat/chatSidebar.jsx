@@ -86,47 +86,45 @@ const Sidebar = ({
           ))}
         </div>
       ) : (
-        <div className="flex-1 overflow-auto">
-          <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
-            <div className="space-y-1 p-2">
-              {filteredUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors relative ${
-                    selectedChat?.id === user.id
-                      ? "bg-red-50 border border-red-200"
-                      : "hover:bg-gray-100"
-                  }`}
-                  onClick={() => onUserSelect(user)}
-                >
-                  <div className="relative flex-shrink-0">
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="h-10 w-10 rounded-full"
-                    />
-                    {user.isOnline && (
-                      <span className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-white"></span>
+        <div className="flex-1 overflow-y-auto">
+          <div className="space-y-1 p-2">
+            {filteredUsers.map((user) => (
+              <div
+                key={user.id}
+                className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors relative ${
+                  selectedChat?.id === user.id
+                    ? "bg-red-50 border border-red-200"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => onUserSelect(user)}
+              >
+                <div className="relative flex-shrink-0">
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="h-10 w-10 rounded-full"
+                  />
+                  {user.isOnline && (
+                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-white"></span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium truncate">
+                      {user.name}
+                    </h4>
+                    {currentSeller?.id === user.id && unreadCount > 0 && (
+                      <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center ml-2 flex-shrink-0">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium truncate">
-                        {user.name}
-                      </h4>
-                      {currentSeller?.id === user.id && unreadCount > 0 && (
-                        <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center ml-2 flex-shrink-0">
-                          {unreadCount > 9 ? "9+" : unreadCount}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500 truncate">
-                      {user.lastMessage}
-                    </p>
-                  </div>
+                  <p className="text-xs text-gray-500 truncate">
+                    {user.lastMessage}
+                  </p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

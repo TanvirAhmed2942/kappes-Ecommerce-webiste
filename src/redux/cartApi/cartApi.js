@@ -10,12 +10,59 @@ const cartApi = api.injectEndpoints({
         };
       },
     }),
-    updateMyCart: builder.mutation({
+    addToCart: builder.mutation({
       query: ({ data }) => {
         return {
-          url: "/cart",
+          url: `/cart/create`,
+          method: "POST",
+          body: data,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
+      },
+    }),
+    updateMyCart: builder.mutation({
+      query: ({ data, productId }) => {
+        return {
+          url: `/cart/items/${productId}`,
           method: "PATCH",
           body: data,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
+      },
+    }),
+    removeFromCart: builder.mutation({
+      query: (productId) => {
+        return {
+          url: `/cart/items/${productId}`,
+          method: "DELETE",
+        };
+      },
+    }),
+    placeOrder: builder.mutation({
+      query: (data) => {
+        return {
+          url: `/order/create`,
+          method: "POST",
+          body: data,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
+      },
+    }),
+    applyPromoCode: builder.mutation({
+      query: ({ data, couponCode }) => {
+        return {
+          url: `/coupon/${couponCode}`,
+          method: "POST",
+          body: data,
+          headers: {
+            "Content-Type": "application/json",
+          },
         };
       },
     }),
@@ -23,4 +70,11 @@ const cartApi = api.injectEndpoints({
   overrideExisting: true,
 });
 
-export const { useGetMyCartQuery, useUpdateMyCartMutation } = cartApi;
+export const {
+  useGetMyCartQuery,
+  useAddToCartMutation,
+  useUpdateMyCartMutation,
+  useRemoveFromCartMutation,
+  usePlaceOrderMutation,
+  useApplyPromoCodeMutation,
+} = cartApi;

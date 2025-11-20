@@ -18,7 +18,17 @@ export const api = createApi({
     },
   }),
   endpoints: () => ({}),
-  tagTypes: ["PRODUCT", "CATEGORY", "BRAND", "USER", "CART", "ORDER"],
+  tagTypes: [
+    "PRODUCT",
+    "CATEGORY",
+    "BRAND",
+    "USER",
+    "CART",
+    "ORDER",
+    "WISHLIST",
+    "Messages",
+    "ChatList",
+  ],
 });
 
 export const imageUrl = getBaseUrl();

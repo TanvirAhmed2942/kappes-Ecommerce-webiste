@@ -10,6 +10,8 @@ import {
   logout,
 } from "../../src/features/authSlice/authSlice";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
+
 
 const useAuth = () => {
   const dispatch = useDispatch();
@@ -18,7 +20,37 @@ const useAuth = () => {
   // Get values from both Redux state and localStorage
   const reduxIsLoggedIn = useSelector(selectIsLoggedIn);
   const accessToken = useSelector(selectAccessToken);
-  const role = useSelector(selectRole);
+  const reduxRole = useSelector(selectRole);
+
+  // Decode JWT token to get userId and role
+  const getTokenData = () => {
+    try {
+      // Check if we're in browser environment
+      if (typeof window === "undefined") return { userId: null, role: null };
+
+      // Get token from Redux or localStorage
+      const token = accessToken || localStorage.getItem("accessToken");
+
+      if (!token) return { userId: null, role: reduxRole || null };
+
+      // Decode the token
+      const decoded = jwtDecode(token);
+
+      // Return userId and role from token (fallback to Redux for role)
+      return {
+        userId:
+          decoded._id || decoded.id || decoded.userId || decoded.sub || null,
+        role: decoded.role || reduxRole || null,
+      };
+    } catch (error) {
+      console.error("Error decoding JWT token:", error);
+      return { userId: null, role: reduxRole || null };
+    }
+  };
+
+  const { userId, role: tokenRole } = getTokenData();
+  // Use role from token if available, otherwise use Redux role
+  const role = tokenRole || reduxRole;
 
   // Determine if user is logged in
   const isLoggedIn = (() => {
@@ -56,6 +88,7 @@ const useAuth = () => {
     isLoggedIn,
     role,
     accessToken,
+    userId,
 
     // Actions
     login: loginUser,
@@ -66,6 +99,7 @@ const useAuth = () => {
     // Checks
     isAdmin: role === "ADMIN",
     isSeller: role === "SELLER",
+    isVendor: role === "VENDOR",
     isUser: role === "USER",
   };
 };

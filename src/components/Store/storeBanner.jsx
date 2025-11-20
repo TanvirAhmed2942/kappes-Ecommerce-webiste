@@ -1,7 +1,7 @@
 import CarouselPlay from "@/common/components/carousel";
 import React from "react";
 
-function StoreBanner() {
+function StoreBanner({ shopBanner }) {
   const bannerItem = [
     {
       id: 1,

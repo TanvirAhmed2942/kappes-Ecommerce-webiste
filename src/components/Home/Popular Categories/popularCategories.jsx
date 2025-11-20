@@ -11,7 +11,8 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
 import Link from "next/link";
-import useCategory from "../../../hooks/useCategory";
+import useCategory from "@/hooks/useCategory";
+import { getImageUrl } from "@/redux/baseUrl";
 function PopularCategories() {
   const { categories, isLoading, hasCategories } = useCategory();
   console.log("categories from API", categories);
@@ -107,7 +108,7 @@ function PopularCategories() {
                         <Image
                           width={80}
                           height={80}
-                          src={category.image}
+                          src={`${getImageUrl}${category?.image}`}
                           alt={category.name}
                           className="object-contain"
                         />

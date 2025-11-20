@@ -18,12 +18,21 @@ import { getImageUrl } from "@/redux/baseUrl";
 import ProductSpecs from "./ProductSpecs";
 import { isProductInStock } from "@/utils/productUtils";
 import { useRouter } from "next/navigation";
+import { useAddToCartMutation } from "@/redux/cartApi/cartApi";
+import useToast from "@/hooks/useShowToast";
+import { useCart } from "@/hooks/useCart";
 
 function ProductView() {
   const dispatch = useDispatch();
   const router = useRouter();
+  const toast = useToast();
+  const { refetch: refetchCart } = useCart();
+
   // Get chat state from Redux
   const { unreadCount } = useSelector((state) => state.chat);
+
+  // Add to cart mutation
+  const [addToCart, { isLoading: isAddingToCart }] = useAddToCartMutation();
 
   // Use our custom hooks to get product details
   const { productDetails, isLoading, error } = useProductDetails();
@@ -64,6 +73,8 @@ function ProductView() {
   const { slugDetails, isValidVariantSlug, isVariantAvailable } =
     useProductSlug(productDetails, selectedVariant);
 
+  // console.log("productDetails", productDetails);
+
   // Initialize variant selection when product details load
   useEffect(() => {
     if (productDetails) {
@@ -97,29 +108,80 @@ function ProductView() {
     setQuantity((prevQuantity) => prevQuantity + 1);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!productDetails) return;
 
-    const cartItem = {
-      id: productDetails._id || productDetails.id,
-      productName: productDetails.name,
-      quantity,
-      price: selectedVariant
-        ? selectedVariant.variantPrice
-        : productDetails.basePrice,
-      productImage: productImages[0] || "/assets/productPage/bag1.png",
-      variantId: selectedVariant?.variantId?._id,
-      variantSpecs: selectedVariant
-        ? {
+    // Validate that we have a variant selected if variants are required
+    if (!selectedVariant?.variantId?._id) {
+      toast.showError("Please select a product variant (color, storage, etc.)");
+      return;
+    }
+
+    // Prepare the cart item for API
+    const productId = productDetails._id || productDetails.id;
+    const variantId = selectedVariant.variantId._id;
+    const variantQuantity = quantity;
+    const shopId = productDetails.shopId?._id || productDetails.shopId?.id;
+
+    // API expects: { items: [{ productId, variantId, variantQuantity, shopId }] }
+    // Note: productId can be null based on API response structure
+    const cartData = {
+      items: [
+        {
+          variantId: variantId,
+          variantQuantity: variantQuantity,
+        },
+      ],
+    };
+
+    // Only add productId if it exists (not null)
+    if (productId) {
+      cartData.items[0].productId = productId;
+    }
+
+    // Add shopId to the item
+    if (shopId) {
+      cartData.items[0].shopId = shopId;
+    }
+
+    try {
+      const response = await addToCart({ data: cartData }).unwrap();
+
+      if (response?.success) {
+        toast.showSuccess(
+          response?.message || "Item added to cart successfully"
+        );
+
+        // Also update local Redux for optimistic UI
+        const cartItem = {
+          id: productId,
+          productName: productDetails.name,
+          quantity: variantQuantity,
+          price: selectedVariant.variantPrice,
+          productImage: productImages[0] || "/assets/productPage/bag1.png",
+          variantId: variantId,
+          variantSpecs: {
             color: selectedVariant.variantId.color?.name,
             storage: selectedVariant.variantId.storage,
             ram: selectedVariant.variantId.ram,
             size: selectedVariant.variantId.size,
-          }
-        : {},
-    };
+          },
+        };
+        dispatch(addCart(cartItem));
 
-    dispatch(addCart(cartItem));
+        // Refetch cart from API to get the latest data
+        refetchCart();
+      } else {
+        toast.showError(response?.message || "Failed to add item to cart");
+      }
+    } catch (error) {
+      console.error("Failed to add item to cart:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.data?.error?.[0]?.message ||
+        "Failed to add item to cart. Please try again.";
+      toast.showError(errorMessage);
+    }
   };
 
   const handleOpenChat = () => {
@@ -388,9 +450,12 @@ function ProductView() {
                 variant="outline"
                 className="flex-1"
                 onClick={handleAddToCart}
-                disabled={!isProductInStock(productDetails, selectedVariant)}
+                disabled={
+                  !isProductInStock(productDetails, selectedVariant) ||
+                  isAddingToCart
+                }
               >
-                Add to Cart
+                {isAddingToCart ? "Adding..." : "Add to Cart"}
               </Button>
               <Button
                 className="flex-1 bg-red-700 hover:bg-red-800"
@@ -439,15 +504,18 @@ function ProductView() {
               selectedVariant={selectedVariant}
             />
 
-            <Card className="mb-6 mt-6">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="bg-gray-800 text-white p-2 rounded-full">
-                    <span className="text-xs">
-                      {productDetails.shopId?.name
-                        ?.substring(0, 2)
-                        .toUpperCase() || "SH"}
-                    </span>
+            <Card className="my-6 py-2">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center justify-start gap-4">
+                  <div className="bg-gray-800 text-white  rounded-full border flex items-center gap-2">
+                    <Image
+                      src={`${getImageUrl}/${productDetails.shopId?.logo}`}
+                      alt={productDetails.shopId?.name}
+                      priority
+                      width={50}
+                      height={50}
+                      className="rounded-full h-10 w-10 object-cover"
+                    />
                   </div>
                   <div>
                     <p className="font-bold">

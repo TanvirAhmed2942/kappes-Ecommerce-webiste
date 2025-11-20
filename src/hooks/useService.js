@@ -3,11 +3,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "next/navigation";
 import {
   useGetBusinessListQuery,
+  useGetBusinessByIdQuery,
   useSendMessageMutation,
 } from "@/redux/servicesApi/servicsApi";
 import {
   setServices,
-  selectService,
+  setSelectedService,
   clearSelectedService,
   setLoading,
   setError,
@@ -22,44 +23,75 @@ const useService = () => {
     (state) => state.service
   );
 
-  // Fetch services query
+  // Fetch individual business by ID if ID is present
+  const {
+    data: businessData,
+    error: businessError,
+    isLoading: businessLoading,
+    refetch: refetchBusiness,
+  } = useGetBusinessByIdQuery(id, { skip: !id });
+
+  // Fetch services list query (for list pages)
   const {
     data: servicesData,
     error: apiError,
     isLoading: apiLoading,
     refetch,
-  } = useGetBusinessListQuery();
+  } = useGetBusinessListQuery(undefined, { skip: !!id }); // Skip if we have an ID
 
-  // Effect to handle services data
+  // Effect to handle individual business data
   useEffect(() => {
-    // Set loading state
-    dispatch(setLoading(apiLoading));
+    if (id) {
+      // Set loading state
+      dispatch(setLoading(businessLoading));
 
-    // Handle API errors
-    if (apiError) {
-      dispatch(setError(apiError.message || "Failed to fetch services"));
-    }
+      // Handle API errors
+      if (businessError) {
+        dispatch(
+          setError(
+            businessError?.data?.message ||
+              businessError?.message ||
+              "Failed to fetch business details"
+          )
+        );
+      }
 
-    // Process successful data response
-    if (servicesData && servicesData.success) {
-      try {
-        // Dispatch the entire response data to the reducer
-        dispatch(setServices(servicesData.data));
-      } catch (error) {
-        dispatch(setError("Error processing services data"));
-        console.error("Services data processing error:", error);
+      // Process successful business data response
+      if (businessData && businessData.success && businessData.data) {
+        try {
+          // Set the selected service directly from API response
+          dispatch(setSelectedService(businessData.data));
+        } catch (error) {
+          dispatch(setError("Error processing business data"));
+          console.error("Business data processing error:", error);
+        }
       }
     }
-  }, [servicesData, apiError, apiLoading, dispatch]);
+  }, [businessData, businessError, businessLoading, id, dispatch]);
 
-  // Effect to select service when ID changes or services are loaded
+  // Effect to handle services list data (when no ID)
   useEffect(() => {
-    if (id && services.length > 0) {
-      dispatch(selectService(id));
-    } else {
-      dispatch(clearSelectedService());
+    if (!id) {
+      // Set loading state
+      dispatch(setLoading(apiLoading));
+
+      // Handle API errors
+      if (apiError) {
+        dispatch(setError(apiError.message || "Failed to fetch services"));
+      }
+
+      // Process successful data response
+      if (servicesData && servicesData.success) {
+        try {
+          // Dispatch the entire response data to the reducer
+          dispatch(setServices(servicesData.data));
+        } catch (error) {
+          dispatch(setError("Error processing services data"));
+          console.error("Services data processing error:", error);
+        }
+      }
     }
-  }, [id, services, dispatch]);
+  }, [servicesData, apiError, apiLoading, id, dispatch]);
 
   const [sendMessage, { isLoading: isSending, error: sendError }] =
     useSendMessageMutation();
@@ -95,14 +127,14 @@ const useService = () => {
     selectedService,
 
     // Loading and error states
-    isLoading,
-    error: error || apiError,
+    isLoading: id ? businessLoading : isLoading,
+    error: error || (id ? businessError : apiError),
 
     // Metadata
     meta,
 
     // Utility functions
-    refetch,
+    refetch: id ? refetchBusiness : refetch,
 
     // Convenience checks
     hasServices: services.length > 0,
