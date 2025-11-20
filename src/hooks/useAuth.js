@@ -8,7 +8,7 @@ import {
   setRefreshToken,
   login,
   logout,
-} from "@/features/authSlice/authSlice";
+} from "../../src/features/authSlice/authSlice";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 

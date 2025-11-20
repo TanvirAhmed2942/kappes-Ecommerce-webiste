@@ -1,25 +1,21 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+
+
+import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import provideIcon from '../../common/components/provideIcon';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import Link from "next/link";
-import provideIcon from "@/common/components/provideIcon";
-import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+} from "../../components/ui/dropdown-menu";
+
+import { Button } from '../ui/button';
+import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '../ui/drawer';
 function BottomNav() {
   const rotatingWords = ["Province", "Territory", "City"];
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -51,9 +47,8 @@ function BottomNav() {
   // Helper function to get link classes based on active state
   const getLinkClasses = (href, baseClasses = "") => {
     const active = isActive(href);
-    return `${baseClasses} transition-all duration-300 ease-in-out relative ${
-      active ? "" : ""
-    }`;
+    return `${baseClasses} transition-all duration-300 ease-in-out relative ${active ? "" : ""
+      }`;
   };
 
   // Custom Link component with hover animation
@@ -83,9 +78,8 @@ function BottomNav() {
       <button
         ref={ref}
         {...props}
-        className={`bg-transparent px-2 flex gap-2 items-center transition-all duration-300 ease-in-out relative group cursor-pointer text-white ${
-          active ? "" : ""
-        }`}
+        className={`bg-transparent px-2 flex gap-2 items-center transition-all duration-300 ease-in-out relative group cursor-pointer text-white ${active ? "" : ""
+          }`}
       >
         <span>{provideIcon({ name: "shop" })}</span>
         <span>Shop</span>
@@ -106,17 +100,15 @@ function BottomNav() {
   // Helper function specifically for drawer menu items
   const getDrawerLinkClasses = (href, baseClasses = "") => {
     const active = isActive(href);
-    return `${baseClasses} ${
-      active ? "text-red-800 font-semibold" : "hover:text-red-700"
-    }`;
+    return `${baseClasses} ${active ? "text-red-800 font-semibold" : "hover:text-red-700"
+      }`;
   };
 
   // Helper function for drawer submenu items (More section)
   const getDrawerSubLinkClasses = (href, baseClasses = "") => {
     const active = isActive(href);
-    return `${baseClasses} ${
-      active ? "text-red-800 font-semibold" : "hover:text-red-700"
-    }`;
+    return `${baseClasses} ${active ? "text-red-800 font-semibold" : "hover:text-red-700"
+      }`;
   };
 
   const links = [
@@ -231,9 +223,8 @@ function BottomNav() {
                 {/* Shop Section with Sub-items */}
                 <div className="space-y-2">
                   <p
-                    className={`font-medium flex gap-2 items-center ${
-                      isShopActive() ? "text-red-800" : ""
-                    }`}
+                    className={`font-medium flex gap-2 items-center ${isShopActive() ? "text-red-800" : ""
+                      }`}
                   >
                     <span>{provideIcon({ name: "shop" })}</span>
                     <span>Shop</span>
@@ -289,9 +280,8 @@ function BottomNav() {
                 </Link>
                 <div className="space-y-2">
                   <p
-                    className={`font-medium ${
-                      isMoreActive() ? "text-red-800" : ""
-                    }`}
+                    className={`font-medium ${isMoreActive() ? "text-red-800" : ""
+                      }`}
                   >
                     More
                   </p>
@@ -366,11 +356,10 @@ function BottomNav() {
                 <DropdownMenuItem asChild>
                   <Link
                     href="/shop"
-                    className={`flex items-center gap-2 ${
-                      isActive("/shop")
-                        ? "bg-kappes text-white font-semibold"
-                        : ""
-                    }`}
+                    className={`flex items-center gap-2 ${isActive("/shop")
+                      ? "bg-kappes text-white font-semibold"
+                      : ""
+                      }`}
                   >
                     {provideIcon({ name: "shop" })} All Products
                   </Link>
@@ -379,11 +368,10 @@ function BottomNav() {
                 <DropdownMenuItem asChild>
                   <Link
                     href="/shop-by-province"
-                    className={`flex items-center gap-2 ${
-                      isActive("/shop-by-province")
-                        ? "bg-kappes text-white font-semibold"
-                        : ""
-                    }`}
+                    className={`flex items-center gap-2 ${isActive("/shop-by-province")
+                      ? "bg-kappes text-white font-semibold"
+                      : ""
+                      }`}
                   >
                     {provideIcon({ name: "searchByProvince" })} Shop By{" "}
                     <div className="h-6 overflow-hidden relative w-[90px]">
@@ -409,11 +397,10 @@ function BottomNav() {
                 <DropdownMenuItem asChild>
                   <Link
                     href="/shop-by-store"
-                    className={`flex items-center gap-2 ${
-                      isActive("/shop-by-store")
-                        ? "bg-kappes text-white font-semibold"
-                        : ""
-                    }`}
+                    className={`flex items-center gap-2 ${isActive("/shop-by-store")
+                      ? "bg-kappes text-white font-semibold"
+                      : ""
+                      }`}
                   >
                     {provideIcon({ name: "shopByStore" })} Shop By Store
                   </Link>
@@ -431,9 +418,8 @@ function BottomNav() {
 
           <AnimatedLink
             href="/auth/become-seller-login"
-            className={`font-semibold shadow-none border-none rounded-md flex gap-2 items-center transition-all duration-300 ease-in-out ${
-              isActive("/auth/become-seller-login") ? "" : ""
-            }`}
+            className={`font-semibold shadow-none border-none rounded-md flex gap-2 items-center transition-all duration-300 ease-in-out ${isActive("/auth/become-seller-login") ? "" : ""
+              }`}
           >
             Become a Seller
           </AnimatedLink>

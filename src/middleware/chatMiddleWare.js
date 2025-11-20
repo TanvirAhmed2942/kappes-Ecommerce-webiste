@@ -1,5 +1,5 @@
 // middleware/chatMiddleware.js
-import { receiveMessage, setTyping } from "@/features/chatSlice";
+import { receiveMessage, setTyping } from "../../src/features/chatSlice";
 
 let messageInterval = null;
 let responseTimeout = null;

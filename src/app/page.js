@@ -1,8 +1,7 @@
-import Banner from "@/components/Home/Banner/banner";
-import PopularCategories from "@/components/Home/Popular Categories/popularCategories";
-import ProductRecomendation from "@/components/Home/Recomendation/productRecomendation";
-import TrendingProduct from "@/components/Home/Trending Products/trendingProduct";
-import React from "react";
+import Banner from "../components/Home/Banner/banner";
+import PopularCategories from "../components/Home/Popular Categories/popularCategories";
+import ProductRecomendation from "../components/Home/Recomendation/productRecomendation";
+import TrendingProduct from "../components/Home/Trending Products/trendingProduct";
 
 function Home() {
   return (
