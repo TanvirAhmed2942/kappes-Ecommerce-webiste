@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { useChangePasswordMutation } from "@/redux/authApi/authApi";
+import { Card, CardContent } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
+import { Label } from "../../components/ui/label";
+import { useChangePasswordMutation } from "../../redux/authApi/authApi";
 import { useForm } from "react-hook-form";
-import useToast from "@/hooks/useShowToast";
+import useToast from "../../hooks/useShowToast";
 
 export default function ChangePassword({ selectedMenu }) {
   const [showOldPassword, setShowOldPassword] = useState(false);

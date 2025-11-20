@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -9,15 +9,15 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from "../../../components/ui/dialog";
 import { TbHome } from "react-icons/tb";
-import provideIcon from "@/common/components/provideIcon";
-import useUser from "@/hooks/useUser";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import provideIcon from "../../../common/components/provideIcon";
+import useUser from "../../../hooks/useUser";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
 import { useForm } from "react-hook-form";
-import { useUpdateUserProfileMutation } from "@/redux/userprofileApi/userprofileApi";
-import useToast from "@/hooks/useShowToast";
+import { useUpdateUserProfileMutation } from "../../../redux/userprofileApi/userprofileApi";
+import useToast from "../../../hooks/useShowToast";
 
 export default function PersonalInfo({ selectedMenu }) {
   const { user, profileData, updateUserProfile } = useUser();

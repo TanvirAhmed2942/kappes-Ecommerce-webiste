@@ -5,10 +5,9 @@ import PersonalInfo from "./PersonalInfo/personalInfo";
 import OrderHistory from "./OrderHistory/orderHistory";
 
 import ChangePassword from "../Auth/changePassword";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import WishList from "./WishList/wishList";
-import Image from "next/image";
+
 
 function ProfileLayout() {
   // Using number IDs to match the existing Sidebar component

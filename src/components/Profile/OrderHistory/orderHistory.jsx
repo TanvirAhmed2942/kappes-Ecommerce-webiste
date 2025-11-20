@@ -7,13 +7,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+} from "../../../components/ui/table";
+import { Input } from "../../../components/ui/input";
+import { Button } from "../../../components/ui/button";
 import { Eye } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useGetMyOrdersQuery } from "@/redux/userprofileApi/userprofileApi";
-import { Badge } from "@/components/ui/badge";
+import { useGetMyOrdersQuery } from "../../../redux/userprofileApi/userprofileApi";
+import { Badge } from "../../../components/ui/badge";
 
 export default function OrderHistory({ selectedMenu }) {
   const [search, setSearch] = useState("");

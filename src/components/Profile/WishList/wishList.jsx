@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
 import WishListCard from "./wishListCard";
-import useFavProducts from "@/hooks/useFavProducts";
-import { useGetFavProductsQuery } from "@/redux/productApi/productApi";
+  import useFavProducts from "../../../hooks/useFavProducts";
+import { useGetFavProductsQuery } from "../../../redux/productApi/productApi";
 
 function WishList({ selectedMenu }) {
   // All hooks must be called before any conditional returns

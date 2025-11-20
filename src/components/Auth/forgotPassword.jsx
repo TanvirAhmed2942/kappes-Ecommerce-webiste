@@ -1,13 +1,13 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
+import { Label } from "../../components/ui/label";
 
-import { useForgotPasswordMutation } from "@/redux/authApi/authApi";
-import useToast from "@/hooks/useShowToast";
+import { useForgotPasswordMutation } from "../../redux/authApi/authApi";
+import useToast from "../../hooks/useShowToast";
 import { useRouter } from "next/navigation";
 
 export default function ForgotPasswordForm() {

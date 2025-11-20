@@ -1,9 +1,9 @@
 "use client";
 import { LucideCircleMinus, LucideCirclePlus, Trash2 } from "lucide-react";
 import React from "react";
-import { useCart } from "@/hooks/useCart";
-import { useRemoveFromCartMutation } from "@/redux/cartApi/cartApi";
-import useToast from "@/hooks/useShowToast";
+import { useCart } from "../../hooks/useCart";
+import { useRemoveFromCartMutation } from "../../redux/cartApi/cartApi";
+import useToast from "../../hooks/useShowToast";
 
 function CartControlButton({ itemId, currentQuantity = 1, item }) {
   const { updateQuantity, refetch } = useCart();

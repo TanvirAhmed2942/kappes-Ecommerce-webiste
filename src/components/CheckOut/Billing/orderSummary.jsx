@@ -1,33 +1,33 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "../../../hooks/useCart";
 import {
   usePlaceOrderMutation,
   useApplyPromoCodeMutation,
-} from "@/redux/cartApi/cartApi";
-import useToast from "@/hooks/useShowToast";
-import useUser from "@/hooks/useUser";
+} from "../../../redux/cartApi/cartApi";
+import useToast from "../../../hooks/useShowToast";
+import useUser from "../../../hooks/useUser";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+} from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Checkbox } from "../../../components/ui/checkbox";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from "@/components/ui/sheet";
+  } from "../../../components/ui/sheet";
 import Link from "next/link";
 import Image from "next/image";
-import { getImageUrl } from "@/redux/baseUrl";
+import { getImageUrl } from "../../../redux/baseUrl";
 
 export default function OrderSummary({
   deliveryOption,

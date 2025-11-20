@@ -1,26 +1,24 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@/components/ui/input-otp";
+} from "../../components/ui/input-otp";
 import {
   useResendOtpMutation,
   useVerifyEmailMutation,
-} from "@/redux/authApi/authApi";
+} from "../../redux/authApi/authApi";
 import {
   useVerifyBusinessEmailMutation,
   useResendBusinessOtpMutation,
-} from "@/redux/servicesApi/servicsApi";
-import useToast from "@/hooks/useShowToast";
+} from "../../redux/servicesApi/servicsApi";
+import useToast from "../../hooks/useShowToast";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import VerificationSuccess from "@/common/components/verificationSuccess";
-import { Content } from "@/app/auth/forgot-password/verify-otp/page";
-import useUser from "@/hooks/useUser";
+import useUser from "../../hooks/useUser";
 
 export default function OTPverification() {
   const searchParams = useSearchParams();

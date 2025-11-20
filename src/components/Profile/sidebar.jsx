@@ -5,10 +5,10 @@ import Image from "next/image";
 import { HiOutlineUser } from "react-icons/hi";
 import { LuShoppingCart, LuHeart } from "react-icons/lu";
 import { FiLock, FiLogOut } from "react-icons/fi";
-import useAuth from "@/hooks/useAuth";
+import useAuth from "../../hooks/useAuth"; 
 import { useRouter } from "next/navigation";
-import useUser from "@/hooks/useUser";
-import { getImageUrl } from "@/redux/baseUrl";
+import useUser from "../../hooks/useUser";
+import { getImageUrl } from "../../redux/baseUrl";
 
 const LogoutConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;

@@ -6,7 +6,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "../../../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -15,20 +15,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "../../../components/ui/dialog";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../../../components/ui/select";
 import { IoHomeOutline } from "react-icons/io5";
-import provideIcon from "@/common/components/provideIcon";
-import useUser from "@/hooks/useUser";
+import provideIcon from "../../../common/components/provideIcon";
+import useUser from "../../../hooks/useUser";
 
 function Address({ onDeliveryChange, onPaymentChange, onAddressChange }) {
   const { user, profileData, isLoading } = useUser();

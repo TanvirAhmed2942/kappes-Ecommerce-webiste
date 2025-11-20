@@ -9,12 +9,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "../../components/ui/table";
 import CartControlButton from "./CartControlButton";
 import Image from "next/image";
 import Link from "next/link";
-import { useCart } from "@/hooks/useCart";
-import { getImageUrl } from "@/redux/baseUrl";
+import { useCart } from "../../hooks/useCart";
+import { getImageUrl } from "../../redux/baseUrl";
 
 function Checkout() {
   // Use our custom hook to get cart data
