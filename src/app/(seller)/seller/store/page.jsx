@@ -53,41 +53,69 @@ export default function EditStoreInfoForm() {
   useEffect(() => {
     if (storeInfo?.data) {
       const storeData = storeInfo.data;
+
+      // Extract address fields - handle both object and direct fields
+      const addressObj = storeData.address || {};
+      const territory = addressObj.territory || storeData.territory || "";
+      const province = addressObj.province || storeData.province || "";
+      const city = addressObj.city || storeData.city || "";
+      const detailAddress =
+        addressObj.detail_address ||
+        addressObj.detailAddress ||
+        storeData.detailAddress ||
+        "";
+
       const newFormData = {
         storeName: storeData.name || "",
-        territory: storeData.territory || "",
+        territory: territory,
         shortDescription:
           storeData.description || storeData.shortDescription || "",
-        province: storeData.province || "",
+        province: province,
         logo: null, // File is not pre-filled
-        city: storeData.city || "",
+        city: city,
         coverPhoto: null, // File is not pre-filled
-        detailAddress: storeData.address || storeData.detailAddress || "",
+        detailAddress: detailAddress,
       };
+
+      console.log("Store data:", storeData);
+      console.log("Extracted address:", {
+        territory,
+        province,
+        city,
+        detailAddress,
+      });
       setFormData(newFormData);
       setInitialFormData(newFormData);
 
       // Set image previews from API
       if (storeData.logo) {
-        setLogoPreview(
-          storeData.logo.startsWith("http")
-            ? storeData.logo
+        const logoPath = String(storeData.logo).trim();
+        if (logoPath) {
+          const logoUrl = logoPath.startsWith("http")
+            ? logoPath
             : `${getImageUrl}${
-                storeData.logo.startsWith("/")
-                  ? storeData.logo.slice(1)
-                  : storeData.logo
-              }`
-        );
+                logoPath.startsWith("/") ? logoPath.slice(1) : logoPath
+              }`;
+          setLogoPreview(logoUrl);
+        }
+      } else {
+        setLogoPreview(null);
       }
+
       if (storeData.coverPhoto || storeData.cover) {
-        const coverImage = storeData.coverPhoto || storeData.cover;
-        setCoverPreview(
-          coverImage.startsWith("http")
+        const coverImage = String(
+          storeData.coverPhoto || storeData.cover
+        ).trim();
+        if (coverImage) {
+          const coverUrl = coverImage.startsWith("http")
             ? coverImage
             : `${getImageUrl}${
                 coverImage.startsWith("/") ? coverImage.slice(1) : coverImage
-              }`
-        );
+              }`;
+          setCoverPreview(coverUrl);
+        }
+      } else {
+        setCoverPreview(null);
       }
 
       // Set banner previews from API (banner can be array or single image)
@@ -95,13 +123,18 @@ export default function EditStoreInfoForm() {
         const banners = Array.isArray(storeData.banner)
           ? storeData.banner
           : [storeData.banner];
-        const bannerUrls = banners.map((banner) =>
-          banner.startsWith("http")
-            ? banner
-            : `${getImageUrl}${
-                banner.startsWith("/") ? banner.slice(1) : banner
-              }`
-        );
+        const bannerUrls = banners
+          .map((banner) => {
+            if (!banner) return null;
+            const bannerPath = String(banner).trim();
+            if (!bannerPath) return null;
+            return bannerPath.startsWith("http")
+              ? bannerPath
+              : `${getImageUrl}${
+                  bannerPath.startsWith("/") ? bannerPath.slice(1) : bannerPath
+                }`;
+          })
+          .filter(Boolean); // Remove null values
         setBannerPreviews(bannerUrls);
       } else {
         setBannerPreviews([]);
@@ -307,26 +340,24 @@ export default function EditStoreInfoForm() {
     // Reset image previews to original
     if (storeInfo?.data?.logo) {
       const logoImage = storeInfo.data.logo;
-      setLogoPreview(
-        logoImage.startsWith("http")
-          ? logoImage
-          : `${getImageUrl}${
-              logoImage.startsWith("/") ? logoImage.slice(1) : logoImage
-            }`
-      );
+      const logoUrl = logoImage.startsWith("http")
+        ? logoImage
+        : `${getImageUrl}${
+            logoImage.startsWith("/") ? logoImage.slice(1) : logoImage
+          }`;
+      setLogoPreview(logoUrl);
     } else {
       setLogoPreview(null);
     }
 
     if (storeInfo?.data?.coverPhoto || storeInfo?.data?.cover) {
       const coverImage = storeInfo.data.coverPhoto || storeInfo.data.cover;
-      setCoverPreview(
-        coverImage.startsWith("http")
-          ? coverImage
-          : `${getImageUrl}${
-              coverImage.startsWith("/") ? coverImage.slice(1) : coverImage
-            }`
-      );
+      const coverUrl = coverImage.startsWith("http")
+        ? coverImage
+        : `${getImageUrl}${
+            coverImage.startsWith("/") ? coverImage.slice(1) : coverImage
+          }`;
+      setCoverPreview(coverUrl);
     } else {
       setCoverPreview(null);
     }
@@ -336,11 +367,16 @@ export default function EditStoreInfoForm() {
       const banners = Array.isArray(storeInfo.data.banner)
         ? storeInfo.data.banner
         : [storeInfo.data.banner];
-      const bannerUrls = banners.map((banner) =>
-        banner.startsWith("http")
-          ? banner
-          : `${getImageUrl}${banner.startsWith("/") ? banner.slice(1) : banner}`
-      );
+      const bannerUrls = banners
+        .map((banner) => {
+          if (!banner) return null;
+          return banner.startsWith("http")
+            ? banner
+            : `${getImageUrl}${
+                banner.startsWith("/") ? banner.slice(1) : banner
+              }`;
+        })
+        .filter(Boolean); // Remove null values
       setBannerPreviews(bannerUrls);
     } else {
       setBannerPreviews([]);

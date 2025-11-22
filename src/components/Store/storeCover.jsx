@@ -89,13 +89,23 @@ const StoreCover = ({ shopInfo }) => {
     <div className="w-full  mx-auto overflow-hidden">
       {/* Banner Image */}
       <div className="relative h-40 md:h-52 lg:h-64 w-full bg-gray-200 overflow-hidden">
-        <Image
-          src={`${getImageUrl}${shopInfo?.shopCover}`}
-          width={5000}
-          height={5000}
-          alt="Mountain landscape with fog"
-          className="w-full h-full object-cover"
-        />
+        {shopInfo?.shopCover && (
+          <Image
+            src={
+              shopInfo.shopCover.startsWith("http")
+                ? shopInfo.shopCover
+                : `${getImageUrl}${
+                    shopInfo.shopCover.startsWith("/")
+                      ? shopInfo.shopCover.slice(1)
+                      : shopInfo.shopCover
+                  }`
+            }
+            width={5000}
+            height={5000}
+            alt="Store cover"
+            className="w-full h-full object-cover"
+          />
+        )}
       </div>
 
       <div className="flex flex-col md:flex-row md:items-start p-4 md:p-6">
@@ -103,13 +113,23 @@ const StoreCover = ({ shopInfo }) => {
         <div className="relative -mt-16 md:-mt-20 flex-shrink-0 mb-4 md:mb-0">
           {/* <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white bg-white"> */}
           <div className="flex items-center justify-center h-full w-full  text-white">
-            <Image
-              src={`${getImageUrl}${shopInfo?.logo}`}
-              width={1000}
-              height={1000}
-              alt="storeLogo"
-              className="w-24 h-24 border-2 rounded-lg bg-white"
-            />
+            {shopInfo?.logo && (
+              <Image
+                src={
+                  shopInfo.logo.startsWith("http")
+                    ? shopInfo.logo
+                    : `${getImageUrl}${
+                        shopInfo.logo.startsWith("/")
+                          ? shopInfo.logo.slice(1)
+                          : shopInfo.logo
+                      }`
+                }
+                width={1000}
+                height={1000}
+                alt="storeLogo"
+                className="w-24 h-24 border-2 rounded-lg bg-white"
+              />
+            )}
           </div>
           {/* </Avatar> */}
         </div>

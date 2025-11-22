@@ -7,7 +7,7 @@ import ShopProductList from "../Shop/productList";
 import { useStoreShop } from "../../hooks/useStoreShop";
 import { useParams } from "next/navigation";
 import { useGetShopbyIdQuery } from "../../redux/shopApi/shopApi";
-import { getImageUrl } from "../../redux/baseUrl";
+import { getBaseUrl } from "../../redux/baseUrl";
 function StoreLayout() {
   // Get store ID from URL params
   const params = useParams();
@@ -51,8 +51,13 @@ function StoreLayout() {
   const shopBanner = shopData?.data?.banner
     ? Array.isArray(shopData.data.banner)
       ? shopData.data.banner.map((banner) => {
+          const bannerPath = banner?.startsWith("http")
+            ? banner
+            : `${getBaseUrl().replace("/api/v1", "")}/${
+                banner?.startsWith("/") ? banner.slice(1) : banner
+              }`;
           return {
-            url: `${getImageUrl}${banner}`,
+            url: bannerPath,
             alt: "shop banner",
           };
         })
