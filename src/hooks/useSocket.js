@@ -48,9 +48,10 @@ const useSocket = (eventName, callback) => {
       socketRef.current.on("connect_error", (error) => {
         console.error("Socket connection error:", error);
         console.error("Error details:", {
-          message: error.message,
-          description: error.description,
-          context: error.context,
+          message: error?.message || "Unknown error",
+          description: error?.description || "No description available",
+          context: error?.context || "No context available",
+          type: error?.type || "Unknown error type",
         });
       });
 

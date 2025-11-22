@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { Search } from "lucide-react";
 
@@ -12,10 +12,15 @@ const Sidebar = ({
   const { unreadCount, currentSeller } = useSelector((state) => state.chat);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Filter users based on search
-  const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter users based on search - memoized for performance
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return users;
+    }
+    return users.filter((user) =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [users, searchTerm]);
 
   return (
     <div

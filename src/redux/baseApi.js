@@ -29,6 +29,7 @@ export const api = createApi({
     "WISHLIST",
     "Messages",
     "ChatList",
+    "ShopAdmin",
   ],
 });
 

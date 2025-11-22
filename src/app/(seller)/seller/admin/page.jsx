@@ -1,15 +1,15 @@
 "use client";
 
-import { Button } from '../../../../components/ui/button';
+import { Button } from "../../../../components/ui/button";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '../../../../components/ui/dialog' ;
-import { Input } from '../../../../components/ui/input';
-import { Label } from '../../../../components/ui/label';
+} from "../../../../components/ui/dialog";
+import { Input } from "../../../../components/ui/input";
+import { Label } from "../../../../components/ui/label";
 import {
   Table,
   TableBody,
@@ -17,78 +17,196 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../../../../components/ui/table';
-import { Eye, EyeOff, Pencil, Trash2, X } from 'lucide-react';
-import { useState } from 'react';
+} from "../../../../components/ui/table";
+import { Eye, EyeOff, Pencil, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import {
+  useGetShopAdminQuery,
+  useAddShopAdminMutation,
+  useUpdateShopAdminMutation,
+  useDeleteShopAdminMutation,
+} from "../../../../redux/sellerApi/sellerAdminApi/sellerAdminApi";
+import useToast from "../../../../hooks/useShowToast";
 
 export default function AdminList() {
+  const toast = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingAdminId, setEditingAdminId] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: '',
-    password: ''
+    full_name: "",
+    email: "",
+    password: "",
   });
 
-  const [admins, setAdmins] = useState([
-    {
-      id: 1,
-      name: 'Osama Walid',
-      role: 'Super Admin',
-      email: 'Demo@gmail.com',
-      createdDate: '22 Jan 2025'
-    },
-    {
-      id: 2,
-      name: 'Osama Walid',
-      role: 'Admin',
-      email: 'Demo@gmail.com',
-      createdDate: '22 Jan 2025'
-    },
-    {
-      id: 3,
-      name: 'Osama Walid',
-      role: 'Admin',
-      email: 'Demo@gmail.com',
-      createdDate: '22 Jan 2025'
-    }
-  ]);
+  // Get shop admins
+  const {
+    data: adminsData,
+    isLoading: isLoadingAdmins,
+    refetch,
+  } = useGetShopAdminQuery();
+
+  const [addShopAdmin, { isLoading: isAdding }] = useAddShopAdminMutation();
+  const [updateShopAdmin, { isLoading: isUpdating }] =
+    useUpdateShopAdminMutation();
+  const [deleteShopAdmin, { isLoading: isDeleting }] =
+    useDeleteShopAdminMutation();
+
+  // Extract admins from the response structure: data.shops[0].admins
+  const admins = adminsData?.data?.shops?.[0]?.admins || [];
+  const isLoading = isAdding || isUpdating || isDeleting;
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      full_name: "",
+      email: "",
+      password: "",
+    });
+    setIsEditMode(false);
+    setEditingAdminId(null);
+    setShowPassword(false);
   };
 
   const handleAddAdmin = () => {
-    const requiredFields = ['name', 'email', 'role', 'password'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
+    resetForm();
+    setIsDialogOpen(true);
+  };
 
-    if (missingFields.length > 0) {
-      alert('Please fill in all required fields');
+  const handleEdit = (admin) => {
+    setFormData({
+      full_name: admin.full_name || admin.name || "",
+      email: admin.email || "",
+      password: "", // Don't pre-fill password for security
+    });
+    setEditingAdminId(admin._id || admin.id);
+    setIsEditMode(true);
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    // Validation
+    if (!formData.full_name || !formData.email) {
+      toast.showError("Please fill in all required fields");
       return;
     }
 
-    const newAdmin = {
-      id: admins.length + 1,
-      name: formData.name,
-      role: formData.role,
-      email: formData.email,
-      createdDate: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-    };
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.showError("Please enter a valid email address");
+      return;
+    }
 
-    setAdmins([...admins, newAdmin]);
-    setFormData({ name: '', email: '', role: '', password: '' });
-    setIsDialogOpen(false);
-    alert('Admin added successfully!');
+    // Password validation (only required for new admins)
+    if (!isEditMode && !formData.password) {
+      toast.showError("Password is required for new admins");
+      return;
+    }
+
+    try {
+      const payload = {
+        full_name: formData.full_name,
+        email: formData.email,
+      };
+
+      // Only include password if it's provided (for new admins or when updating)
+      if (formData.password) {
+        payload.password = formData.password;
+      }
+
+      if (isEditMode && editingAdminId) {
+        // Update existing admin
+        const response = await updateShopAdmin({
+          data: payload,
+          adminId: editingAdminId,
+        }).unwrap();
+
+        if (response?.success) {
+          toast.showSuccess("Admin updated successfully!", {
+            description: response.message || "Admin has been updated.",
+          });
+          resetForm();
+          setIsDialogOpen(false);
+          refetch();
+        } else {
+          toast.showError(response?.message || "Failed to update admin");
+        }
+      } else {
+        // Add new admin
+        const response = await addShopAdmin({
+          data: payload,
+        }).unwrap();
+
+        if (response?.success) {
+          toast.showSuccess("Admin added successfully!", {
+            description: response.message || "Admin has been added.",
+          });
+          resetForm();
+          setIsDialogOpen(false);
+          refetch();
+        } else {
+          toast.showError(response?.message || "Failed to add admin");
+        }
+      }
+    } catch (error) {
+      console.error("Admin operation error:", error);
+
+      // Handle validation errors from API
+      if (error?.data?.error && Array.isArray(error.data.error)) {
+        let generalErrorMessage = "";
+        error.data.error.forEach((err) => {
+          if (!err.path || err.path === "") {
+            generalErrorMessage = err.message;
+          }
+        });
+        toast.showError(
+          generalErrorMessage || error.data.message || "Operation failed"
+        );
+      } else {
+        const errorMessage =
+          error?.data?.message ||
+          error?.message ||
+          "Operation failed. Please try again.";
+        toast.showError(errorMessage);
+      }
+    }
   };
 
-  const handleEdit = (id) => {
-    console.log('Edit admin:', id);
+  const handleDelete = async (adminId) => {
+    if (!confirm("Are you sure you want to delete this admin?")) {
+      return;
+    }
+
+    try {
+      const response = await deleteShopAdmin(adminId).unwrap();
+
+      if (response?.success) {
+        toast.showSuccess("Admin deleted successfully!", {
+          description: response.message || "Admin has been deleted.",
+        });
+        refetch();
+      } else {
+        toast.showError(response?.message || "Failed to delete admin");
+      }
+    } catch (error) {
+      console.error("Delete admin error:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.message ||
+        "Failed to delete admin. Please try again.";
+      toast.showError(errorMessage);
+    }
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this admin?')) {
-      setAdmins(admins.filter(admin => admin.id !== id));
+  const handleDialogClose = (open) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      resetForm();
     }
   };
 
@@ -114,49 +232,88 @@ export default function AdminList() {
               <TableRow className="bg-gray-50">
                 <TableHead className="font-semibold text-black">Name</TableHead>
                 <TableHead className="font-semibold text-black">Role</TableHead>
-                <TableHead className="font-semibold text-black">Email</TableHead>
-                <TableHead className="font-semibold text-black">Created Date</TableHead>
-                <TableHead className="font-semibold text-black">Action</TableHead>
+                <TableHead className="font-semibold text-black">
+                  Email
+                </TableHead>
+                <TableHead className="font-semibold text-black">
+                  Created Date
+                </TableHead>
+                <TableHead className="font-semibold text-black">
+                  Action
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {admins.map((admin) => (
-                <TableRow key={admin.id}>
-                  <TableCell>{admin.name}</TableCell>
-                  <TableCell>{admin.role}</TableCell>
-                  <TableCell>{admin.email}</TableCell>
-                  <TableCell>{admin.createdDate}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 border-teal-500 text-teal-500 hover:bg-teal-50"
-                        onClick={() => handleEdit(admin.id)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 border-red-500 text-red-500 hover:bg-red-50"
-                        onClick={() => handleDelete(admin.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+              {isLoadingAdmins ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    Loading admins...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : admins.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    No admins found. Click "Add Admin" to create one.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                admins.map((admin) => {
+                  const createdDate =
+                    admin.created_at || admin.createdAt
+                      ? new Date(
+                          admin.created_at || admin.createdAt
+                        ).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "N/A";
+
+                  return (
+                    <TableRow key={admin._id || admin.id}>
+                      <TableCell>
+                        {admin.full_name || admin.name || "N/A"}
+                      </TableCell>
+                      <TableCell>{admin.role || "Admin"}</TableCell>
+                      <TableCell>{admin.email || "N/A"}</TableCell>
+                      <TableCell>{createdDate}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 border-teal-500 text-teal-500 hover:bg-teal-50"
+                            onClick={() => handleEdit(admin)}
+                            disabled={isLoading}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 border-red-500 text-red-500 hover:bg-red-50"
+                            onClick={() => handleDelete(admin._id || admin.id)}
+                            disabled={isLoading}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
             </TableBody>
           </Table>
         </div>
 
-        {/* Add Admin Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        {/* Add/Edit Admin Dialog */}
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-xl font-semibold">Add New Admin</DialogTitle>
+              <DialogTitle className="text-xl font-semibold">
+                {isEditMode ? "Edit Admin" : "Add New Admin"}
+              </DialogTitle>
               <DialogClose className="absolute right-4 top-4">
                 <X className="h-4 w-4" />
               </DialogClose>
@@ -171,9 +328,12 @@ export default function AdminList() {
                 <Input
                   id="name"
                   placeholder="Enter name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  value={formData.full_name}
+                  onChange={(e) =>
+                    handleInputChange("full_name", e.target.value)
+                  }
                   className="h-11"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -187,43 +347,44 @@ export default function AdminList() {
                   type="email"
                   placeholder="Enter email"
                   value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
                   className="h-11"
-                />
-              </div>
-
-              {/* Role */}
-              <div className="space-y-2">
-                <Label htmlFor="role">
-                  Role<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="role"
-                  placeholder="Enter role"
-                  value={formData.role}
-                  onChange={(e) => handleInputChange('role', e.target.value)}
-                  className="h-11"
+                  disabled={isLoading}
                 />
               </div>
 
               {/* Password */}
               <div className="space-y-2">
                 <Label htmlFor="password">
-                  Password<span className="text-red-500">*</span>
+                  Password
+                  {!isEditMode && <span className="text-red-500">*</span>}
+                  {isEditMode && (
+                    <span className="text-gray-500 text-sm ml-2">
+                      (Leave blank to keep current password)
+                    </span>
+                  )}
                 </Label>
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder={
+                      isEditMode
+                        ? "Enter new password (optional)"
+                        : "Enter password"
+                    }
                     value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("password", e.target.value)
+                    }
                     className="h-11 pr-10"
+                    disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    disabled={isLoading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -234,12 +395,19 @@ export default function AdminList() {
                 </div>
               </div>
 
-              {/* Add Button */}
+              {/* Submit Button */}
               <Button
-                onClick={handleAddAdmin}
-                className="w-full h-12 bg-red-600 hover:bg-red-700 text-white mt-6"
+                onClick={handleSubmit}
+                disabled={isLoading}
+                className="w-full h-12 bg-red-600 hover:bg-red-700 text-white mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Add Admin
+                {isLoading
+                  ? isEditMode
+                    ? "Updating..."
+                    : "Adding..."
+                  : isEditMode
+                  ? "Update Admin"
+                  : "Add Admin"}
               </Button>
             </div>
           </DialogContent>
