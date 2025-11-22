@@ -1,4 +1,4 @@
-import CouponList from '../../../../components/SellerDahsboard/coupon/CouponList';
+import CouponList from "../../../../components/SellerDahsboard/coupon/CouponList";
 
 const page = () => {
   return (

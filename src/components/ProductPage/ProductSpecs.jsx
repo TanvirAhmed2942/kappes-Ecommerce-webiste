@@ -13,6 +13,7 @@ const ProductSpecs = ({ productDetails, selectedVariant = null }) => {
   const variantSpecs = selectedVariant ? getVariantSpecs(selectedVariant) : {};
   const slugDetails = productDetails.slugDetails || {};
 
+  console.log("slugDetails", slugDetails);
   // Format specification values for display
   const formatSpecValue = (key, value) => {
     // Special handling for color

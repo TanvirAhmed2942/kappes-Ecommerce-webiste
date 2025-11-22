@@ -8,17 +8,25 @@ import "swiper/css";
 import "swiper/css/pagination";
 
 function CarouselPlay({ slideItem, imageClassName = "" }) {
+  // Ensure slideItem is always an array
+  const items = Array.isArray(slideItem) ? slideItem : [];
+
+  // Don't render if no items
+  if (items.length === 0) {
+    return null;
+  }
+
   return (
     <div className="w-full relative">
       <Swiper
         modules={[Pagination, Autoplay]}
         autoplay={{ delay: 3000, disableOnInteraction: false }}
         pagination={{ clickable: true }}
-        loop={true}
+        loop={items.length > 1}
         className="w-full h-full"
         style={{ height: "100%" }}
       >
-        {slideItem.map((item) => (
+        {items.map((item) => (
           <SwiperSlide key={item.id} className="w-full h-full">
             <div className="relative w-full h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-hidden">
               <Image
