@@ -8,10 +8,12 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useChangePasswordMutation } from '../../../../redux/authApi/authApi';
 import useToast from '../../../../hooks/useShowToast';
+import ReLogin from './reLogin';
 
 export default function ChangePassword() {
   const [changePassword, { isLoading }] = useChangePasswordMutation();
   const toast = useToast();
+  const [isReLoginModalOpen, setIsReLoginModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     oldPassword: '',
     newPassword: '',
@@ -115,10 +117,6 @@ export default function ChangePassword() {
       }).unwrap();
 
       if (response?.success) {
-        toast.showSuccess("Password updated successfully!", {
-          description: "Your password has been changed."
-        });
-        
         // Reset form after successful update
         setFormData({
           oldPassword: '',
@@ -135,6 +133,9 @@ export default function ChangePassword() {
           newPassword: false,
           confirmPassword: false
         });
+        
+        // Open re-login modal
+        setIsReLoginModalOpen(true);
       } else {
         toast.showError(response?.message || "Failed to update password");
       }
@@ -331,6 +332,12 @@ export default function ChangePassword() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Re-login Modal */}
+      <ReLogin 
+        open={isReLoginModalOpen} 
+        onOpenChange={setIsReLoginModalOpen} 
+      />
     </div>
   );
 }
