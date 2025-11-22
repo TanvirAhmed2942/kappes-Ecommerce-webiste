@@ -47,13 +47,18 @@ function StoreLayout() {
     rating: shopData?.data?.rating,
   };
 
-  const shopBanner = shopData?.data?.banner;
-  console.log(shopInfo);
+  const shopBanner = shopData?.data?.banner?.map((banner) => {
+    return {
+      url: `${getImageUrl}${banner}`,
+      alt: "shop banner",
+    };
+  });
+  console.log(shopBanner);
 
   return (
     <div className="lg:px-32">
       <StoreCover shopInfo={shopInfo} />
-      <StoreBanner />
+      <StoreBanner shopBanner={shopBanner} />
       <div className="flex items-start justify-start my-10">
         <Filter filterVisible={filterVisible} />
         <ShopProductList

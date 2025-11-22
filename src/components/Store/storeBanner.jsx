@@ -2,20 +2,12 @@ import CarouselPlay from "../../common/components/carousel";
 import React from "react";
 
 function StoreBanner({ shopBanner }) {
-  const bannerItem = [
-    {
-      id: 1,
-      image: "/assets/storeFront/storeBanner.png",
-    },
-    {
-      id: 2,
-      image: "/assets/storeFront/storeBanner.png",
-    },
-    {
-      id: 3,
-      image: "/assets/storeFront/storeBanner.png",
-    },
-  ];
+  const bannerItem = shopBanner?.map((banner) => {
+    return {
+      id: banner?.id,
+      image: `${getImageUrl}${banner}`,
+    };
+  });
   return (
     <div className="w-full ">
       <CarouselPlay slideItem={bannerItem} />

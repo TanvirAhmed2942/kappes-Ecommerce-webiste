@@ -53,11 +53,13 @@ const authSlice = createSlice({
       state.role = null;
       state.accessToken = null;
       state.refreshToken = null;
+     
 
       // Clear localStorage
       if (typeof window !== "undefined") {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
+        localStorage.removeItem("shop");
       }
     },
   },
