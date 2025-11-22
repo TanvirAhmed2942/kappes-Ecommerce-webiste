@@ -6,8 +6,12 @@ import { Input } from '../../../../components/ui/input';
 import { Label } from '../../../../components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { useChangePasswordMutation } from '../../../../redux/authApi/authApi';
+import useToast from '../../../../hooks/useShowToast';
 
 export default function ChangePassword() {
+  const [changePassword, { isLoading }] = useChangePasswordMutation();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     oldPassword: '',
     newPassword: '',
@@ -70,7 +74,9 @@ export default function ChangePassword() {
     setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
+    
     setTouched({
       oldPassword: true,
       newPassword: true,
@@ -85,9 +91,101 @@ export default function ChangePassword() {
 
     setErrors(newErrors);
 
-    if (!newErrors.oldPassword && !newErrors.newPassword && !newErrors.confirmPassword) {
-      console.log('Password changed successfully!', formData);
-      alert('Password updated successfully!');
+    // Check if there are any validation errors
+    if (newErrors.oldPassword || newErrors.newPassword || newErrors.confirmPassword) {
+      toast.showError("Please fix the errors in the form");
+      return;
+    }
+
+    // Check if new password and confirm password match
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast.showError("Passwords do not match");
+      setErrors(prev => ({
+        ...prev,
+        confirmPassword: 'Passwords do not match'
+      }));
+      return;
+    }
+
+    try {
+      const response = await changePassword({
+        currentPassword: formData.oldPassword,
+        newPassword: formData.newPassword,
+        confirmPassword: formData.confirmPassword
+      }).unwrap();
+
+      if (response?.success) {
+        toast.showSuccess("Password updated successfully!", {
+          description: "Your password has been changed."
+        });
+        
+        // Reset form after successful update
+        setFormData({
+          oldPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        setErrors({
+          oldPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        setTouched({
+          oldPassword: false,
+          newPassword: false,
+          confirmPassword: false
+        });
+      } else {
+        toast.showError(response?.message || "Failed to update password");
+      }
+    } catch (error) {
+      console.error("Change password error:", error);
+      
+      // Handle validation errors from API
+      if (error?.data?.error && Array.isArray(error.data.error)) {
+        const validationErrors = {};
+        let generalErrorMessage = "";
+
+        error.data.error.forEach((err) => {
+          // If path is empty, it's a general error message
+          if (!err.path || err.path === "") {
+            generalErrorMessage = err.message;
+          } else {
+            // Map API error paths to form field names
+            const fieldMap = {
+              currentPassword: "oldPassword",
+              newPassword: "newPassword",
+              confirmPassword: "confirmPassword",
+            };
+
+            const fieldName = fieldMap[err.path] || err.path;
+            validationErrors[fieldName] = err.message;
+          }
+        });
+
+        // Set validation errors in form
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(prev => ({ ...prev, ...validationErrors }));
+        }
+
+        // Show error message
+        const errorMessage =
+          generalErrorMessage ||
+          error.data.message ||
+          "Failed to update password. Please check your input.";
+        toast.showError(errorMessage);
+      } else {
+        // Handle other types of errors
+        let errorMessage = "Failed to update password. Please try again.";
+        if (error?.data?.errorMessages && error.data.errorMessages.length > 0) {
+          errorMessage = error.data.errorMessages[0].message;
+        } else if (error?.data?.message) {
+          errorMessage = error.data.message;
+        } else if (error?.message) {
+          errorMessage = error.message;
+        }
+        toast.showError(errorMessage);
+      }
     }
   };
 
@@ -116,7 +214,7 @@ export default function ChangePassword() {
 
         <Card className="shadow-sm">
           <CardContent className="p-8">
-            <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Old Password */}
               <div className="space-y-2">
                 <Label htmlFor="oldPassword" className="text-lg">
@@ -216,19 +314,20 @@ export default function ChangePassword() {
                   type="button"
                   variant="outline"
                   onClick={handleCancel}
-                  className="px-12 h-12 text-lg border-2 border-red-700 text-red-700 hover:bg-red-50 hover:text-red-700"
+                  disabled={isLoading}
+                  className="px-12 h-12 text-lg border-2 border-red-700 text-red-700 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </Button>
                 <Button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="px-12 h-12 text-lg bg-red-700 hover:bg-red-800"
+                  type="submit"
+                  disabled={isLoading}
+                  className="px-12 h-12 text-lg bg-red-700 hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Update
+                  {isLoading ? "Updating..." : "Update"}
                 </Button>
               </div>
-            </div>
+            </form>
           </CardContent>
         </Card>
       </div>
