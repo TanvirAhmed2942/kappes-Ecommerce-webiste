@@ -170,6 +170,42 @@ const productApi = api.injectEndpoints({
         return response;
       },
     }),
+    getProductByProvince: builder.query({
+      query: (provinceName) => {
+        return {
+          url: `/product/province/${encodeURIComponent(provinceName)}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["PRODUCT"],
+      transformResponse: (response) => {
+        return response;
+      },
+    }),
+    getProductByTerritory: builder.query({
+      query: (territoryName) => {
+        return {
+          url: `/product/territory/${encodeURIComponent(territoryName)}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["PRODUCT"],
+      transformResponse: (response) => {
+        return response;
+      },
+    }),
+    getProductByCity: builder.query({
+      query: (cityName) => {
+        return {
+          url: `/product/city/${encodeURIComponent(cityName)}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["PRODUCT"],
+      transformResponse: (response) => {
+        return response;
+      },
+    }),
   }),
   overrideExisting: true,
 });
@@ -188,6 +224,9 @@ export const {
   useRemoveFromFavProductMutation,
   useGetFavProductsQuery,
   useGetCategoryQuery,
+  useGetProductByProvinceQuery,
+  useGetProductByTerritoryQuery,
+  useGetProductByCityQuery,
 } = productApi;
 
 // Export directly to ensure it's available
