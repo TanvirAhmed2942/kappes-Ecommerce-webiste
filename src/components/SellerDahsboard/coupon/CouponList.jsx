@@ -74,9 +74,9 @@ const CouponList = () => {
   };
 
   const handleEdit = (coupon) => {
-    console.log("Edit coupon", coupon);
-    // TODO: Navigate to edit page
-    // router.push(`/seller/coupon/edit/${coupon._id}`);
+    router.push(
+      `/seller/coupon/add-coupon?code=${encodeURIComponent(coupon.code)}`
+    );
   };
 
   const handleDelete = async (coupon) => {

@@ -10,14 +10,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../../components/ui/select";
-import { useState } from "react";
-import { useCreateCouponMutation } from "../../../../../redux/sellerApi/couponApi/couponApi";
+import { useState, useEffect } from "react";
+import {
+  useCreateCouponMutation,
+  useUpdateCouponMutation,
+  useGetCouponsQuery,
+} from "../../../../../redux/sellerApi/couponApi/couponApi";
 import useToast from "../../../../../hooks/useShowToast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 export default function AddCouponForm() {
-  const [createCoupon, { isLoading }] = useCreateCouponMutation();
+  const [createCoupon, { isLoading: isCreating }] = useCreateCouponMutation();
+  const [updateCoupon, { isLoading: isUpdating }] = useUpdateCouponMutation();
+  const { data: couponsData } = useGetCouponsQuery();
   const toast = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const couponCode = searchParams.get("code");
+  const isEditMode = !!couponCode;
+  const isLoading = isCreating || isUpdating;
 
   const [formData, setFormData] = useState({
     title: "",
@@ -30,6 +40,41 @@ export default function AddCouponForm() {
     startDate: "",
     endDate: "",
   });
+
+  // Populate form when in edit mode
+  useEffect(() => {
+    if (isEditMode && couponsData?.data) {
+      const coupon = couponsData.data.find((c) => c.code === couponCode);
+      if (coupon) {
+        // Format dates for date inputs (YYYY-MM-DD)
+        const formatDateForInput = (dateString) => {
+          if (!dateString) return "";
+          const date = new Date(dateString);
+          return date.toISOString().split("T")[0];
+        };
+
+        // Map discountType to form value
+        const discountTypeValue =
+          coupon.discountType?.toLowerCase() === "percentage"
+            ? "percentage"
+            : coupon.discountType?.toLowerCase() === "flat"
+            ? "flat"
+            : "";
+
+        setFormData({
+          title: coupon.name || "",
+          description: coupon.description || "",
+          code: coupon.code || "",
+          discountType: discountTypeValue,
+          discountAmount: coupon.discountValue?.toString() || "",
+          maxDiscountAmount: coupon.maxDiscountAmount?.toString() || "",
+          minOrderAmount: coupon.minOrderAmount?.toString() || "",
+          startDate: formatDateForInput(coupon.startDate),
+          endDate: formatDateForInput(coupon.endDate),
+        });
+      }
+    }
+  }, [isEditMode, couponCode, couponsData]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -67,7 +112,7 @@ export default function AddCouponForm() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    if (startDate < today) {
+    if (!isEditMode && startDate < today) {
       toast.showError("Start date cannot be in the past");
       return;
     }
@@ -92,7 +137,7 @@ export default function AddCouponForm() {
         return;
       }
       if (
-        formData.discountType === "Percentage" &&
+        formData.discountType === "percentage" &&
         maxDiscount < discountAmount
       ) {
         toast.showError(
@@ -111,62 +156,96 @@ export default function AddCouponForm() {
       }
     }
 
-    // Get shopId from localStorage
-    const shopId = localStorage.getItem("shop");
-    if (!shopId) {
-      toast.showError("Shop information not available. Please try again.");
-      return;
-    }
-
     try {
-      // Map discountType to API enum values
-      const discountTypeMap = {
-        percentage: "Percentage",
-        flat: "Flat",
-      };
-      const apiDiscountType =
-        discountTypeMap[formData.discountType] || formData.discountType;
-
       // Convert dates to ISO 8601 format
       const startDateISO = new Date(formData.startDate).toISOString();
       const endDateISO = new Date(
         formData.endDate + "T23:59:59Z"
       ).toISOString();
 
-      // Prepare API payload
-      const payload = {
-        code: formData.code.toUpperCase().trim(),
-        shopId: shopId,
-        discountType: apiDiscountType,
-        discountValue: discountAmount,
-        name: formData.title.trim(),
-        description: formData.description.trim(),
-        startDate: startDateISO,
-        endDate: endDateISO,
-      };
+      if (isEditMode) {
+        // Update coupon
+        const payload = {
+          code: formData.code.toUpperCase().trim(),
+          startDate: startDateISO,
+          endDate: endDateISO,
+        };
 
-      // Add optional fields if provided
-      if (formData.maxDiscountAmount) {
-        payload.maxDiscountAmount = parseFloat(formData.maxDiscountAmount);
-      }
+        // Add optional fields if provided
+        if (formData.maxDiscountAmount) {
+          payload.maxDiscountAmount = parseFloat(formData.maxDiscountAmount);
+        }
 
-      if (formData.minOrderAmount) {
-        payload.minOrderAmount = parseFloat(formData.minOrderAmount);
-      }
+        if (formData.minOrderAmount) {
+          payload.minOrderAmount = parseFloat(formData.minOrderAmount);
+        }
 
-      const response = await createCoupon({ data: payload }).unwrap();
+        const response = await updateCoupon({
+          couponCode: formData.code.toUpperCase().trim(),
+          data: payload,
+        }).unwrap();
 
-      if (response?.success) {
-        toast.showSuccess(response.message || "Coupon created successfully!");
-        // Reset form
-        handleCancel();
-        // Navigate back to coupons list
-        router.push("/seller/coupon");
+        if (response?.success) {
+          toast.showSuccess(response.message || "Coupon updated successfully!");
+          router.push("/seller/coupon");
+        } else {
+          toast.showError(response?.message || "Failed to update coupon");
+        }
       } else {
-        toast.showError(response?.message || "Failed to create coupon");
+        // Create coupon
+        // Get shopId from localStorage
+        const shopId = localStorage.getItem("shop");
+        if (!shopId) {
+          toast.showError("Shop information not available. Please try again.");
+          return;
+        }
+
+        // Map discountType to API enum values
+        const discountTypeMap = {
+          percentage: "Percentage",
+          flat: "Flat",
+        };
+        const apiDiscountType =
+          discountTypeMap[formData.discountType] || formData.discountType;
+
+        // Prepare API payload
+        const payload = {
+          code: formData.code.toUpperCase().trim(),
+          shopId: shopId,
+          discountType: apiDiscountType,
+          discountValue: discountAmount,
+          name: formData.title.trim(),
+          description: formData.description.trim(),
+          startDate: startDateISO,
+          endDate: endDateISO,
+        };
+
+        // Add optional fields if provided
+        if (formData.maxDiscountAmount) {
+          payload.maxDiscountAmount = parseFloat(formData.maxDiscountAmount);
+        }
+
+        if (formData.minOrderAmount) {
+          payload.minOrderAmount = parseFloat(formData.minOrderAmount);
+        }
+
+        const response = await createCoupon({ data: payload }).unwrap();
+
+        if (response?.success) {
+          toast.showSuccess(response.message || "Coupon created successfully!");
+          // Reset form
+          handleCancel();
+          // Navigate back to coupons list
+          router.push("/seller/coupon");
+        } else {
+          toast.showError(response?.message || "Failed to create coupon");
+        }
       }
     } catch (error) {
-      console.error("Create coupon error:", error);
+      console.error(
+        isEditMode ? "Update coupon error:" : "Create coupon error:",
+        error
+      );
       if (error?.data?.error && Array.isArray(error.data.error)) {
         let generalErrorMessage = "";
         error.data.error.forEach((err) => {
@@ -181,7 +260,9 @@ export default function AddCouponForm() {
         const errorMessage =
           error?.data?.message ||
           error?.message ||
-          "Failed to create coupon. Please try again.";
+          (isEditMode
+            ? "Failed to update coupon. Please try again."
+            : "Failed to create coupon. Please try again.");
         toast.showError(errorMessage);
       }
     }
@@ -204,7 +285,9 @@ export default function AddCouponForm() {
   return (
     <div className="">
       <div className="">
-        <h1 className="text-3xl font-semibold mb-8">Add Coupon</h1>
+        <h1 className="text-3xl font-semibold mb-8">
+          {isEditMode ? "Edit Coupon" : "Add Coupon"}
+        </h1>
 
         <div className="bg-white rounded-lg shadow-sm p-8">
           <div className="grid grid-cols-2 gap-x-8 gap-y-6">
@@ -253,7 +336,7 @@ export default function AddCouponForm() {
                   handleInputChange("code", e.target.value.toUpperCase())
                 }
                 className="h-12"
-                disabled={isLoading}
+                disabled={isLoading || isEditMode}
               />
             </div>
 
@@ -387,7 +470,13 @@ export default function AddCouponForm() {
               className="px-8 h-12 text-base bg-red-600 hover:bg-red-700"
               disabled={isLoading}
             >
-              {isLoading ? "Creating..." : "Publish"}
+              {isLoading
+                ? isEditMode
+                  ? "Updating..."
+                  : "Creating..."
+                : isEditMode
+                ? "Update"
+                : "Publish"}
             </Button>
           </div>
         </div>
