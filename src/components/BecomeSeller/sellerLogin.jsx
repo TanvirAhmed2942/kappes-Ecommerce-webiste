@@ -6,27 +6,147 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+  } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
+import { Label } from "../../components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import { useLoginMutation } from "../../redux/authApi/authApi";
+import useToast from "../../hooks/useShowToast";
+import { useRouter } from "next/navigation";
+import useAuth from "../../hooks/useAuth";
 
 export default function SellerLogin() {
+  const router = useRouter();
+  const toast = useToast();
+  const { login: authLogin } = useAuth();
+  const [loginUser, { isLoading }] = useLoginMutation();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
+  // Form validation
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    if (!password) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      toast.showError("Please fix the errors in the form");
+      return;
+    }
+
+    try {
+      const loginCredentials = {
+        email: email.trim(),
+        password: password,
+      };
+
+      const response = await loginUser(loginCredentials).unwrap();
+
+      if (response?.success === true) {
+        const userRole = response?.data?.role;
+
+        // Update auth state
+        authLogin({
+          role: userRole,
+          accessToken: response?.data?.accessToken,
+          refreshToken: response?.data?.refreshToken,
+        });
+
+        // Only redirect to seller dashboard if role is VENDOR
+        if (userRole === "VENDOR") {
+          toast.showSuccess("Login successful!", {
+            description: "You are now logged in.",
+          });
+          router.push("/seller/overview");
+        } else {
+          toast.showError("Access Denied", {
+            description: "Only vendors can access the seller dashboard.",
+          });
+          // Redirect to home or appropriate page for non-vendors
+          router.push("/");
+        }
+      } else {
+        toast.showError("Login failed", {
+          description:
+            response?.message || "Something went wrong. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+
+      // Handle validation errors from API
+      if (error?.data?.error && Array.isArray(error.data.error)) {
+        const validationErrors = {};
+        let generalErrorMessage = "";
+
+        error.data.error.forEach((err) => {
+          // If path is empty, it's a general error message
+          if (!err.path || err.path === "") {
+            generalErrorMessage = err.message;
+          } else {
+            // Map API error paths to form field names
+            const fieldMap = {
+              email: "email",
+              password: "password",
+            };
+
+            const fieldName = fieldMap[err.path] || err.path;
+            validationErrors[fieldName] = err.message;
+          }
+        });
+
+        // Set validation errors in form
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(validationErrors);
+        }
+
+        // Show error message
+        const errorMessage =
+          generalErrorMessage ||
+          error.data.message ||
+          "Login failed. Please check your credentials.";
+        toast.showError(errorMessage);
+      } else {
+        // Handle other types of errors
+        let errorMessage = "Login failed. Please try again.";
+        if (error?.data?.errorMessages && error.data.errorMessages.length > 0) {
+          errorMessage = error.data.errorMessages[0].message;
+        } else if (error?.data?.message) {
+          errorMessage = error.data.message;
+        } else if (error?.message) {
+          errorMessage = error.message;
+        }
+        toast.showError(errorMessage);
+      }
+    }
   };
 
   return (
-    <Card className="w-full h-full  bg-[#f7e8e5] w-[25rem]">
+    <Card className="h-full bg-[#f7e8e5] ">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center text-red-700">
           Welcome to the Canuck Mall
@@ -35,60 +155,74 @@ export default function SellerLogin() {
           Create a seller account today to be part of Canada's largest growing
           marketplace
         </p>
-        <p className="text-center text-gray-600 text-xs text-left ">
+        <p className="text-gray-600 text-xs text-left">
           * Already have an account login here then the store owner will be
           redirected to login page.
         </p>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">
-            Email<span className="text-red-600">*</span>
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="Enter your email address"
-            required
-            className="bg-white"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password">
-            Password<span className="text-red-600">*</span>
-          </Label>
-          <div className="relative">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">
+              Email<span className="text-red-600">*</span>
+            </Label>
             <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Create a password"
+              id="email"
+              type="email"
+              placeholder="Enter your email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               className="bg-white"
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full hover:bg-transparent"
-              onClick={togglePasswordVisibility}
-            >
-              {!showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </Button>
+            {errors.email && (
+              <p className="text-sm text-red-500">{errors.email}</p>
+            )}
           </div>
-        </div>
 
-        <Button
-          className="w-full bg-red-700 hover:bg-red-800 text-white"
-          size="lg"
-        >
-          Sign Up
-        </Button>
+          <div className="space-y-2">
+            <Label htmlFor="password">
+              Password<span className="text-red-600">*</span>
+            </Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="bg-white"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full hover:bg-transparent"
+                onClick={togglePasswordVisibility}
+              >
+                {!showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            {errors.password && (
+              <p className="text-sm text-red-500">{errors.password}</p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full bg-red-700 hover:bg-red-800 text-white"
+            size="lg"
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing In..." : "Sign In"}
+          </Button>
+        </form>
 
         <div className="flex items-center justify-center">
           <span className="text-sm text-gray-500">or</span>

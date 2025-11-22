@@ -9,11 +9,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "../../components/ui/table";
 import CartControlButton from "./CartControlButton";
 import Image from "next/image";
 import Link from "next/link";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "../../hooks/useCart";
+import { getImageUrl } from "../../redux/baseUrl";
 
 function Checkout() {
   // Use our custom hook to get cart data
@@ -39,9 +40,7 @@ function Checkout() {
     <div className="w-full md:w-[90%] px-4 py-10 md:px-10 md:py-15 mx-auto min-h-screen">
       <Table>
         <TableCaption>
-          {cartItems.length > 0
-            ? "Your shopping cart items"
-            : "Your cart is empty"}
+          {cartItems.length > 0 ? "Your shopping cart items" : null}
         </TableCaption>
         <TableHeader>
           <TableRow>
@@ -54,15 +53,24 @@ function Checkout() {
         </TableHeader>
         <TableBody>
           {cartItems.length > 0 ? (
-            cartItems.map((item) => {
+            cartItems.map((item, index) => {
               const itemPrice = parseFloat(item.price) || 0;
               const subTotal = itemPrice * (item.quantity || 1);
+              const uniqueKey = `${item?.id || "item"}-${item?.size || ""}-${
+                item?.color || ""
+              }-${index}`;
 
               return (
-                <TableRow key={item.id}>
+                <TableRow key={uniqueKey}>
                   <TableCell className="font-medium">
                     <Image
-                      src={item.productImage || "/assets/bag.png"}
+                      src={
+                        item.productImage?.startsWith("http")
+                          ? item.productImage
+                          : item.productImage
+                          ? `${getImageUrl}${item.productImage}`
+                          : "/assets/bag.png"
+                      }
                       alt={item.name || "Product Image"}
                       width={50}
                       height={50}
@@ -75,12 +83,11 @@ function Checkout() {
                         {item.name || item.productName || "Product Name"}
                       </span>
                       <span className="text-xs text-gray-500">
-                        {item.size && `Size: ${item.size} `}
-                        {item.color && `Color: ${item.color}`}
-                        {item.description &&
-                          !item.size &&
-                          !item.color &&
-                          item.description}
+                        {item.color && `Color: ${item.color} `}
+                        {item.size && `Size: ${item.size}`}
+                        {item.variant?.storage &&
+                          `Storage: ${item.variant.storage} `}
+                        {item.variant?.ram && `RAM: ${item.variant.ram}`}
                       </span>
                     </div>
                   </TableCell>
@@ -89,6 +96,7 @@ function Checkout() {
                     <CartControlButton
                       itemId={item.id}
                       currentQuantity={item.quantity || 1}
+                      item={item}
                     />
                   </TableCell>
                   <TableCell className="text-right">
@@ -101,7 +109,7 @@ function Checkout() {
             <TableRow>
               <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                 Your cart is empty.
-                <Link href="/" className="text-blue-500 hover:underline ml-1">
+                <Link href="/" className="text-red-700 hover:underline ml-1">
                   Continue shopping
                 </Link>
               </TableCell>

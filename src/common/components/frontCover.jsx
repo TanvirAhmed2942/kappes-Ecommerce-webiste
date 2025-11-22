@@ -1,19 +1,23 @@
 "use client";
 import { useState } from "react";
 import { MessageSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../../components/ui/button";
 import Image from "next/image";
-import { getImageUrl } from "@/redux/baseUrl";
+import { getImageUrl } from "../../redux/baseUrl";
 
 const FrontCover = ({ coverPhoto, logo, name, totalReviews, description }) => {
   const [following, setFollowing] = useState(false);
 
   return (
     <div className="w-full  mx-auto overflow-hidden">
-      {/* Banner Image */}
+      {/* Cover Photo Image */}
       <div className="relative h-40 md:h-52 lg:h-64 w-full bg-gray-200 overflow-hidden">
         <Image
-          src={`${getImageUrl}${coverPhoto}`}
+          src={
+            coverPhoto?.startsWith("http")
+              ? coverPhoto
+              : `${getImageUrl}${coverPhoto}`
+          }
           width={5000}
           height={5000}
           alt="Mountain landscape with fog"
@@ -27,11 +31,11 @@ const FrontCover = ({ coverPhoto, logo, name, totalReviews, description }) => {
           {/* <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white bg-white"> */}
           <div className="flex items-center justify-center h-full w-full  text-white">
             <Image
-              src={`${getImageUrl}${logo}`}
+              src={logo?.startsWith("http") ? logo : `${getImageUrl}${logo}`}
               width={1000}
               height={1000}
               alt="storeLogo"
-              className="w-24 h-24 border-2 rounded-lg"
+              className="w-24 h-24 border-2 rounded-lg bg-white"
             />
           </div>
           {/* </Avatar> */}

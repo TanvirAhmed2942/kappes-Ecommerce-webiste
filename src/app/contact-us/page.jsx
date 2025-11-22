@@ -1,4 +1,4 @@
-import ContactUs from "@/components/ContactUs/contactUs";
+import ContactUs from "../../components/ContactUs/contactUs";
 import React from "react";
 
 function Page() {

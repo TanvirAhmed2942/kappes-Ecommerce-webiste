@@ -1,14 +1,15 @@
 "use client";
 import React from "react";
 import { useSelector } from "react-redux";
-import CarouselPlay from "@/common/components/carousel";
+import CarouselPlay from "../../../common/components/carousel";
+import { getImageUrl } from "../../../redux/baseUrl";
 
-function ServicePromotion() {
+function ServicePromotion({ bannerImages = [] }) {
   // Get services from Redux state
   const { selectedService } = useSelector((state) => state.service);
 
   // Default service promotion images
-  const servicePromotionImage = [
+  const defaultServicePromotionImage = [
     {
       id: 1,
       image: "/assets/tradesAndServies/servicePromo.png",
@@ -23,11 +24,22 @@ function ServicePromotion() {
     },
   ];
 
+  // Process banner images from API response
+  const servicePromotionImage =
+    bannerImages.length > 0
+      ? bannerImages.map((banner, index) => ({
+          id: index + 1,
+          image: banner?.startsWith("http")
+            ? banner
+            : `${getImageUrl}${banner}`,
+        }))
+      : defaultServicePromotionImage;
+
   // If no service is selected, use default images
   if (!selectedService) {
     return (
       <div className="w-full md:w-[70%] lg:w-[80%] md:p-0">
-        <CarouselPlay slideItem={servicePromotionImage} />
+        <CarouselPlay slideItem={defaultServicePromotionImage} />
         <div className="ml-5">
           <h2 className="text-3xl font-comfortaa font-bold -ml-5 my-5 text-gray-500">
             No Service Details Available
@@ -37,7 +49,7 @@ function ServicePromotion() {
     );
   }
 
-  // Determine services list (you might want to customize this)
+  // Determine services list from the service field
   const services = selectedService.service
     ? [{ id: 1, service: selectedService.service }]
     : [

@@ -153,7 +153,9 @@ function Footer() {
 
       {/* Bottom Section */}
       <div className="w-full bg-black text-white text-center py-4">
-        <p className="text-sm">© 2023 Your Company. All rights reserved.</p>
+        <p className="text-sm">
+          © {new Date().getFullYear()} The Canuck Mall. All rights reserved.
+        </p>
       </div>
     </footer>
   );

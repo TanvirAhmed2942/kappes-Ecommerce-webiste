@@ -1,5 +1,5 @@
-import VerificationSuccess from "@/common/components/verificationSuccess";
-import OTPverification from "@/components/Auth/OTPverification";
+import VerificationSuccess from "../../../../common/components/verificationSuccess";
+import OTPverification from "../../../../components/Auth/OTPverification";
 import React from "react";
 
 function VerifyOTP() {

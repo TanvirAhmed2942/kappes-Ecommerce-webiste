@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import ShopBrandCard from "./shopBrandCard";
-import { useGetShopListQuery } from "@/redux/shopApi/shopApi";
+import { useGetShopListQuery } from "../../redux/shopApi/shopApi";
 
 function ShopBrandLayout() {
   const fields = "name,logo,coverPhoto,address";

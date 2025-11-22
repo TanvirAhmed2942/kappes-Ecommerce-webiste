@@ -1,8 +1,8 @@
 "use client";
-import useVirtualizedList from "@/hooks/VirtualizedList";
+import useVirtualizedList from "../../hooks/VirtualizedList";
 import Image from "next/image";
 import { FiFilter } from "react-icons/fi";
-import { Button } from "@/components/ui/button";
+import { Button } from "../../components/ui/button";
 import {
   Select,
   SelectContent,
@@ -11,12 +11,12 @@ import {
   SelectGroup,
   SelectLabel,
   SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "../../components/ui/select";
+import { Card, CardContent } from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
+import { Skeleton } from "../../components/ui/skeleton";
 import Link from "next/link";
-import { getImageUrl } from "@/redux/baseUrl";
+import { getImageUrl } from "../../redux/baseUrl";
 
 export default function ShopProductList({
   products = [], // Default to empty array

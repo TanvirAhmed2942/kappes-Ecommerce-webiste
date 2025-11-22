@@ -7,7 +7,7 @@ import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 
-function CarouselPlay({ slideItem }) {
+function CarouselPlay({ slideItem, imageClassName = "" }) {
   return (
     <div className="w-full relative">
       <Swiper
@@ -15,17 +15,21 @@ function CarouselPlay({ slideItem }) {
         autoplay={{ delay: 3000, disableOnInteraction: false }}
         pagination={{ clickable: true }}
         loop={true}
-        className="w-full"
+        className="w-full h-full"
+        style={{ height: "100%" }}
       >
         {slideItem.map((item) => (
-          <SwiperSlide key={item.id}>
-            <Image
-              src={item.image}
-              width={1000}
-              height={1000}
-              alt={item.image}
-              className="w-full object-contain"
-            />
+          <SwiperSlide key={item.id} className="w-full h-full">
+            <div className="relative w-full h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-hidden">
+              <Image
+                src={item.image}
+                width={1200}
+                height={600}
+                alt={item.image || "Carousel image"}
+                className={`w-full h-full object-cover ${imageClassName}`}
+                priority={item.id === 1}
+              />
+            </div>
           </SwiperSlide>
         ))}
       </Swiper>
@@ -34,12 +38,13 @@ function CarouselPlay({ slideItem }) {
       <style jsx global>{`
         .swiper-pagination {
           bottom: 10px !important;
+          z-index: 10;
         }
 
         .swiper-pagination-bullet {
           width: 8px;
           height: 8px;
-          background-color: rgba(255, 255, 255, 0.3);
+          background-color: rgba(255, 255, 255, 0.5);
           border-radius: 9999px;
           margin: 0 6px !important;
           opacity: 1;
@@ -49,6 +54,19 @@ function CarouselPlay({ slideItem }) {
         .swiper-pagination-bullet-active {
           width: 32px;
           background-color: white;
+        }
+
+        .swiper {
+          width: 100%;
+          height: 100%;
+        }
+
+        .swiper-slide {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
       `}</style>
     </div>

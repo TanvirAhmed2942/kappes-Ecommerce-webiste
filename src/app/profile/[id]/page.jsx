@@ -1,9 +1,9 @@
 "use client";
-import ProfileLayout from "@/components/Profile/layout";
+import ProfileLayout from "../../../components/Profile/layout"; 
 import React from "react";
-import { withAuth } from "@/Providers/AuthGuard";
+import { withAuth } from "../../../Providers/AuthGuard";
 
-function Profile() {
+const Profile = () => {
   return (
     <div className="relative  w-full h-full bg-white  z-0">
       <div
@@ -20,4 +20,4 @@ function Profile() {
   );
 }
 
-export default withAuth(Profile);
+export default withAuth(Profile, "USER");

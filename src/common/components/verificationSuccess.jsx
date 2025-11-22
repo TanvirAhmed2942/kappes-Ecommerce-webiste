@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "../../components/ui/dialog";
 
 // Expecting a `Content` prop that's a React component
 function VerificationSuccess({ Content }) {

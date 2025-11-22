@@ -1,29 +1,31 @@
 "use client";
 
-import SearchBox from "@/common/components/searchBox";
+
+
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { ChevronRight, HandCoins, MapPin, Store, Tag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
-import { HiOutlineShoppingCart } from "react-icons/hi";
+import { useState } from "react";
+import { AiOutlineMessage } from "react-icons/ai";
+import { BiMessageSquareDots } from "react-icons/bi";
 import { FaRegUser } from "react-icons/fa";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { HiOutlineShoppingCart } from "react-icons/hi";
+import { MdLogout } from "react-icons/md";
+import { useDispatch, useSelector } from "react-redux";
+import SearchBox from '../../common/components/searchBox';
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
 import {
   Drawer,
   DrawerContent,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import { MdLogout } from "react-icons/md";
+} from "../../components/ui/drawer";
 import { Button } from "../ui/button";
-import { ChevronRight, MapPin, Store, HandCoins, Tag } from "lucide-react";
-import { useSelector, useDispatch } from "react-redux";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { AiOutlineMessage } from "react-icons/ai";
-import { BiMessageSquareDots } from "react-icons/bi";
-import { openChat } from "@/features/chatSlice";
-import useAuth from "@/hooks/useAuth";
-import useUser from "@/hooks/useUser";
-import { getImageUrl } from "@/redux/baseUrl";
+import { getImageUrl } from '../../redux/baseUrl';
+import useUser from '../../hooks/useUser';
+import useAuth from '../../hooks/useAuth';
+import { openChat } from '../../features/chatSlice';
 function TopNav() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const dispatch = useDispatch();
@@ -86,7 +88,7 @@ function TopNav() {
       {/* Right Section */}
       <div className="flex items-center justify-center gap-4 mt-2 sm:mt-0">
         {/* Messages Icon - Desktop only */}
-        <Link href="/chat/454" className="relative hidden sm:block">
+        <Link href="/chat/all-chat" className="relative hidden sm:block">
           <Button
             onClick={handleOpenChat}
             className="relative flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none bg-white shadow-none w-12 h-12 rounded-full hover:bg-gray-300 cursor-pointer"
@@ -200,7 +202,7 @@ function TopNav() {
 
               {/* Messages - Mobile and Desktop */}
               <div className="mt-6 px-4 block">
-                <Link href="/chat/454" className="w-full">
+                <Link href="/chat/all-chat" className="w-full">
                   <Button
                     className="w-full justify-start gap-3 hover:bg-kappes"
                     onClick={handleOpenChat}

@@ -1,4 +1,4 @@
-import StoreLayout from "@/components/Store/storeLayout";
+import StoreLayout from "../../../components/Store/storeLayout";
 import React from "react";
 
 function Page() {

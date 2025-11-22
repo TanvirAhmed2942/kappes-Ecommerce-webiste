@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useGetReviewByProductIdQuery } from "@/redux/productApi/productApi";
+import { useGetReviewByProductIdQuery } from "../redux/productApi/productApi";
 import useProductDetails from "./useProductDetails";
 
 const useProductReviews = () => {

@@ -1,7 +1,9 @@
-import BusinessListingForm from "@/components/BusinessListing/businessListing";
+"use client";
+import BusinessListingForm from "../../components/BusinessListing/businessListing";
+import { withAuth } from "../../Providers/AuthGuard";
 import React from "react";
 
-function page() {
+function BusinessListingPage() {
   return (
     <>
       <BusinessListingForm />
@@ -9,4 +11,4 @@ function page() {
   );
 }
 
-export default page;
+export default withAuth(BusinessListingPage);

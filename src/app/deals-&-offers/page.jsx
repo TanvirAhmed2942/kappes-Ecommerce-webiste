@@ -1,4 +1,4 @@
-import CouponLayout from "@/components/Coupon/couponLayout";
+import CouponLayout from "../../components/Coupon/couponLayout";
 
 import React from "react";
 

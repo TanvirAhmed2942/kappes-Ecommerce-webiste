@@ -6,10 +6,10 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+} from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
+import { Label } from "../../components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import {
@@ -19,10 +19,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+  import { useGetCategoryQuery } from "../../redux/productApi/productApi";
+import { useCreateSellerMutation } from "../../redux/sellerApi/sellerApi";
+import useToast from "../../hooks/useShowToast";
+import { useRouter } from "next/navigation";
 
 export default function SellerRegistrationForm() {
+  const router = useRouter();
+  const toast = useToast();
+  const {
+    data: categoriesData,
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = useGetCategoryQuery();
+  const [createSeller, { isLoading: isSubmitting }] = useCreateSellerMutation();
+
+  // Form state
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [storeName, setStoreName] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -30,6 +52,139 @@ export default function SellerRegistrationForm() {
 
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  // Extract categories from API response
+  const categories =
+    categoriesData?.success && categoriesData?.data?.categorys
+      ? categoriesData.data.categorys
+      : [];
+
+  // Form validation
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!fullName.trim()) {
+      newErrors.fullName = "Full name is required";
+    }
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    if (!storeName.trim()) {
+      newErrors.storeName = "Store name is required";
+    }
+    if (!selectedCategory) {
+      newErrors.storeCategory = "Store category is required";
+    }
+    if (!phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    }
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters long";
+    }
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      toast.showError("Please fix the errors in the form");
+      return;
+    }
+
+    try {
+      // Format phone number with +1 prefix
+      const formattedPhone = phone.startsWith("+1")
+        ? phone
+        : `+1${phone.replace(/\D/g, "")}`;
+
+      // Prepare data according to API format
+      const sellerData = {
+        full_name: fullName.trim(),
+        email: email.trim(),
+        password: password,
+        phone: formattedPhone,
+        store_name: storeName.trim(),
+        store_category: selectedCategory,
+      };
+
+      const response = await createSeller({ data: sellerData }).unwrap();
+
+      if (response?.success) {
+        toast.showSuccess(
+          response?.message || "Seller account created successfully!"
+        );
+        // Redirect to login page or dashboard
+        router.push("./become-seller-login");
+      } else {
+        toast.showError(response?.message || "Failed to create seller account");
+      }
+    } catch (error) {
+      console.error("Seller registration error:", error);
+
+      // Handle validation errors from API
+      if (error?.data?.error && Array.isArray(error.data.error)) {
+        const validationErrors = {};
+        let generalErrorMessage = "";
+
+        error.data.error.forEach((err) => {
+          // If path is empty, it's a general error message
+          if (!err.path || err.path === "") {
+            generalErrorMessage = err.message;
+          } else {
+            // Map API error paths to form field names
+            const fieldMap = {
+              password: "password",
+              full_name: "fullName",
+              email: "email",
+              phone: "phone",
+              store_name: "storeName",
+              store_category: "storeCategory",
+              confirmPassword: "confirmPassword",
+            };
+
+            const fieldName = fieldMap[err.path] || err.path;
+            validationErrors[fieldName] = err.message;
+          }
+        });
+
+        // Set validation errors in form
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(validationErrors);
+        }
+
+        // Show error message - prioritize specific error message, then general message, then API message
+        const errorMessage =
+          generalErrorMessage ||
+          error.data.message ||
+          "Please fix the validation errors";
+        toast.showError(errorMessage);
+      } else {
+        // Handle other types of errors
+        let errorMessage = "Failed to create seller account";
+        if (error?.data?.errorMessages && error.data.errorMessages.length > 0) {
+          errorMessage = error.data.errorMessages[0].message;
+        } else if (error?.data?.message) {
+          errorMessage = error.data.message;
+        } else if (error?.message) {
+          errorMessage = error.message;
+        }
+        toast.showError(errorMessage);
+      }
+    }
   };
 
   return (
@@ -45,141 +200,203 @@ export default function SellerRegistrationForm() {
       </CardHeader>
 
       <CardContent className="space-y-3">
-        <div className="space-y-2">
-          <Label htmlFor="fullName">
-            Full Name<span className="text-red-600">*</span>
-          </Label>
-          <Input id="fullName" placeholder="Enter your full name" required />
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="fullName">
+              Full Name<span className="text-red-600">*</span>
+            </Label>
+            <Input
+              id="fullName"
+              placeholder="Enter your full name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
+            {errors.fullName && (
+              <p className="text-sm text-red-500">{errors.fullName}</p>
+            )}
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">
-            Email<span className="text-red-600">*</span>
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="Enter your email address"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="storeName">
-            Store Name<span className="text-red-600">*</span>
-          </Label>
-          <Input
-            id="storeName"
-            type="text"
-            placeholder="Enter your store name"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="storeName">
-            Store Category<span className="text-red-600">*</span>
-          </Label>
-          <Select>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">Electronics</SelectItem>
-              <SelectItem value="2">Clothing</SelectItem>
-              <SelectItem value="3">Home & Garden</SelectItem>
-              <SelectItem value="4">Beauty & Personal Care</SelectItem>
-              <SelectItem value="5">Sports & Outdoors</SelectItem>
-              <SelectItem value="6">Toys & Games</SelectItem>
-              <SelectItem value="7">Health & Wellness</SelectItem>
-              <SelectItem value="8">Automotive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="phone">
-            Phone<span className="text-red-600">*</span>
-          </Label>
-          <div className="flex">
-            <div className="inline-flex items-center justify-center rounded-l-md border border-r-0 border-input bg-background px-3 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <img
-                  src="/api/placeholder/24/24"
-                  alt="CA flag"
-                  className="w-4 h-4 rounded-sm"
+          <div className="space-y-2">
+            <Label htmlFor="email">
+              Email<span className="text-red-600">*</span>
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            {errors.email && (
+              <p className="text-sm text-red-500">{errors.email}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="storeName">
+              Store Name<span className="text-red-600">*</span>
+            </Label>
+            <Input
+              id="storeName"
+              type="text"
+              placeholder="Enter your store name"
+              value={storeName}
+              onChange={(e) => setStoreName(e.target.value)}
+              required
+            />
+            {errors.storeName && (
+              <p className="text-sm text-red-500">{errors.storeName}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="storeCategory">
+              Store Category<span className="text-red-600">*</span>
+            </Label>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+              disabled={categoriesLoading}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue
+                  placeholder={
+                    categoriesLoading
+                      ? "Loading categories..."
+                      : "Select a category"
+                  }
                 />
-                +1
-              </span>
+              </SelectTrigger>
+              <SelectContent>
+                {categoriesLoading ? (
+                  <SelectItem value="loading" disabled>
+                    Loading categories...
+                  </SelectItem>
+                ) : categoriesError ? (
+                  <SelectItem value="error" disabled>
+                    Error loading categories
+                  </SelectItem>
+                ) : categories.length === 0 ? (
+                  <SelectItem value="no-categories" disabled>
+                    No categories available
+                  </SelectItem>
+                ) : (
+                  categories.map((category) => (
+                    <SelectItem key={category._id} value={category._id}>
+                      {category.name || "N/A"}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            {errors.storeCategory && (
+              <p className="text-sm text-red-500">{errors.storeCategory}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">
+              Phone<span className="text-red-600">*</span>
+            </Label>
+            <div className="flex">
+              <div className="inline-flex items-center justify-center rounded-l-md border border-r-0 border-input bg-background px-3 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <img
+                    src="/api/placeholder/24/24"
+                    alt="CA flag"
+                    className="w-4 h-4 rounded-sm"
+                  />
+                  +1
+                </span>
+              </div>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="Enter your phone number"
+                className="rounded-l-none"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
             </div>
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="Enter your phone number"
-              className="rounded-l-none"
-              required
-            />
+            {errors.phone && (
+              <p className="text-sm text-red-500">{errors.phone}</p>
+            )}
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">
-            Password<span className="text-red-600">*</span>
-          </Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Create a password"
-              required
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full"
-              onClick={togglePasswordVisibility}
-            >
-              {!showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </Button>
+          <div className="space-y-2">
+            <Label htmlFor="password">
+              Password<span className="text-red-600">*</span>
+            </Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full"
+                onClick={togglePasswordVisibility}
+              >
+                {!showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            {errors.password && (
+              <p className="text-sm text-red-500">{errors.password}</p>
+            )}
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">
-            Confirm Password<span className="text-red-600">*</span>
-          </Label>
-          <div className="relative">
-            <Input
-              id="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm password"
-              required
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full"
-              onClick={toggleConfirmPasswordVisibility}
-            >
-              {!showConfirmPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </Button>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">
+              Confirm Password<span className="text-red-600">*</span>
+            </Label>
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full"
+                onClick={toggleConfirmPasswordVisibility}
+              >
+                {!showConfirmPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="text-sm text-red-500">{errors.confirmPassword}</p>
+            )}
           </div>
-        </div>
 
-        <Button
-          className="w-full bg-red-700 hover:bg-red-800 text-white"
-          size="lg"
-        >
-          Sign Up
-        </Button>
+          <Button
+            type="submit"
+            className="w-full bg-red-700 hover:bg-red-800 text-white"
+            size="lg"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Creating Account..." : "Sign Up"}
+          </Button>
+        </form>
 
         <div className="flex items-center justify-center">
           <span className="text-sm text-gray-500">or</span>

@@ -1,5 +1,4 @@
-import ServiceLayout from "@/components/TradesAndServices/ServicePage/serviceLayout";
-import ServiceList from "@/components/TradesAndServices/SeviceList/serviceList";
+import ServiceLayout from "../../../../components/TradesAndServices/ServicePage/serviceLayout";
 import React from "react";
 
 function page() {

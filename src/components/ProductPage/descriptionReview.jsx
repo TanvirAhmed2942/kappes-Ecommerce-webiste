@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import ReviewAndFeedback from "./reviewAndFeedback";
-import useProductDetails from "@/hooks/useProductDetails";
+import useProductDetails from "../../hooks/useProductDetails";
 
 function DescriptionReview() {
   const { productDetails, isLoading } = useProductDetails();

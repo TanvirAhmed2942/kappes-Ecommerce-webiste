@@ -6,20 +6,20 @@ import {
   setPriceRange,
   setLocation,
   resetFilters,
-} from "@/features/filterSlice";
+} from "../../features/filterSlice";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Slider } from "@/components/ui/slider";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
+import { ScrollArea } from "../../components/ui/scroll-area";
+import { Slider } from "../../components/ui/slider";
+import { Label } from "../../components/ui/label";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Button } from "../../components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+} from "../../components/ui/popover";
+import { Drawer, DrawerContent, DrawerTrigger } from "../../components/ui/drawer";
 
 const categories = [
   "Clothing",

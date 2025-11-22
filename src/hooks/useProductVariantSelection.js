@@ -5,7 +5,7 @@ import {
   getAllProductImages,
   getProductPricing,
   getStockStatus,
-} from "@/utils/productUtils";
+} from "../utils/productUtils";
 
 export const useProductVariantSelection = (productDetails) => {
   // State for variant specifications

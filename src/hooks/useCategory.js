@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { useGetPopularCategoryQuery } from "@/redux/productApi/productApi";
+import { useGetPopularCategoryQuery } from "../redux/productApi/productApi";
 import { useSelector, useDispatch } from "react-redux";
-import { setCategories } from "@/features/categorySlice/categorySlice";
+import { setCategories } from "../features/categorySlice/categorySlice";
 
 const useCategory = () => {
   const dispatch = useDispatch();

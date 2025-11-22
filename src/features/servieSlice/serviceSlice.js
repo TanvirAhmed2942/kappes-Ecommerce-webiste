@@ -30,6 +30,11 @@ const serviceSlice = createSlice({
         null;
     },
 
+    // Set selected service directly (for API responses)
+    setSelectedService: (state, action) => {
+      state.selectedService = action.payload;
+    },
+
     // Clear selected service
     clearSelectedService: (state) => {
       state.selectedService = null;
@@ -126,6 +131,7 @@ export const selectServiceWorkingHours = (state) => {
 export const {
   setServices,
   selectService,
+  setSelectedService,
   clearSelectedService,
   addService,
   updateService,

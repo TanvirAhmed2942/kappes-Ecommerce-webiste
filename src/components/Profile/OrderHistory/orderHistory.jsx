@@ -7,34 +7,134 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+} from "../../../components/ui/table";
+import { Input } from "../../../components/ui/input";
+import { Button } from "../../../components/ui/button";
 import { Eye } from "lucide-react";
-import { useState } from "react";
-
-const orders = Array.from({ length: 10 }).map((_, i) => ({
-  id: `#28VR5K59`,
-  date: "10 March, 2024",
-  items: 2,
-  price: "$50",
-  status: i === 2 || i === 7 ? "Canceled" : "Delivered",
-}));
+import { useState, useMemo } from "react";
+import { useGetMyOrdersQuery } from "../../../redux/userprofileApi/userprofileApi";
+import { Badge } from "../../../components/ui/badge";
 
 export default function OrderHistory({ selectedMenu }) {
   const [search, setSearch] = useState("");
+  const { data: ordersResponse, isLoading, error } = useGetMyOrdersQuery();
 
-  const filteredOrders = orders.filter((order) =>
-    order.id.toLowerCase().includes(search.toLowerCase())
-  );
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // Get orders from API response
+  const orders = useMemo(() => {
+    if (!ordersResponse?.success || !ordersResponse?.data?.result) {
+      return [];
+    }
+    return ordersResponse.data.result.map((order) => ({
+      _id: order._id,
+      orderNo: `#${order._id.slice(-8).toUpperCase()}`,
+      date: formatDate(order.createdAt),
+      deliveryDate: formatDate(order.deliveryDate),
+      items: order.products?.length || 0,
+      totalItems:
+        order.products?.reduce(
+          (sum, product) => sum + (product.quantity || 0),
+          0
+        ) || 0,
+      totalAmount: formatCurrency(order.totalAmount || 0),
+      finalAmount: formatCurrency(order.finalAmount || 0),
+      status: order.status || "Pending",
+      paymentStatus: order.paymentStatus || "Unpaid",
+      paymentMethod: order.paymentMethod || "N/A",
+      deliveryOptions: order.deliveryOptions || "N/A",
+      shippingAddress: order.shippingAddress || "N/A",
+      discount: order.discount || 0,
+      deliveryCharge: order.deliveryCharge || 0,
+      products: order.products || [],
+    }));
+  }, [ordersResponse]);
+
+  // Filter orders based on search
+  const filteredOrders = useMemo(() => {
+    if (!search) return orders;
+    const searchLower = search.toLowerCase();
+    return orders.filter(
+      (order) =>
+        order.orderNo.toLowerCase().includes(searchLower) ||
+        order.status.toLowerCase().includes(searchLower) ||
+        order.paymentStatus.toLowerCase().includes(searchLower)
+    );
+  }, [orders, search]);
+
+  // Get status badge color
+  const getStatusColor = (status) => {
+    const statusLower = status?.toLowerCase() || "";
+    if (statusLower === "delivered" || statusLower === "completed") {
+      return "bg-green-100 text-green-800";
+    }
+    if (statusLower === "pending" || statusLower === "processing") {
+      return "bg-yellow-100 text-yellow-800";
+    }
+    if (statusLower === "canceled" || statusLower === "cancelled") {
+      return "bg-red-100 text-red-800";
+    }
+    return "bg-gray-100 text-gray-800";
+  };
+
+  // Get payment status color
+  const getPaymentStatusColor = (status) => {
+    const statusLower = status?.toLowerCase() || "";
+    if (statusLower === "paid") {
+      return "bg-green-100 text-green-800";
+    }
+    return "bg-orange-100 text-orange-800";
+  };
+
   if (selectedMenu !== 2) return null;
+  if (isLoading) {
+    return (
+      <div className="p-4 sm:p-6 h-fit bg-white rounded-md shadow-sm w-full overflow-auto z-10">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4">Order History</h2>
+        <div className="flex items-center justify-center py-8">
+          <p className="text-gray-500">Loading orders...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 sm:p-6 h-fit bg-white rounded-md shadow-sm w-full overflow-auto z-10">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4">Order History</h2>
+        <div className="flex items-center justify-center py-8">
+          <p className="text-red-500">
+            Error loading orders. Please try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 sm:p-6 h-fit bg-white rounded-md shadow-sm w-full overflow-auto z-10">
       <h2 className="text-lg sm:text-xl font-semibold mb-4">Order History</h2>
 
       <div className="flex justify-end mb-3">
         <Input
-          placeholder="Search..."
+          placeholder="Search by order number, status..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full sm:w-64"
@@ -47,59 +147,99 @@ export default function OrderHistory({ selectedMenu }) {
             <TableRow>
               <TableHead>Order No</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Total Items</TableHead>
-              <TableHead>Total Price</TableHead>
+              <TableHead>Items</TableHead>
+              <TableHead>Total Amount</TableHead>
+              <TableHead>Final Amount</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Payment</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredOrders.map((order, idx) => (
-              <TableRow key={idx}>
-                <TableCell>{order.id}</TableCell>
-                <TableCell>{order.date}</TableCell>
-                <TableCell>{order.items}</TableCell>
-                <TableCell>{order.price}</TableCell>
-                <TableCell>
-                  <span
-                    className={`font-medium ${
-                      order.status === "Delivered"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {order.status}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Eye className="w-5 h-5 text-gray-600 cursor-pointer" />
+            {filteredOrders.length > 0 ? (
+              filteredOrders.map((order) => (
+                <TableRow key={order._id}>
+                  <TableCell className="font-medium">{order.orderNo}</TableCell>
+                  <TableCell>{order.date}</TableCell>
+                  <TableCell>{order.totalItems}</TableCell>
+                  <TableCell>{order.totalAmount}</TableCell>
+                  <TableCell className="font-semibold">
+                    {order.finalAmount}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(order.status)}>
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      className={getPaymentStatusColor(order.paymentStatus)}
+                    >
+                      {order.paymentStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Eye className="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-900" />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={8}
+                  className="text-center py-8 text-gray-500"
+                >
+                  {search
+                    ? "No orders found matching your search."
+                    : "No orders found."}
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
 
-      <div className="flex flex-wrap justify-end items-center gap-2 mt-4">
-        <Button variant="outline" size="sm">
-          Prev
-        </Button>
-        <Button
-          size="sm"
-          className="bg-[#AF1500] text-white hover:bg-[#8c1100]"
-        >
-          1
-        </Button>
-        <Button variant="outline" size="sm">
-          2
-        </Button>
-        <Button variant="outline" size="sm">
-          3
-        </Button>
-        <Button variant="outline" size="sm">
-          Next
-        </Button>
-      </div>
+      {ordersResponse?.data?.meta && ordersResponse.data.meta.totalPage > 1 && (
+        <div className="flex flex-wrap justify-end items-center gap-2 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={ordersResponse.data.meta.page === 1}
+          >
+            Prev
+          </Button>
+          {Array.from({ length: ordersResponse.data.meta.totalPage }).map(
+            (_, idx) => (
+              <Button
+                key={idx + 1}
+                size="sm"
+                variant={
+                  ordersResponse.data.meta.page === idx + 1
+                    ? "default"
+                    : "outline"
+                }
+                className={
+                  ordersResponse.data.meta.page === idx + 1
+                    ? "bg-[#AF1500] text-white hover:bg-[#8c1100]"
+                    : ""
+                }
+              >
+                {idx + 1}
+              </Button>
+            )
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={
+              ordersResponse.data.meta.page ===
+              ordersResponse.data.meta.totalPage
+            }
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

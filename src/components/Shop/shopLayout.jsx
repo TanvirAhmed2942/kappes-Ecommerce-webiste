@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Filter from "./filter";
 import ShopProductList from "./productList";
-import { useGetShopProductsQuery } from "@/redux/productApi/productApi";
+import { useGetShopProductsQuery } from "../../redux/productApi/productApi";
 import { useDispatch, useSelector } from "react-redux";
 import { addFav, removeFav } from "../../features/productSlice";
 

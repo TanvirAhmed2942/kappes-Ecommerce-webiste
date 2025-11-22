@@ -5,8 +5,10 @@ import Image from "next/image";
 import { HiOutlineUser } from "react-icons/hi";
 import { LuShoppingCart, LuHeart } from "react-icons/lu";
 import { FiLock, FiLogOut } from "react-icons/fi";
-import useAuth from "@/hooks/useAuth";
+import useAuth from "../../hooks/useAuth"; 
 import { useRouter } from "next/navigation";
+import useUser from "../../hooks/useUser";
+import { getImageUrl } from "../../redux/baseUrl";
 
 const LogoutConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
@@ -39,7 +41,7 @@ const Sidebar = ({ setSelectedMenu, selectedMenu }) => {
   const { logout } = useAuth();
   const router = useRouter();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-
+  const { user, profileData } = useUser();
   const handleLogout = () => {
     logout();
     router.push("/");
@@ -84,7 +86,11 @@ const Sidebar = ({ setSelectedMenu, selectedMenu }) => {
       <div className="bg-white min-w-52 h-[30rem] flex-col items-center justify-center rounded-lg border shadow-sm hidden md:flex z-10">
         <div className="flex flex-col items-center pt-4 py-4">
           <Image
-            src="/assets/userProfile/profileImage.jpg"
+            src={
+              user?.image
+                ? `${getImageUrl}/${user?.image}`
+                : "/assets/userProfile/profileImage.jpg"
+            }
             width={100}
             height={100}
             priority
@@ -92,8 +98,8 @@ const Sidebar = ({ setSelectedMenu, selectedMenu }) => {
             className="w-16 h-16 rounded-full object-cover ring-2 ring-[#AF1500]"
           />
           <div className="mt-2 text-center">
-            <p className="font-medium text-sm">Jack Taylor</p>
-            <p className="text-xs text-gray-500">demo@example.com</p>
+            <p className="font-medium text-sm">{user?.full_name}</p>
+            <p className="text-xs text-gray-500">{user?.email}</p>
           </div>
         </div>
         <div className="mt-4 px-2">

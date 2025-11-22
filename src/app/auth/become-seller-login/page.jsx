@@ -1,8 +1,7 @@
-import FAQSection from "@/common/components/faqs";
-import SellerBanner from "@/components/BecomeSeller/banner";
-import SimpleSteps from "@/components/BecomeSeller/simpleSteps";
-import WhySellOnCanuckMall from "@/components/BecomeSeller/whySell";
-
+import SimpleSteps from "../../../components/BecomeSeller/simpleSteps"; 
+import WhySellOnCanuckMall from "../../../components/BecomeSeller/whySell";
+import SellerFAQ from "../../../components/BecomeSeller/sellerFAQ";
+import SellerBanner from "../../../components/BecomeSeller/banner";
 function BecomeSeller() {
   return (
     <div className="relative inset-0 w-full h-full bg-white  z-0">
@@ -18,7 +17,7 @@ function BecomeSeller() {
       <SellerBanner />
       <WhySellOnCanuckMall />
       <SimpleSteps />
-      <FAQSection />
+      <SellerFAQ />
     </div>
   );
 }

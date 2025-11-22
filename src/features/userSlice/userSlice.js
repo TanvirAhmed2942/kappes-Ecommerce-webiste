@@ -49,3 +49,4 @@ export const selectUserProfile = (state) => state.user;
 export const selectUserName = (state) => state.user.full_name;
 export const selectUserEmail = (state) => state.user.email;
 export const selectUserImage = (state) => state.user.image;
+export const selectUserId = (state) => state.user._id;

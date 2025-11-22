@@ -22,8 +22,20 @@ const shopApi = api.injectEndpoints({
         };
       },
     }),
+    getShopbyId: builder.query({
+      query: (shopId) => {
+        return {
+          url: `/shop/${shopId}`,
+          method: "GET",
+        };
+      },
+    }),
   }),
   overrideExisting: true,
 });
 
-export const { useGetShopListQuery, useGetProductsByShopQuery } = shopApi;
+export const {
+  useGetShopListQuery,
+  useGetProductsByShopQuery,
+  useGetShopbyIdQuery,
+} = shopApi;

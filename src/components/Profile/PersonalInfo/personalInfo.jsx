@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -9,28 +9,37 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from "../../../components/ui/dialog";
 import { TbHome } from "react-icons/tb";
-import provideIcon from "@/common/components/provideIcon";
-import useUser from "@/hooks/useUser";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import provideIcon from "../../../common/components/provideIcon";
+import useUser from "../../../hooks/useUser";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
 import { useForm } from "react-hook-form";
-import { useUpdateUserProfileMutation } from "@/redux/userprofileApi/userprofileApi";
-import useToast from "@/hooks/useShowToast";
+import { useUpdateUserProfileMutation } from "../../../redux/userprofileApi/userprofileApi";
+import useToast from "../../../hooks/useShowToast";
 
 export default function PersonalInfo({ selectedMenu }) {
   const { user, profileData, updateUserProfile } = useUser();
 
-  // Update user data when profile data is fetched (only when profileData changes)
+  // Update user data (including userId) in Redux when profile data is fetched
+  // This ensures userId is available in Redux for other components to use
   useEffect(() => {
-    if (profileData?.data && profileData.data._id) {
-      // Only update if the user ID is different or if we don't have a user yet
-      if (!user._id || user._id !== profileData.data._id) {
+    if (profileData?.data && profileData.success && profileData.data._id) {
+      const profileUserId = profileData.data._id;
+      // Sync to Redux if userId is missing or different
+      // This ensures userId is always available in Redux for other components
+      if (!user._id || user._id !== profileUserId) {
         updateUserProfile(profileData.data);
       }
     }
-  }, [profileData?.data?._id, user._id, updateUserProfile]);
+  }, [
+    profileData?.data?._id,
+    profileData?.success,
+    user._id,
+    updateUserProfile,
+  ]);
+
   if (selectedMenu !== 1) return null;
 
   return (

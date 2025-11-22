@@ -1,4 +1,4 @@
-import OTPverification from "@/components/Auth/OTPverification";
+import OTPverification from "../../../components/Auth/OTPverification";
 import React from "react";
 
 function page() {

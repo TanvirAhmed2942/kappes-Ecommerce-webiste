@@ -4,9 +4,9 @@ import StoreCover from "./storeCover";
 import StoreBanner from "./storeBanner";
 import Filter from "../Shop/filter";
 import ShopProductList from "../Shop/productList";
-import { useStoreShop } from "@/hooks/useStoreShop";
+import { useStoreShop } from "../../hooks/useStoreShop";
 import { useParams } from "next/navigation";
-
+import { useGetShopbyIdQuery } from "../../redux/shopApi/shopApi";
 function StoreLayout() {
   // Get store ID from URL params
   const params = useParams();
@@ -31,9 +31,28 @@ function StoreLayout() {
     setFilterVisible(!filterVisible);
   };
 
+  const {
+    data: shopData,
+    isLoading: shopLoading,
+    error: shopError,
+  } = useGetShopbyIdQuery(storeId);
+  console.log(shopData?.data);
+
+  const shopInfo = {
+    shopCover: shopData?.data?.coverPhoto,
+    name: shopData?.data?.name,
+    logo: shopData?.data?.logo,
+    aboutUs: shopData?.data?.description,
+    followers: shopData?.data?.totalFollowers,
+    rating: shopData?.data?.rating,
+  };
+
+  const shopBanner = shopData?.data?.banner;
+  console.log(shopInfo);
+
   return (
     <div className="lg:px-32">
-      <StoreCover />
+      <StoreCover shopInfo={shopInfo} />
       <StoreBanner />
       <div className="flex items-start justify-start my-10">
         <Filter filterVisible={filterVisible} />

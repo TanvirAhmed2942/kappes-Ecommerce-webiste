@@ -9,6 +9,7 @@ const userprofileApi = api.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["UserProfile"],
     }),
     updateUserProfile: builder.mutation({
       query: ({ data }) => {
@@ -18,10 +19,22 @@ const userprofileApi = api.injectEndpoints({
           body: data,
         };
       },
+      invalidatesTags: ["UserProfile"],
+    }),
+    getMyOrders: builder.query({
+      query: () => {
+        return {
+          url: "/order/my-orders",
+          method: "GET",
+        };
+      },
     }),
   }),
   overrideExisting: true,
 });
 
-export const { useGetUserProfileQuery, useUpdateUserProfileMutation } =
-  userprofileApi;
+export const {
+  useGetUserProfileQuery,
+  useUpdateUserProfileMutation,
+  useGetMyOrdersQuery,
+} = userprofileApi;

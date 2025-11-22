@@ -9,8 +9,8 @@ import {
   setLoading,
   setError,
   clearError,
-} from "@/features/productSlice/productsSlice";
-import { useGetTrendingProductsQuery } from "@/redux/productApi/productApi";
+} from "../features/productSlice/productsSlice";
+import { useGetTrendingProductsQuery } from "../redux/productApi/productApi";
 
 const useTrendingProducts = () => {
   const dispatch = useDispatch();

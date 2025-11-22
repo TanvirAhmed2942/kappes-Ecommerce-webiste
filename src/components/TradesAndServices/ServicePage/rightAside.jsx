@@ -7,16 +7,16 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+} from "../../../components/ui/card";
+import { Separator } from "../../../components/ui/separator";
 import { FaPhone } from "react-icons/fa";
 import { FaLocationDot, FaGlobe, FaEnvelope } from "react-icons/fa6";
 import Image from "next/image";
-import SendMessage from "./sendMessage";
+import SendMessage from "../../../components/TradesAndServices/ServicePage/sendMessage";
 import {
   selectServiceContactInfo,
   selectServiceWorkingHours,
-} from "@/features/servieSlice/serviceSlice";
+} from "../../../features/servieSlice/serviceSlice";
 
 function RightAside() {
   // Get contact info from Redux selector

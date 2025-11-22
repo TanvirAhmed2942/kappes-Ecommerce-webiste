@@ -6,8 +6,8 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 export default function ResetSuccess() {
   return (
     <Card className="w-full max-w-md mx-auto">

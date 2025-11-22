@@ -1,45 +1,47 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { useGetFAQsQuery } from "../../redux/policies&faqApi/policies&faqApi";
+import useToast from "../../hooks/useShowToast";
 export default function SellerFAQ() {
-  // Array of FAQ items with questions and answers
-  const faqItems = [
-    {
-      id: 1,
-      question: "How can I track my order?",
-      answer:
-        "To register, simply visit our website or mobile app and sign up with your phone number. Then, complete your profile, provide your business details, and you're ready to start selling!",
-    },
-    {
-      id: 2,
-      question: "Is there any fee to create a seller account?",
-      answer:
-        "No, creating a seller account on The Canuck Mall is completely free. There are no registration fees or monthly subscription charges to get started. We only charge a small commission on successful sales.",
-    },
-    {
-      id: 3,
-      question: "How do I list my products for sale?",
-      answer:
-        "After creating your seller account, you can add products by navigating to your seller dashboard. Click on 'Add Products', fill in the required details including product name, description, images, price, and inventory quantity. Once submitted, our team will review your listing and approve it within 24-48 hours.",
-    },
-    {
-      id: 4,
-      question: "What happens if a customer requests a return?",
-      answer:
-        "When a customer requests a return, you'll receive a notification in your seller dashboard. You'll have 24 hours to review and respond to the request. If approved, the customer will ship the item back. Once you confirm receipt of the returned item, the refund will be processed according to your return policy.",
-    },
-    {
-      id: 5,
-      question: "What is the Payment Policy of The Canuck Mall?",
-      answer:
-        "The Canuck Mall processes payments to sellers on a weekly basis. After a sale is completed and the return period has passed, the payment will be transferred to your registered bank account. We deduct our commission fee before transferring the funds. You can track all your transactions in the 'Payments' section of your seller dashboard.",
-    },
-  ];
-
-  // State to track which FAQ is open
   const [openFAQ, setOpenFAQ] = useState(1);
+  const { data: faqs, isLoading, error } = useGetFAQsQuery();
+  const toast = useToast();
+
+  // Show error toast when error occurs
+  useEffect(() => {
+    if (error) {
+      // Extract error message from different possible error structures
+      let errorMessage = "Failed to fetch FAQs";
+
+      if (error.data?.errorMessages && error.data.errorMessages.length > 0) {
+        // Handle errorMessages array format: [{ path: "...", message: "API DOESN'T EXIST" }]
+        errorMessage = error.data.errorMessages[0].message;
+      } else if (error.data?.message) {
+        // Handle direct message format
+        errorMessage = error.data.message;
+      } else if (error.message) {
+        // Handle standard error message
+        errorMessage = error.message;
+      }
+
+      toast.showError("Failed to fetch FAQs: " + errorMessage);
+    }
+  }, [error, toast]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  // console.log("faqs", faqs)
+  const faqItems =
+    faqs?.data?.map((faq) => ({
+      id: faq._id,
+      question: faq.question,
+      answer: faq.answer,
+    })) || [];
+  console.log("faqItems", faqItems);
 
   // Function to toggle FAQ open/close
   const toggleFAQ = (id) => {
@@ -52,7 +54,7 @@ export default function SellerFAQ() {
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-12 md:py-16">
-      <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-10 ">
+      <h2 className="text-2xl md:text-3xl lg:text-4xl text-center mb-10 font-comfortaa font-extrabold md:leading-14">
         Seller Frequently Asked
         <br className="hidden sm:block " /> Questions (FAQs)
       </h2>
@@ -69,7 +71,7 @@ export default function SellerFAQ() {
               aria-expanded={openFAQ === faq.id}
               aria-controls={`faq-answer-${faq.id}`}
             >
-              <span className="text-base md:text-lg font-medium">
+              <span className="text-base md:text-lg font-bold font-comfortaa">
                 {faq.question}
               </span>
               <motion.span
@@ -122,7 +124,7 @@ export default function SellerFAQ() {
                   id={`faq-answer-${faq.id}`}
                   className="overflow-hidden"
                 >
-                  <div className="p-4 md:p-5 pt-2 text-sm md:text-base text-gray-600 border-t border-gray-100">
+                  <div className="p-4 md:p-5 pt-2 text-sm md:text-base text-gray-600 border-t border-gray-100 font-comfortaa">
                     {faq.answer}
                   </div>
                 </motion.div>

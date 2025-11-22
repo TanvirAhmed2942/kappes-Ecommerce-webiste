@@ -1,4 +1,4 @@
-import ShopLayout from "@/components/Shop/shopLayout";
+import ShopLayout from "../../components/Shop/shopLayout";
 import React from "react";
 
 function Shop() {

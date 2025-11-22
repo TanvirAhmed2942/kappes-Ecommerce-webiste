@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import { Card } from "@/components/ui/card";
-import { getVariantSpecs } from "@/utils/productUtils";
+import { Card } from "../../components/ui/card";
+import { getVariantSpecs } from "../../utils/productUtils";
 
 // This component displays product specifications based on available data in slugDetails and variants
 const ProductSpecs = ({ productDetails, selectedVariant = null }) => {

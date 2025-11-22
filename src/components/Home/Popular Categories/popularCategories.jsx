@@ -7,11 +7,14 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel";
+} from "../../../components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
 import Link from "next/link";
-import useCategory from "@/hooks/useCategory";
+
+
+import useCategory from "../../../hooks/useCategory"  ;
+import { getImageUrl } from "../../../redux/baseUrl";
 function PopularCategories() {
   const { categories, isLoading, hasCategories } = useCategory();
   console.log("categories from API", categories);
@@ -105,9 +108,9 @@ function PopularCategories() {
                     <div className="flex flex-col items-center p-4 gap-2">
                       <div className="w-24 h-24 rounded-full bg-gray-100 p-4 flex ring-1 items-center justify-center overflow-hidden">
                         <Image
+                          src={`${getImageUrl}${category?.image}`}
                           width={80}
                           height={80}
-                          src={category.image}
                           alt={category.name}
                           className="object-contain"
                         />

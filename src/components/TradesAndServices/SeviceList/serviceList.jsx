@@ -3,7 +3,7 @@ import { useState } from "react";
 import { MapPin, Phone, ArrowUpDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import useService from "@/hooks/useService";
+import useService from "../../../hooks/useService";
 
 // Star rating component
 function StarRating({ rating }) {

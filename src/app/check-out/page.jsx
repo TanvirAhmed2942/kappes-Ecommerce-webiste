@@ -1,10 +1,10 @@
 "use client";
-import Checkout from "@/components/CheckOut/checkout";
-import { withAuth } from "@/Providers/AuthGuard";
+import Checkout from "../../components/CheckOut/checkout";
+import { withAuth } from "../../Providers/AuthGuard"; 
 import React from "react";
 
-function CheckOutPage() {
+const CheckOutPage = () => {
   return <Checkout />;
 }
 
-export default withAuth(CheckOutPage);
+export default withAuth(CheckOutPage, "USER");
