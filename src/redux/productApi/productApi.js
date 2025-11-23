@@ -172,36 +172,63 @@ const productApi = api.injectEndpoints({
     }),
     getProductByProvince: builder.query({
       query: (provinceName) => {
+        if (!provinceName) {
+          throw new Error("Province name is required");
+        }
         return {
           url: `/product/province/${encodeURIComponent(provinceName)}`,
           method: "GET",
         };
       },
-      providesTags: ["PRODUCT"],
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        // Ensure each province gets its own cache entry
+        return `${endpointName}(${queryArgs || ""})`;
+      },
+      providesTags: (result, error, provinceName) => [
+        { type: "PRODUCT", id: `PROVINCE-${provinceName}` },
+      ],
       transformResponse: (response) => {
         return response;
       },
     }),
     getProductByTerritory: builder.query({
       query: (territoryName) => {
+        if (!territoryName) {
+          throw new Error("Territory name is required");
+        }
         return {
           url: `/product/territory/${encodeURIComponent(territoryName)}`,
           method: "GET",
         };
       },
-      providesTags: ["PRODUCT"],
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        // Ensure each territory gets its own cache entry
+        return `${endpointName}(${queryArgs || ""})`;
+      },
+      providesTags: (result, error, territoryName) => [
+        { type: "PRODUCT", id: `TERRITORY-${territoryName}` },
+      ],
       transformResponse: (response) => {
         return response;
       },
     }),
     getProductByCity: builder.query({
       query: (cityName) => {
+        if (!cityName) {
+          throw new Error("City name is required");
+        }
         return {
           url: `/product/city/${encodeURIComponent(cityName)}`,
           method: "GET",
         };
       },
-      providesTags: ["PRODUCT"],
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        // Ensure each city gets its own cache entry
+        return `${endpointName}(${queryArgs || ""})`;
+      },
+      providesTags: (result, error, cityName) => [
+        { type: "PRODUCT", id: `CITY-${cityName}` },
+      ],
       transformResponse: (response) => {
         return response;
       },
