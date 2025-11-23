@@ -7,12 +7,12 @@ import { getImageUrl } from "../../redux/baseUrl";
 
 const FrontCover = ({ coverPhoto, logo, name, totalReviews, description }) => {
   const [following, setFollowing] = useState(false);
-
+  console.log(coverPhoto);
   return (
     <div className="w-full  mx-auto overflow-hidden">
       {/* Cover Photo Image */}
       <div className="relative h-40 md:h-52 lg:h-64 w-full bg-gray-200 overflow-hidden">
-        <Image
+        <img
           src={
             coverPhoto?.startsWith("http")
               ? coverPhoto
