@@ -7,7 +7,7 @@ import {
   setLocation,
   resetFilters,
 } from "../../features/filterSlice";
-
+import { FaArrowRotateLeft } from "react-icons/fa6";
 import { Card, CardContent } from "../../components/ui/card";
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { Slider } from "../../components/ui/slider";
@@ -174,16 +174,14 @@ function FilterContent() {
   };
 
   return (
-    <div className="w-full max-w-md space-y-4">
+    <div className="w-full max-w-md space-y-4 ">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">Filter</h2>
-        <Button
-          variant="outline"
+
+        <FaArrowRotateLeft
           onClick={handleReset}
-          className="bg-gray-100 hover:bg-gray-200 rounded-full px-6"
-        >
-          Reset
-        </Button>
+          className="cursor-pointer mr-4"
+        />
       </div>
       <ScrollArea className="h-screen w-full mt-2 pr-4 flex flex-col gap-4">
         {/* Category Section */}

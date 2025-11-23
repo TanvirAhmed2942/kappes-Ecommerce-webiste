@@ -175,6 +175,15 @@ const productApi = api.injectEndpoints({
           method: "GET",
         };
       },
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        // Include all params in cache key to ensure unique keys for different filter combinations
+        const filterKey = queryArgs?.filters 
+          ? JSON.stringify(queryArgs.filters) 
+          : "";
+        const page = queryArgs?.page || 1;
+        const limit = queryArgs?.limit || 10;
+        return `${endpointName}(${filterKey})page=${page}limit=${limit}`;
+      },
     }),
     addToFavProduct: builder.mutation({
       query: (productId) => {
