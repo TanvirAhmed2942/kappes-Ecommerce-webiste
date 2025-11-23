@@ -1,6 +1,7 @@
 "use client"; // Ensure this is a Client Component
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSelector } from "react-redux";
 import ProvinceList from "./Province/provinceList";
 
 import ProvinceRelatedProducts from "./provinceRelatedProducts";
@@ -18,6 +19,43 @@ function ShopByProvinceLayout() {
   const [selectedTab, setSelectedTab] = useState("province");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [filterVisible, setFilterVisible] = useState(false);
+
+  // Get filter state from Redux
+  const filterState = useSelector((state) => state.filter);
+
+  // Build filters object for API queries
+  const filters = useMemo(() => {
+    const filterObj = {
+      categoryIds: filterState.selectedCategory || [],
+      priceMin: filterState.priceRangeLow || 0,
+      priceMax: filterState.priceRangeHigh || 500,
+    };
+
+    // Add location filters if they exist
+    if (
+      filterState.location?.city &&
+      Array.isArray(filterState.location.city) &&
+      filterState.location.city.length > 0
+    ) {
+      // If multiple cities, take the first one (or you can handle multiple)
+      filterObj.city = filterState.location.city[0];
+    }
+
+    if (
+      filterState.location?.province &&
+      Array.isArray(filterState.location.province) &&
+      filterState.location.province.length > 0
+    ) {
+      filterObj.province = filterState.location.province[0];
+    }
+
+    return filterObj;
+  }, [
+    filterState.selectedCategory,
+    filterState.priceRangeLow,
+    filterState.priceRangeHigh,
+    filterState.location,
+  ]);
 
   // Reset selected location when tab changes
   useEffect(() => {

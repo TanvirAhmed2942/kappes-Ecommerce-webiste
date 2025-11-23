@@ -120,16 +120,59 @@ const productApi = api.injectEndpoints({
       },
     }),
     getShopProducts: builder.query({
-      query: (params) => {
-        const { page = 1, limit = 10, ...queryParams } = params || {};
+      query: (params = {}) => {
+        const { page = 1, limit = 10, filters = {}, ...queryParams } = params;
+        
+        // Build query parameters from filters (no encoding)
+        const queryParts = [];
+        
+        // Add category IDs (can be multiple)
+        if (filters.categoryIds && Array.isArray(filters.categoryIds) && filters.categoryIds.length > 0) {
+          filters.categoryIds.forEach((id) => {
+            queryParts.push(`categoryId=${id}`);
+          });
+        }
+        
+        // Add price range
+        if (filters.priceMin !== undefined && filters.priceMin > 0) {
+          queryParts.push(`basePrice[gt]=${filters.priceMin}`);
+        }
+        if (filters.priceMax !== undefined && filters.priceMax > 0) {
+          queryParts.push(`basePrice[lt]=${filters.priceMax}`);
+        }
+        
+        // Add city if provided
+        if (filters.city) {
+          queryParts.push(`city=${filters.city}`);
+        }
+        
+        // Add province if provided
+        if (filters.province) {
+          queryParts.push(`province=${filters.province}`);
+        }
+        
+        // Add territory if provided
+        if (filters.territory) {
+          queryParts.push(`territory=${filters.territory}`);
+        }
+        
+        // Add pagination
+        queryParts.push(`page=${page}`);
+        queryParts.push(`limit=${limit}`);
+        
+        // Add any other query params
+        Object.keys(queryParams).forEach((key) => {
+          if (queryParams[key] !== undefined && queryParams[key] !== null) {
+            queryParts.push(`${key}=${queryParams[key]}`);
+          }
+        });
+        
+        const queryString = queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
+        const url = `/product${queryString}`;
+        
         return {
-          url: `/product`,
+          url,
           method: "GET",
-          params: {
-            page,
-            limit,
-            ...queryParams,
-          },
         };
       },
     }),
@@ -171,64 +214,182 @@ const productApi = api.injectEndpoints({
       },
     }),
     getProductByProvince: builder.query({
-      query: (provinceName) => {
+      query: ({ provinceName, filters = {} }) => {
         if (!provinceName) {
           throw new Error("Province name is required");
         }
+        
+        // Build query parameters from filters (no encoding)
+        const queryParts = [];
+        
+        // Add category IDs (can be multiple)
+        if (filters.categoryIds && Array.isArray(filters.categoryIds) && filters.categoryIds.length > 0) {
+          filters.categoryIds.forEach((id) => {
+            queryParts.push(`categoryId=${id}`);
+          });
+        }
+        
+        // Add price range
+        if (filters.priceMin !== undefined && filters.priceMin > 0) {
+          queryParts.push(`basePrice[gt]=${filters.priceMin}`);
+        }
+        if (filters.priceMax !== undefined && filters.priceMax > 0) {
+          queryParts.push(`basePrice[lt]=${filters.priceMax}`);
+        }
+        
+        // Add city if provided
+        if (filters.city) {
+          queryParts.push(`city=${filters.city}`);
+        }
+        
+        // Add province if provided in filters
+        if (filters.province) {
+          queryParts.push(`province=${filters.province}`);
+        }
+        
+        const queryString = queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
+        const url = `/product/province/${provinceName}${queryString}`;
+        
         return {
-          url: `/product/province/${encodeURIComponent(provinceName)}`,
+          url,
           method: "GET",
         };
       },
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        // Ensure each province gets its own cache entry
-        return `${endpointName}(${queryArgs || ""})`;
+        // Handle both old format (string) and new format (object)
+        const provinceName = typeof queryArgs === 'string' 
+          ? queryArgs 
+          : queryArgs?.provinceName || "";
+        const filterKey = typeof queryArgs === 'object' && queryArgs?.filters 
+          ? JSON.stringify(queryArgs.filters) 
+          : "";
+        return `${endpointName}(${provinceName})${filterKey}`;
       },
-      providesTags: (result, error, provinceName) => [
-        { type: "PRODUCT", id: `PROVINCE-${provinceName}` },
-      ],
+      providesTags: (result, error, queryArgs) => {
+        const provinceName = typeof queryArgs === 'string' 
+          ? queryArgs 
+          : queryArgs?.provinceName || "";
+        return [{ type: "PRODUCT", id: `PROVINCE-${provinceName}` }];
+      },
       transformResponse: (response) => {
         return response;
       },
     }),
     getProductByTerritory: builder.query({
-      query: (territoryName) => {
+      query: ({ territoryName, filters = {} }) => {
         if (!territoryName) {
           throw new Error("Territory name is required");
         }
+        
+        // Build query parameters from filters (no encoding)
+        const queryParts = [];
+        
+        // Add category IDs (can be multiple)
+        if (filters.categoryIds && Array.isArray(filters.categoryIds) && filters.categoryIds.length > 0) {
+          filters.categoryIds.forEach((id) => {
+            queryParts.push(`categoryId=${id}`);
+          });
+        }
+        
+        // Add price range
+        if (filters.priceMin !== undefined && filters.priceMin > 0) {
+          queryParts.push(`basePrice[gt]=${filters.priceMin}`);
+        }
+        if (filters.priceMax !== undefined && filters.priceMax > 0) {
+          queryParts.push(`basePrice[lt]=${filters.priceMax}`);
+        }
+        
+        // Add city if provided
+        if (filters.city) {
+          queryParts.push(`city=${filters.city}`);
+        }
+        
+        // Add province if provided
+        if (filters.province) {
+          queryParts.push(`province=${filters.province}`);
+        }
+        
+        const queryString = queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
+        const url = `/product/territory/${territoryName}${queryString}`;
+        
         return {
-          url: `/product/territory/${encodeURIComponent(territoryName)}`,
+          url,
           method: "GET",
         };
       },
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        // Ensure each territory gets its own cache entry
-        return `${endpointName}(${queryArgs || ""})`;
+        // Handle both old format (string) and new format (object)
+        const territoryName = typeof queryArgs === 'string' 
+          ? queryArgs 
+          : queryArgs?.territoryName || "";
+        const filterKey = typeof queryArgs === 'object' && queryArgs?.filters 
+          ? JSON.stringify(queryArgs.filters) 
+          : "";
+        return `${endpointName}(${territoryName})${filterKey}`;
       },
-      providesTags: (result, error, territoryName) => [
-        { type: "PRODUCT", id: `TERRITORY-${territoryName}` },
-      ],
+      providesTags: (result, error, queryArgs) => {
+        const territoryName = typeof queryArgs === 'string' 
+          ? queryArgs 
+          : queryArgs?.territoryName || "";
+        return [{ type: "PRODUCT", id: `TERRITORY-${territoryName}` }];
+      },
       transformResponse: (response) => {
         return response;
       },
     }),
     getProductByCity: builder.query({
-      query: (cityName) => {
+      query: ({ cityName, filters = {} }) => {
         if (!cityName) {
           throw new Error("City name is required");
         }
+        
+        // Build query parameters from filters (no encoding)
+        const queryParts = [];
+        
+        // Add category IDs (can be multiple)
+        if (filters.categoryIds && Array.isArray(filters.categoryIds) && filters.categoryIds.length > 0) {
+          filters.categoryIds.forEach((id) => {
+            queryParts.push(`categoryId=${id}`);
+          });
+        }
+        
+        // Add price range
+        if (filters.priceMin !== undefined && filters.priceMin > 0) {
+          queryParts.push(`basePrice[gt]=${filters.priceMin}`);
+        }
+        if (filters.priceMax !== undefined && filters.priceMax > 0) {
+          queryParts.push(`basePrice[lt]=${filters.priceMax}`);
+        }
+        
+        // Add province if provided
+        if (filters.province) {
+          queryParts.push(`province=${filters.province}`);
+        }
+        
+        const queryString = queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
+        const url = `/product/city/${cityName}${queryString}`;
+        
         return {
-          url: `/product/city/${encodeURIComponent(cityName)}`,
+          url,
           method: "GET",
         };
       },
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        // Ensure each city gets its own cache entry
-        return `${endpointName}(${queryArgs || ""})`;
+        // Handle both old format (string) and new format (object)
+        const cityName = typeof queryArgs === 'string' 
+          ? queryArgs 
+          : queryArgs?.cityName || "";
+        const filterKey = typeof queryArgs === 'object' && queryArgs?.filters 
+          ? JSON.stringify(queryArgs.filters) 
+          : "";
+        return `${endpointName}(${cityName})${filterKey}`;
       },
-      providesTags: (result, error, cityName) => [
-        { type: "PRODUCT", id: `CITY-${cityName}` },
-      ],
+      providesTags: (result, error, queryArgs) => {
+        const cityName = typeof queryArgs === 'string' 
+          ? queryArgs 
+          : queryArgs?.cityName || "";
+        return [{ type: "PRODUCT", id: `CITY-${cityName}` }];
+      },
       transformResponse: (response) => {
         return response;
       },

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Filter from "./filter";
 import ShopProductList from "./productList";
 import { useGetShopProductsQuery } from "../../redux/productApi/productApi";
@@ -11,7 +11,60 @@ function ShopLayout() {
   const [products, setProducts] = useState([]);
   const [sortOption, setSortOption] = useState("featured");
 
-  const { data, isLoading, error } = useGetShopProductsQuery();
+  // Get filter state from Redux
+  const filterState = useSelector((state) => state.filter);
+
+  // Build filters object for API queries
+  const filters = useMemo(() => {
+    const filterObj = {
+      categoryIds: filterState.selectedCategory || [],
+      priceMin: filterState.priceRangeLow || 0,
+      priceMax: filterState.priceRangeHigh || 10000,
+    };
+
+    // Add location filters if they exist
+    if (
+      filterState.location?.city &&
+      Array.isArray(filterState.location.city) &&
+      filterState.location.city.length > 0
+    ) {
+      filterObj.city = filterState.location.city[0];
+    }
+
+    if (
+      filterState.location?.province &&
+      Array.isArray(filterState.location.province) &&
+      filterState.location.province.length > 0
+    ) {
+      filterObj.province = filterState.location.province[0];
+    }
+
+    if (
+      filterState.location?.territory &&
+      Array.isArray(filterState.location.territory) &&
+      filterState.location.territory.length > 0
+    ) {
+      filterObj.territory = filterState.location.territory[0];
+    }
+
+    return filterObj;
+  }, [
+    filterState.selectedCategory,
+    filterState.priceRangeLow,
+    filterState.priceRangeHigh,
+    filterState.location,
+  ]);
+
+  const { data, isLoading, error } = useGetShopProductsQuery(
+    {
+      filters: filters,
+      page: 1,
+      limit: 100, // Adjust as needed
+    },
+    {
+      refetchOnMountOrArgChange: true,
+    }
+  );
   const dispatch = useDispatch();
   const favorites = useSelector((state) => state.product);
 
