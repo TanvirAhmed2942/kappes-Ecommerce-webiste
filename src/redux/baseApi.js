@@ -31,6 +31,8 @@ export const api = createApi({
     "ChatList",
     "ShopAdmin",
     "ShopInfo",
+    "Shop",
+    "Follow",
   ],
 });
 

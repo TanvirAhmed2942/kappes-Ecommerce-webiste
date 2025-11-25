@@ -15,6 +15,7 @@ const shopuserChatApi = api.injectEndpoints({
       },
     }),
   }),
+
   overrideExisting: true,
 });
 

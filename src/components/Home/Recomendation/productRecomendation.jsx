@@ -206,7 +206,7 @@ const ProductRecomendation = () => {
                     alt={product.name || "Product"}
                     width={1200}
                     height={1200}
-                    className="object-contain max-h-full"
+                    className="object-cover object-center max-h-full"
                     // onError={(e) => {
                     //   e.target.src = "/assets/recomendationProduct/bag.png";
                     // }}

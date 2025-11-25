@@ -7,7 +7,14 @@ import useAuth from "../../hooks/useAuth";
 const NavBar = () => {
   const { role } = useAuth();
   console.log("role", role);
-  return role === "VENDOR" ? <SellerNav /> : (<><TopNav /><BottomNav /></>);
+  return role === "VENDOR" || role === "SHOP ADMIN" ? (
+    <SellerNav />
+  ) : (
+    <>
+      <TopNav />
+      <BottomNav />
+    </>
+  );
 };
 
 export default NavBar;

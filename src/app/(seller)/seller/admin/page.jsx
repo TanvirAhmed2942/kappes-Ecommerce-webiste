@@ -18,12 +18,11 @@ import {
   TableHeader,
   TableRow,
 } from "../../../../components/ui/table";
-import { Eye, EyeOff, Pencil, Trash2, X } from "lucide-react";
+import { Eye, EyeOff, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import {
   useGetShopAdminQuery,
   useAddShopAdminMutation,
-  useUpdateShopAdminMutation,
   useDeleteShopAdminMutation,
 } from "../../../../redux/sellerApi/sellerAdminApi/sellerAdminApi";
 import useToast from "../../../../hooks/useShowToast";
@@ -31,8 +30,6 @@ import useToast from "../../../../hooks/useShowToast";
 export default function AdminList() {
   const toast = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingAdminId, setEditingAdminId] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
@@ -48,14 +45,12 @@ export default function AdminList() {
   } = useGetShopAdminQuery();
 
   const [addShopAdmin, { isLoading: isAdding }] = useAddShopAdminMutation();
-  const [updateShopAdmin, { isLoading: isUpdating }] =
-    useUpdateShopAdminMutation();
   const [deleteShopAdmin, { isLoading: isDeleting }] =
     useDeleteShopAdminMutation();
 
   // Extract admins from the response structure: data.shops[0].admins
   const admins = adminsData?.data?.shops?.[0]?.admins || [];
-  const isLoading = isAdding || isUpdating || isDeleting;
+  const isLoading = isAdding || isDeleting;
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -67,8 +62,6 @@ export default function AdminList() {
       email: "",
       password: "",
     });
-    setIsEditMode(false);
-    setEditingAdminId(null);
     setShowPassword(false);
   };
 
@@ -77,20 +70,9 @@ export default function AdminList() {
     setIsDialogOpen(true);
   };
 
-  const handleEdit = (admin) => {
-    setFormData({
-      full_name: admin.full_name || admin.name || "",
-      email: admin.email || "",
-      password: "", // Don't pre-fill password for security
-    });
-    setEditingAdminId(admin._id || admin.id);
-    setIsEditMode(true);
-    setIsDialogOpen(true);
-  };
-
   const handleSubmit = async () => {
     // Validation
-    if (!formData.full_name || !formData.email) {
+    if (!formData.full_name || !formData.email || !formData.password) {
       toast.showError("Please fill in all required fields");
       return;
     }
@@ -102,56 +84,27 @@ export default function AdminList() {
       return;
     }
 
-    // Password validation (only required for new admins)
-    if (!isEditMode && !formData.password) {
-      toast.showError("Password is required for new admins");
-      return;
-    }
-
     try {
       const payload = {
         full_name: formData.full_name,
         email: formData.email,
+        password: formData.password,
       };
 
-      // Only include password if it's provided (for new admins or when updating)
-      if (formData.password) {
-        payload.password = formData.password;
-      }
+      // Add new admin
+      const response = await addShopAdmin({
+        data: payload,
+      }).unwrap();
 
-      if (isEditMode && editingAdminId) {
-        // Update existing admin
-        const response = await updateShopAdmin({
-          data: payload,
-          adminId: editingAdminId,
-        }).unwrap();
-
-        if (response?.success) {
-          toast.showSuccess("Admin updated successfully!", {
-            description: response.message || "Admin has been updated.",
-          });
-          resetForm();
-          setIsDialogOpen(false);
-          refetch();
-        } else {
-          toast.showError(response?.message || "Failed to update admin");
-        }
+      if (response?.success) {
+        toast.showSuccess("Admin added successfully!", {
+          description: response.message || "Admin has been added.",
+        });
+        resetForm();
+        setIsDialogOpen(false);
+        refetch();
       } else {
-        // Add new admin
-        const response = await addShopAdmin({
-          data: payload,
-        }).unwrap();
-
-        if (response?.success) {
-          toast.showSuccess("Admin added successfully!", {
-            description: response.message || "Admin has been added.",
-          });
-          resetForm();
-          setIsDialogOpen(false);
-          refetch();
-        } else {
-          toast.showError(response?.message || "Failed to add admin");
-        }
+        toast.showError(response?.message || "Failed to add admin");
       }
     } catch (error) {
       console.error("Admin operation error:", error);
@@ -278,26 +231,15 @@ export default function AdminList() {
                       <TableCell>{admin.email || "N/A"}</TableCell>
                       <TableCell>{createdDate}</TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 border-teal-500 text-teal-500 hover:bg-teal-50"
-                            onClick={() => handleEdit(admin)}
-                            disabled={isLoading}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 border-red-500 text-red-500 hover:bg-red-50"
-                            onClick={() => handleDelete(admin._id || admin.id)}
-                            disabled={isLoading}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 border-red-500 text-red-500 hover:bg-red-50"
+                          onClick={() => handleDelete(admin._id || admin.id)}
+                          disabled={isLoading}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );
@@ -312,7 +254,7 @@ export default function AdminList() {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle className="text-xl font-semibold">
-                {isEditMode ? "Edit Admin" : "Add New Admin"}
+                Add New Admin
               </DialogTitle>
               <DialogClose className="absolute right-4 top-4">
                 <X className="h-4 w-4" />
@@ -356,23 +298,13 @@ export default function AdminList() {
               {/* Password */}
               <div className="space-y-2">
                 <Label htmlFor="password">
-                  Password
-                  {!isEditMode && <span className="text-red-500">*</span>}
-                  {isEditMode && (
-                    <span className="text-gray-500 text-sm ml-2">
-                      (Leave blank to keep current password)
-                    </span>
-                  )}
+                  Password<span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder={
-                      isEditMode
-                        ? "Enter new password (optional)"
-                        : "Enter password"
-                    }
+                    placeholder="Enter password"
                     value={formData.password}
                     onChange={(e) =>
                       handleInputChange("password", e.target.value)
@@ -401,13 +333,7 @@ export default function AdminList() {
                 disabled={isLoading}
                 className="w-full h-12 bg-red-600 hover:bg-red-700 text-white mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading
-                  ? isEditMode
-                    ? "Updating..."
-                    : "Adding..."
-                  : isEditMode
-                  ? "Update Admin"
-                  : "Add Admin"}
+                {isLoading ? "Adding..." : "Add Admin"}
               </Button>
             </div>
           </DialogContent>

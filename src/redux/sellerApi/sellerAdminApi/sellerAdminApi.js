@@ -26,26 +26,19 @@ const sellerAdminApi = api.injectEndpoints({
       },
       invalidatesTags: ["ShopAdmin"],
     }),
-    updateShopAdmin: builder.mutation({
-      query: ({ data, adminId }) => {
-        const shopId = localStorage.getItem("shop");
-        return {
-          url: `/shop/update-shop-admin/${shopId}/${adminId}`,
-          method: "PATCH",
-          body: data,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        };
-      },
-      invalidatesTags: ["ShopAdmin"],
-    }),
+
     deleteShopAdmin: builder.mutation({
       query: (adminId) => {
         const shopId = localStorage.getItem("shop");
         return {
-          url: `/shop/shop-admin/${shopId}/${adminId}`,
+          url: `/shop/remove-shop-admin/${shopId}`,
           method: "DELETE",
+          body: {
+            userId: adminId,
+          },
+          headers: {
+            "Content-Type": "application/json",
+          },
         };
       },
       invalidatesTags: ["ShopAdmin"],
@@ -57,6 +50,5 @@ const sellerAdminApi = api.injectEndpoints({
 export const {
   useGetShopAdminQuery,
   useAddShopAdminMutation,
-  useUpdateShopAdminMutation,
   useDeleteShopAdminMutation,
 } = sellerAdminApi;

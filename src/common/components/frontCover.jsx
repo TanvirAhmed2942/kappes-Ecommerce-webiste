@@ -58,10 +58,10 @@ const FrontCover = ({ coverPhoto, logo, name, totalReviews, description }) => {
                   ({totalReviews} reviews)
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mt-1">1k Followers</p>
+              {/* <p className="text-sm text-gray-500 mt-1">1k Followers</p> */}
             </div>
 
-            <div className="flex gap-2 mt-2 md:mt-0">
+            {/* <div className="flex gap-2 mt-2 md:mt-0">
               <Button
                 variant="outline"
                 className="flex-1 md:flex-none bg-green-500 hover:bg-green-600 text-white border-none"
@@ -79,7 +79,7 @@ const FrontCover = ({ coverPhoto, logo, name, totalReviews, description }) => {
               >
                 {following ? "Following" : "Follow"}
               </Button>
-            </div>
+            </div> */}
           </div>
 
           {/* About Section */}
