@@ -33,6 +33,7 @@ export const api = createApi({
     "ShopInfo",
     "Shop",
     "Follow",
+    "Contact",
   ],
 });
 

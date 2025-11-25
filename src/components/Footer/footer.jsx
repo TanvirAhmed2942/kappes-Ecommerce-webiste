@@ -103,7 +103,7 @@ function Footer() {
             House #8, Road # 14,
             <br /> Toronto, Canada
           </p>
-          <p>Email: Demo@TheCanuckMall.com</p>
+          <p>Email: demo@thecanuckmall.com</p>
         </div>
 
         <div className="flex flex-col items-center md:items-start justify-start mx-auto">

@@ -1,12 +1,71 @@
-  "use client";
+"use client";
 
+import { useState } from "react";
 import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
 import { Button } from "../../components/ui/button";
 import { Mail, MapPin, Phone } from "lucide-react";
 import Image from "next/image";
+import { useSendContactMessageMutation } from "../../redux/contactApi/contactApi";
+import useToast from "../../hooks/useShowToast";
 
 export default function ContactUs() {
+  const [formData, setFormData] = useState({
+    senderName: "",
+    senderEmail: "",
+    phone: "",
+    message: "",
+  });
+
+  const [sendContactMessage, { isLoading }] = useSendContactMessageMutation();
+  const { showSuccess, showError } = useToast();
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Basic validation
+    if (
+      !formData.senderName ||
+      !formData.senderEmail ||
+      !formData.phone ||
+      !formData.message
+    ) {
+      showError("Please fill in all required fields");
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.senderEmail)) {
+      showError("Please enter a valid email address");
+      return;
+    }
+
+    try {
+      await sendContactMessage({ data: formData }).unwrap();
+      showSuccess("Message sent successfully!");
+
+      // Reset form
+      setFormData({
+        senderName: "",
+        senderEmail: "",
+        phone: "",
+        message: "",
+      });
+    } catch (error) {
+      showError(
+        error?.data?.message || "Failed to send message. Please try again."
+      );
+    }
+  };
   return (
     <div className="relative w-full min-h-screen py-10 sm:py-16 lg:py-20 px-4 overflow-hidden">
       {/* Background Image */}
@@ -36,10 +95,10 @@ export default function ContactUs() {
           <div className="flex justify-center items-center gap-2 flex-wrap">
             <Mail size={16} />
             <a
-              href="mailto:hamdy.mostafa@leoniucorp.com"
+              href="mailto:demo@thecanuckmall.com"
               className="text-red-700 hover:underline break-all sm:break-normal"
             >
-              hamdy.mostafa@leoniucorp.com
+              demo@thecanuckmall.com
             </a>
           </div>
           <div className="flex justify-center items-center gap-2 text-center flex-wrap">
@@ -51,28 +110,50 @@ export default function ContactUs() {
         </div>
 
         {/* Contact Form */}
-        <form className="flex flex-col md:grid md:grid-cols-2 gap-4 mt-8 sm:mt-10">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col md:grid md:grid-cols-2 gap-4 mt-8 sm:mt-10"
+        >
           <Input
+            name="senderName"
+            value={formData.senderName}
+            onChange={handleInputChange}
             placeholder="Your Name *"
             className="md:col-span-1 bg-white/90 text-black placeholder:text-gray-600 h-12"
+            required
           />
           <Input
+            name="senderEmail"
+            type="email"
+            value={formData.senderEmail}
+            onChange={handleInputChange}
             placeholder="Your Email *"
             className="md:col-span-1 md:order-2 bg-white/90 text-black placeholder:text-gray-600 h-12"
+            required
           />
           <Input
+            name="phone"
+            type="tel"
+            value={formData.phone}
+            onChange={handleInputChange}
             placeholder="Your Phone *"
             className="md:col-span-1 md:order-3 bg-white/90 text-black placeholder:text-gray-600 h-12"
+            required
           />
           <Textarea
+            name="message"
+            value={formData.message}
+            onChange={handleInputChange}
             placeholder="Your Message *"
             className="md:row-span-3 md:col-span-1 md:order-1 bg-white/90 text-black placeholder:text-gray-600 h-44 resize-none overflow-y-auto"
+            required
           />
           <Button
             type="submit"
-            className="bg-red-700 hover:bg-red-800 text-white md:col-span-full md:order-4 mt-2 py-3 px-8 font-semibold h-12"
+            disabled={isLoading}
+            className="bg-red-700 hover:bg-red-800 disabled:bg-red-400 text-white md:col-span-full md:order-4 mt-2 py-3 px-8 font-semibold h-12"
           >
-            SEND MESSAGE
+            {isLoading ? "SENDING..." : "SEND MESSAGE"}
           </Button>
         </form>
       </div>
