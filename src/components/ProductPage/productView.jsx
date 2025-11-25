@@ -21,18 +21,24 @@ import { useRouter } from "next/navigation";
 import { useAddToCartMutation } from "../../redux/cartApi/cartApi";
 import useToast from "../../hooks/useShowToast";
 import { useCart } from "../../hooks/useCart";
+import { useCreateChatMutation } from "../../redux/shopuserChatApi/shopuserChatApi";
+import useAuth from "../../hooks/useAuth";
 
 function ProductView() {
   const dispatch = useDispatch();
   const router = useRouter();
   const toast = useToast();
   const { refetch: refetchCart } = useCart();
+  const { userId } = useAuth();
 
   // Get chat state from Redux
   const { unreadCount } = useSelector((state) => state.chat);
 
   // Add to cart mutation
   const [addToCart, { isLoading: isAddingToCart }] = useAddToCartMutation();
+
+  // Create chat mutation
+  const [createChat, { isLoading: isCreatingChat }] = useCreateChatMutation();
 
   // Use our custom hooks to get product details
   const { productDetails, isLoading, error } = useProductDetails();
@@ -184,14 +190,66 @@ function ProductView() {
     }
   };
 
-  const handleOpenChat = () => {
-    // Use shop info from product if available
-    const sellerInfo = {
-      name: productDetails?.shopId?.name || "Shop",
-      location: "Canada",
-      id: productDetails?.shopId?.id || productDetails?.shopId?._id || "shop",
-    };
-    dispatch(openChat(sellerInfo));
+  const handleOpenChat = async () => {
+    if (!productDetails?.shopId) {
+      toast.showError("Shop information not available");
+      return;
+    }
+
+    if (!userId) {
+      toast.showError("Please log in to send messages");
+      return;
+    }
+
+    try {
+      // Create chat with the shop - format as participants array
+      const chatData = {
+        participants: [
+          {
+            participantId: userId,
+            participantType: "User",
+          },
+          {
+            participantId:
+              productDetails.shopId._id || productDetails.shopId.id,
+            participantType: "Shop",
+          },
+        ],
+      };
+
+      const response = await createChat(chatData).unwrap();
+
+      if (response?.success) {
+        // Use shop info from product for chat
+        const sellerInfo = {
+          name: productDetails.shopId.name || "Shop",
+          location: "Canada",
+          id: response.data._id, // Use the chat ID
+          chatId: response.data._id,
+          avatar: productDetails.shopId.logo
+            ? `${getImageUrl}${
+                productDetails.shopId.logo.startsWith("/")
+                  ? productDetails.shopId.logo.slice(1)
+                  : productDetails.shopId.logo
+              }`
+            : "/assets/chat/default-shop.png",
+          isOnline: true,
+          lastSeen: "Online",
+        };
+
+        dispatch(openChat(sellerInfo));
+        toast.showSuccess("Chat opened successfully");
+      } else {
+        toast.showError(response?.message || "Failed to create chat");
+      }
+    } catch (error) {
+      console.error("Error creating chat:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.data?.errorMessages?.[0]?.message ||
+        "Failed to create chat. Please try again.";
+      toast.showError(errorMessage);
+    }
   };
 
   if (isLoading || !productDetails) {
@@ -543,9 +601,14 @@ function ProductView() {
                 variant="outline"
                 className="w-full border-red-700 text-red-700 hover:bg-red-50"
                 onClick={handleOpenChat}
+                disabled={isCreatingChat}
               >
                 <MessageCircle size={20} className="mr-2" />
-                <span>Send Message to Seller</span>
+                <span>
+                  {isCreatingChat
+                    ? "Opening Chat..."
+                    : "Send Message to Seller"}
+                </span>
               </Button>
 
               {/* Show notification dot if there are unread messages */}

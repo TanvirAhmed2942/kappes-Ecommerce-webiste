@@ -13,6 +13,7 @@ const shopuserChatApi = api.injectEndpoints({
           },
         };
       },
+      invalidatesTags: ["ChatList", "Chat"],
     }),
   }),
 
