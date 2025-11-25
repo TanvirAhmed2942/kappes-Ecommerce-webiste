@@ -1,36 +1,51 @@
 "use client";
 
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-const TotalOrderChart = () => {
-  const [selectedYear, setSelectedYear] = useState('2024');
+const TotalOrderChart = ({ data }) => {
+  const [selectedYear, setSelectedYear] = useState('2025');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [chartData, setChartData] = useState([]);
 
-  const data = [
-    { month: 'Jan', orders: 950 },
-    { month: 'Feb', orders: 650 },
-    { month: 'Mar', orders: 1320 },
-    { month: 'Apr', orders: 1400 },
-    { month: 'May', orders: 1350 },
-    { month: 'Jun', orders: 1380 },
-    { month: 'Jul', orders: 1150 },
-    { month: 'Aug', orders: 950 },
-    { month: 'Sep', orders: 650 },
-    { month: 'Oct', orders: 1300 },
-    { month: 'Nov', orders: 1400 },
-    { month: 'Dec', orders: 1380 }
-  ];
+  // Available years from API
+  const years = data?.yearOrders?.map(year => year._id.toString()) || ['2025'];
 
-  const years = ['2024', '2023', '2022', '2021'];
-  const maxValue = Math.max(...data.map(d => d.orders));
+  // Month names
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  useEffect(() => {
+    if (data?.monthEarnings) {
+      // Create array with all 12 months initialized to 0
+      const monthlyData = Array.from({ length: 12 }, (_, i) => ({
+        month: monthNames[i],
+        orders: 0,
+        monthNumber: i + 1
+      }));
+
+      // Fill in actual data from API
+      data.monthEarnings.forEach(item => {
+        if (item._id.year.toString() === selectedYear) {
+          const monthIndex = item._id.month - 1;
+          if (monthIndex >= 0 && monthIndex < 12) {
+            monthlyData[monthIndex].orders = item.orders || 0;
+          }
+        }
+      });
+
+      setChartData(monthlyData);
+    }
+  }, [data, selectedYear]);
+
+  const maxValue = Math.max(...chartData.map(d => d.orders), 100);
+  const yAxisMax = Math.ceil(maxValue / 200) * 200;
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-[#B01501] text-white px-3 py-1.5 rounded text-sm font-medium">
-          {payload[0].value}
+          {payload[0].value} orders
         </div>
       );
     }
@@ -39,7 +54,7 @@ const TotalOrderChart = () => {
 
   return (
     <div className="">
-      <div className=" bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg shadow-sm p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Total Order</h1>
@@ -78,7 +93,7 @@ const TotalOrderChart = () => {
         <div className="w-full h-96">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={data}
+              data={chartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
             >
               <CartesianGrid
@@ -97,8 +112,7 @@ const TotalOrderChart = () => {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: '#B01501', fontSize: 14 }}
-                domain={[0, 1600]}
-                ticks={[0, 200, 400, 600, 800, 1000, 1200, 1400]}
+                domain={[0, yAxisMax]}
               />
               <Tooltip
                 content={<CustomTooltip />}
@@ -110,10 +124,10 @@ const TotalOrderChart = () => {
                 radius={[4, 4, 0, 0]}
                 maxBarSize={60}
               >
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={entry.orders === maxValue ? '#B01501' : '#B01501'}
+                    fill="#B01501"
                   />
                 ))}
               </Bar>

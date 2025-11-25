@@ -62,6 +62,7 @@ export default function SellerLogin() {
       const loginCredentials = {
         email: email.trim(),
         password: password,
+        role: "VENDOR",
       };
 
       const response = await loginUser(loginCredentials).unwrap();
@@ -81,7 +82,8 @@ export default function SellerLogin() {
           toast.showSuccess("Login successful!", {
             description: "You are now logged in.",
           });
-          router.push("/seller/overview");
+          localStorage.setItem("shop", response?.data?.shop?._id);
+          router.push("/seller/overview?shop=" + response?.data?.shop?._id);
         } else {
           toast.showError("Access Denied", {
             description: "Only vendors can access the seller dashboard.",
@@ -96,7 +98,7 @@ export default function SellerLogin() {
         });
       }
     } catch (error) {
-      console.error("Login error:", error);
+      // console.error("Login error:", error);
 
       // Handle validation errors from API
       if (error?.data?.error && Array.isArray(error.data.error)) {

@@ -3,7 +3,7 @@ import { api } from '../../baseApi';
 
 const overviewApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getMyCart: builder.query({
+    getOverview: builder.query({
       query: (id) => {
         return {
           url: `/shop/overview/${id}`,
@@ -16,5 +16,5 @@ const overviewApi = api.injectEndpoints({
 });
 
 export const {
-  useGetMyCartQuery,
+  useGetOverviewQuery,
 } = overviewApi;

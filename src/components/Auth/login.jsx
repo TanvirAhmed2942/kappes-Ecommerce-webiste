@@ -57,6 +57,7 @@ export default function LogIn() {
     const loginCredentials = {
       email: data.email.trim(),
       password: data.password.trim(),
+      role: "USER",
       // remember: data.remember,
     };
 
@@ -79,6 +80,7 @@ export default function LogIn() {
         });
       }
     } catch (err) {
+      console.log("Login error:", err);
       showError("Login Failed", {
         description:
           err?.data?.message ||

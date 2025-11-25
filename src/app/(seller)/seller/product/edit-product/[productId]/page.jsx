@@ -1,30 +1,37 @@
 "use client";
 
 import { Minus, Plus, Upload, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Button } from '../../../../../components/ui/button';
-import { Card, CardContent } from '../../../../../components/ui/card';
-import { Input } from '../../../../../components/ui/input';
-import { Label } from '../../../../../components/ui/label';
+
+import { Card, CardContent } from '../../../../../../components/ui/card';
+import { Input } from '../../../../../../components/ui/input';
+import { Label } from '../../../../../../components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../../../components/ui/select';
-import { Textarea } from '../../../../../components/ui/textarea';
+} from '../../../../../../components/ui/select';
+import { Textarea } from '../../../../../../components/ui/textarea';
 
 import { IoArrowBack } from 'react-icons/io5';
-import { useGetAllBrandQuery } from '../../../../../redux/sellerApi/brand/brandApi';
-import { useGetAllCategoryQuery } from '../../../../../redux/sellerApi/category/categoryApi';
-import { useCreateProductMutation } from '../../../../../redux/sellerApi/product/productApi';
-import { useGetSubCategoryReletedToCategoryQuery } from '../../../../../redux/sellerApi/subCategory/subCategoryApi';
-import { useGetAllVariantQuery } from '../../../../../redux/sellerApi/variant/variantApi';
+import { Button } from '../../../../../../components/ui/button';
+import { getImageUrl } from '../../../../../../redux/baseUrl';
+import { useGetAllBrandQuery } from '../../../../../../redux/sellerApi/brand/brandApi';
+import { useGetAllCategoryQuery } from '../../../../../../redux/sellerApi/category/categoryApi';
+import { useGetProductByIdQuery, useUpdateProductMutation } from '../../../../../../redux/sellerApi/product/productApi';
+import { useGetSubCategoryReletedToCategoryQuery } from '../../../../../../redux/sellerApi/subCategory/subCategoryApi';
+import { useGetAllVariantQuery } from '../../../../../../redux/sellerApi/variant/variantApi';
 
-const AddProductForm = () => {
+const EditProductForm = () => {
   const router = useRouter();
+  const params = useParams();
+  const id = params.productId;
+
+  const { data: productData, isLoading: productLoading } = useGetProductByIdQuery(id, { skip: !id });
+  const [editProduct, { isLoading: updateLoading, isError: updateError }] = useUpdateProductMutation();
 
   // Basic Info States
   const [productName, setProductName] = useState('');
@@ -49,17 +56,17 @@ const AddProductForm = () => {
   // Image States
   const [featureImage, setFeatureImage] = useState(null);
   const [additionalImages, setAdditionalImages] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
 
   // Filtered subcategories based on selected category
   const [filteredSubcategories, setFilteredSubcategories] = useState([]);
 
   // API Hooks
-  const [createProduct, { isLoading }] = useCreateProductMutation();
   const { data: categoryData } = useGetAllCategoryQuery();
 
   // Pass categoryId to the subcategory query
   const { data: subcategoryData, isLoading: subcategoryLoading } = useGetSubCategoryReletedToCategoryQuery(categoryId, {
-    skip: !categoryId, // Skip the query if no category is selected
+    skip: !categoryId,
   });
 
   const { data: variantData } = useGetAllVariantQuery();
@@ -78,35 +85,70 @@ const AddProductForm = () => {
     { name: 'Black', value: '#000000' },
   ];
 
+  // Pre-fill form data when product data is loaded
+  useEffect(() => {
+    if (productData?.data) {
+      const product = productData.data;
+      console.log("Product data loaded:", product);
+      console.log("Product images:", product.images);
+
+      // Basic Info
+      setProductName(product.name || '');
+      setDescription(product.description || '');
+      setBasePrice(product.basePrice?.toString() || '');
+      setTags(product.tags || []);
+
+      // Category & Brand
+      setCategoryId(product.categoryId?._id || '');
+      setSubcategoryId(product.subcategoryId?._id || '');
+      setBrandId(product.brandId?._id || '');
+      setShopId(product.shopId?._id || '691af5eb80ccb62017c06c6f');
+
+      // Variant Info
+      if (product.product_variant_Details && product.product_variant_Details.length > 0) {
+        const variant = product.product_variant_Details[0];
+        setSelectedColor(variant.variantId?.color?.code || '#3b82f6');
+        setColorName(variant.variantId?.color?.name || 'Blue');
+        setVariantPrice(variant.variantPrice?.toString() || '');
+        setVariantQuantity(variant.variantQuantity || 1);
+        // Volume might be in variant data if available
+      }
+
+      // Existing Images
+      setExistingImages(product.images || []);
+    }
+  }, [productData]);
+
   // Filter subcategories when category changes
   useEffect(() => {
-    console.log('Category ID:', categoryId);
-    console.log('Subcategory Data:', subcategoryData);
-
     if (categoryId && subcategoryData?.data) {
-      // Since the API already returns subcategories related to the category,
-      // we might not need additional filtering
-      // But let's double check the structure
       const subcategories = Array.isArray(subcategoryData.data)
         ? subcategoryData.data
         : subcategoryData.data.subCategorys || subcategoryData.data || [];
 
-      console.log('All subcategories:', subcategories);
-
-      // If the API doesn't filter by category, we need to do it manually
       const filtered = subcategories.filter(
         (sub) => sub.categoryId && sub.categoryId._id === categoryId
       );
 
-      console.log('Filtered subcategories:', filtered);
-
       setFilteredSubcategories(filtered);
-      setSubcategoryId(''); // Reset subcategory when category changes
+
+      // Only reset subcategory if it doesn't belong to the current category
+      if (subcategoryId && !filtered.some(sub => sub._id === subcategoryId)) {
+        setSubcategoryId('');
+      }
     } else {
       setFilteredSubcategories([]);
-      setSubcategoryId('');
     }
-  }, [categoryId, subcategoryData]);
+  }, [categoryId, subcategoryData, subcategoryId]);
+
+  // Function to get complete image URL
+  const getCompleteImageUrl = (imagePath) => {
+    if (!imagePath) return '';
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http')) return imagePath;
+    // Otherwise, combine with base URL
+    return `${getImageUrl}${imagePath}`;
+  };
 
   const removeTag = (tagToRemove) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
@@ -142,6 +184,10 @@ const AddProductForm = () => {
     setAdditionalImages(additionalImages.filter((_, index) => index !== indexToRemove));
   };
 
+  const removeExistingImage = (indexToRemove) => {
+    setExistingImages(existingImages.filter((_, index) => index !== indexToRemove));
+  };
+
   const handleColorSelect = (color) => {
     setSelectedColor(color.value);
     setColorName(color.name);
@@ -156,11 +202,6 @@ const AddProductForm = () => {
 
     if (description.length < 10) {
       alert('Description must be at least 10 characters long');
-      return;
-    }
-
-    if (!featureImage) {
-      alert('Please upload a feature image');
       return;
     }
 
@@ -192,7 +233,7 @@ const AddProductForm = () => {
 
       formData.append('data', JSON.stringify(productData));
 
-      // Add feature image
+      // Add feature image if new one is uploaded
       if (featureImage) {
         formData.append('image', featureImage);
       }
@@ -202,11 +243,16 @@ const AddProductForm = () => {
         formData.append('image', img);
       });
 
-      const response = await createProduct(formData).unwrap();
-      alert('Product created successfully!');
+      // Call update mutation
+      const response = await editProduct({
+        productId: id,
+        data: formData
+      }).unwrap();
+
+      alert('Product updated successfully!');
       router.push('/seller/product');
     } catch (error) {
-      alert('Failed to create product: ' + (error?.data?.message || 'Unknown error'));
+      alert('Failed to update product: ' + (error?.data?.message || 'Unknown error'));
       console.error('Error:', error);
     }
   };
@@ -215,11 +261,19 @@ const AddProductForm = () => {
     router.push('/seller/product');
   };
 
+  if (productLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <div className="text-lg">Loading product data...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="">
       <div className="">
         <button onClick={() => window.history.back()} className='border px-5 py-2 shadow rounded mb-5 cursor-pointer'><IoArrowBack /></button>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Add Product</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Product</h1>
 
         <Card className="shadow-sm">
           <CardContent className="p-8">
@@ -385,13 +439,14 @@ const AddProductForm = () => {
 
               {/* Right Column */}
               <div className="space-y-6">
-                {/* ... (rest of your right column code remains the same) */}
+                {/* Feature Image Section - Fixed */}
                 <div>
                   <Label className="text-base font-medium">
                     Feature Image <span className="text-red-500">*</span>
                   </Label>
                   <div className="mt-2">
                     {featureImage ? (
+                      // Newly uploaded feature image
                       <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden">
                         <img
                           src={URL.createObjectURL(featureImage)}
@@ -405,7 +460,43 @@ const AddProductForm = () => {
                           <X className="w-4 h-4" />
                         </button>
                       </div>
+                    ) : existingImages[0] ? (
+                      // Existing feature image
+                      <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden">
+                        <img
+                          src={getCompleteImageUrl(existingImages[0])}
+                          alt="Feature"
+                          className="w-full h-48 object-cover"
+                          onError={(e) => {
+                            console.error("Failed to load image:", existingImages[0]);
+                            e.target.src = '/placeholder-image.jpg'; // Fallback image
+                          }}
+                        />
+                        <div className="absolute top-2 right-2 flex gap-2">
+                          <div className="p-1.5 bg-blue-500 text-white rounded-full text-xs">
+                            Existing
+                          </div>
+                          <button
+                            onClick={() => setFeatureImage(null)}
+                            className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600"
+                            title="Remove feature image"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        {/* Upload new feature image button */}
+                        <label className="absolute bottom-2 right-2 bg-white border border-gray-300 rounded-lg px-3 py-1 text-sm cursor-pointer hover:bg-gray-50">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFeatureImageUpload}
+                            className="hidden"
+                          />
+                          Change
+                        </label>
+                      </div>
                     ) : (
+                      // No feature image - upload area
                       <label className="block border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer">
                         <input
                           type="file"
@@ -427,11 +518,46 @@ const AddProductForm = () => {
                       </label>
                     )}
                   </div>
+                  {existingImages[0] && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Current feature image. Click "Change" to upload a new one.
+                    </p>
+                  )}
                 </div>
 
+                {/* Additional Images Section */}
                 <div>
                   <Label className="text-base font-medium">Additional Images</Label>
                   <div className="mt-2">
+                    {/* Show existing additional images */}
+                    {existingImages.length > 1 && (
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        {existingImages.slice(1).map((img, index) => (
+                          <div key={index} className="relative border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <img
+                              src={getCompleteImageUrl(img)}
+                              alt={`Existing ${index + 1}`}
+                              className="w-full h-24 object-cover"
+                              onError={(e) => {
+                                console.error("Failed to load image:", img);
+                                e.target.src = '/placeholder-image.jpg'; // Fallback image
+                              }}
+                            />
+                            <div className="absolute top-1 right-1 p-1 bg-blue-500 text-white rounded-full text-xs">
+                              Ex
+                            </div>
+                            <button
+                              onClick={() => removeExistingImage(index + 1)}
+                              className="absolute top-1 left-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Show newly uploaded additional images */}
                     {additionalImages.length > 0 && (
                       <div className="grid grid-cols-3 gap-2 mb-2">
                         {additionalImages.map((img, index) => (
@@ -451,6 +577,8 @@ const AddProductForm = () => {
                         ))}
                       </div>
                     )}
+
+                    {/* Upload new additional images */}
                     <label className="block border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer">
                       <input
                         type="file"
@@ -467,7 +595,7 @@ const AddProductForm = () => {
                           Drop your images here or
                         </p>
                         <span className="text-sm text-red-600 font-medium hover:text-red-700">
-                          Click to upload
+                          Click to upload additional images
                         </span>
                       </div>
                     </label>
@@ -558,16 +686,16 @@ const AddProductForm = () => {
                 variant="outline"
                 onClick={handleCancel}
                 className="px-8 text-red-600 border-red-600 hover:bg-red-50"
-                disabled={isLoading}
+                disabled={updateLoading}
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
                 className="px-8 bg-red-700 hover:bg-red-800 text-white"
-                disabled={isLoading}
+                disabled={updateLoading}
               >
-                {isLoading ? 'Publishing...' : 'Publish Product'}
+                {updateLoading ? 'Updating...' : 'Update Product'}
               </Button>
             </div>
           </CardContent>
@@ -577,4 +705,4 @@ const AddProductForm = () => {
   );
 };
 
-export default AddProductForm;
+export default EditProductForm;
