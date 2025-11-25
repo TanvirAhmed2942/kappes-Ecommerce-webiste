@@ -58,6 +58,20 @@ const productApi = api.injectEndpoints({
         return response;
       },
     }),
+    getSearchProducts: builder.query({
+      query: (params) => {
+        return {
+          url: `/product`,
+          method: "GET",
+          params: {
+            searchTerm: params.search,
+          },
+        };
+      },
+      transformResponse: (response) => {
+        return response;
+      },
+    }),
     getAllProducts: builder.query({
       query: (params) => {
         const { id, page = 1, limit = 10, ...queryParams } = params || {};
@@ -122,17 +136,21 @@ const productApi = api.injectEndpoints({
     getShopProducts: builder.query({
       query: (params = {}) => {
         const { page = 1, limit = 10, filters = {}, ...queryParams } = params;
-        
+
         // Build query parameters from filters (no encoding)
         const queryParts = [];
-        
+
         // Add category IDs (can be multiple)
-        if (filters.categoryIds && Array.isArray(filters.categoryIds) && filters.categoryIds.length > 0) {
+        if (
+          filters.categoryIds &&
+          Array.isArray(filters.categoryIds) &&
+          filters.categoryIds.length > 0
+        ) {
           filters.categoryIds.forEach((id) => {
             queryParts.push(`categoryId=${id}`);
           });
         }
-        
+
         // Add price range
         if (filters.priceMin !== undefined && filters.priceMin > 0) {
           queryParts.push(`basePrice[gt]=${filters.priceMin}`);
@@ -140,36 +158,37 @@ const productApi = api.injectEndpoints({
         if (filters.priceMax !== undefined && filters.priceMax > 0) {
           queryParts.push(`basePrice[lt]=${filters.priceMax}`);
         }
-        
+
         // Add city if provided
         if (filters.city) {
           queryParts.push(`city=${filters.city}`);
         }
-        
+
         // Add province if provided
         if (filters.province) {
           queryParts.push(`province=${filters.province}`);
         }
-        
+
         // Add territory if provided
         if (filters.territory) {
           queryParts.push(`territory=${filters.territory}`);
         }
-        
+
         // Add pagination
         queryParts.push(`page=${page}`);
         queryParts.push(`limit=${limit}`);
-        
+
         // Add any other query params
         Object.keys(queryParams).forEach((key) => {
           if (queryParams[key] !== undefined && queryParams[key] !== null) {
             queryParts.push(`${key}=${queryParams[key]}`);
           }
         });
-        
-        const queryString = queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
+
+        const queryString =
+          queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
         const url = `/product${queryString}`;
-        
+
         return {
           url,
           method: "GET",
@@ -177,8 +196,8 @@ const productApi = api.injectEndpoints({
       },
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
         // Include all params in cache key to ensure unique keys for different filter combinations
-        const filterKey = queryArgs?.filters 
-          ? JSON.stringify(queryArgs.filters) 
+        const filterKey = queryArgs?.filters
+          ? JSON.stringify(queryArgs.filters)
           : "";
         const page = queryArgs?.page || 1;
         const limit = queryArgs?.limit || 10;
@@ -227,17 +246,21 @@ const productApi = api.injectEndpoints({
         if (!provinceName) {
           throw new Error("Province name is required");
         }
-        
+
         // Build query parameters from filters (no encoding)
         const queryParts = [];
-        
+
         // Add category IDs (can be multiple)
-        if (filters.categoryIds && Array.isArray(filters.categoryIds) && filters.categoryIds.length > 0) {
+        if (
+          filters.categoryIds &&
+          Array.isArray(filters.categoryIds) &&
+          filters.categoryIds.length > 0
+        ) {
           filters.categoryIds.forEach((id) => {
             queryParts.push(`categoryId=${id}`);
           });
         }
-        
+
         // Add price range
         if (filters.priceMin !== undefined && filters.priceMin > 0) {
           queryParts.push(`basePrice[gt]=${filters.priceMin}`);
@@ -245,20 +268,21 @@ const productApi = api.injectEndpoints({
         if (filters.priceMax !== undefined && filters.priceMax > 0) {
           queryParts.push(`basePrice[lt]=${filters.priceMax}`);
         }
-        
+
         // Add city if provided
         if (filters.city) {
           queryParts.push(`city=${filters.city}`);
         }
-        
+
         // Add province if provided in filters
         if (filters.province) {
           queryParts.push(`province=${filters.province}`);
         }
-        
-        const queryString = queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
+
+        const queryString =
+          queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
         const url = `/product/province/${provinceName}${queryString}`;
-        
+
         return {
           url,
           method: "GET",
@@ -266,18 +290,21 @@ const productApi = api.injectEndpoints({
       },
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
         // Handle both old format (string) and new format (object)
-        const provinceName = typeof queryArgs === 'string' 
-          ? queryArgs 
-          : queryArgs?.provinceName || "";
-        const filterKey = typeof queryArgs === 'object' && queryArgs?.filters 
-          ? JSON.stringify(queryArgs.filters) 
-          : "";
+        const provinceName =
+          typeof queryArgs === "string"
+            ? queryArgs
+            : queryArgs?.provinceName || "";
+        const filterKey =
+          typeof queryArgs === "object" && queryArgs?.filters
+            ? JSON.stringify(queryArgs.filters)
+            : "";
         return `${endpointName}(${provinceName})${filterKey}`;
       },
       providesTags: (result, error, queryArgs) => {
-        const provinceName = typeof queryArgs === 'string' 
-          ? queryArgs 
-          : queryArgs?.provinceName || "";
+        const provinceName =
+          typeof queryArgs === "string"
+            ? queryArgs
+            : queryArgs?.provinceName || "";
         return [{ type: "PRODUCT", id: `PROVINCE-${provinceName}` }];
       },
       transformResponse: (response) => {
@@ -289,17 +316,21 @@ const productApi = api.injectEndpoints({
         if (!territoryName) {
           throw new Error("Territory name is required");
         }
-        
+
         // Build query parameters from filters (no encoding)
         const queryParts = [];
-        
+
         // Add category IDs (can be multiple)
-        if (filters.categoryIds && Array.isArray(filters.categoryIds) && filters.categoryIds.length > 0) {
+        if (
+          filters.categoryIds &&
+          Array.isArray(filters.categoryIds) &&
+          filters.categoryIds.length > 0
+        ) {
           filters.categoryIds.forEach((id) => {
             queryParts.push(`categoryId=${id}`);
           });
         }
-        
+
         // Add price range
         if (filters.priceMin !== undefined && filters.priceMin > 0) {
           queryParts.push(`basePrice[gt]=${filters.priceMin}`);
@@ -307,20 +338,21 @@ const productApi = api.injectEndpoints({
         if (filters.priceMax !== undefined && filters.priceMax > 0) {
           queryParts.push(`basePrice[lt]=${filters.priceMax}`);
         }
-        
+
         // Add city if provided
         if (filters.city) {
           queryParts.push(`city=${filters.city}`);
         }
-        
+
         // Add province if provided
         if (filters.province) {
           queryParts.push(`province=${filters.province}`);
         }
-        
-        const queryString = queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
+
+        const queryString =
+          queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
         const url = `/product/territory/${territoryName}${queryString}`;
-        
+
         return {
           url,
           method: "GET",
@@ -328,18 +360,21 @@ const productApi = api.injectEndpoints({
       },
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
         // Handle both old format (string) and new format (object)
-        const territoryName = typeof queryArgs === 'string' 
-          ? queryArgs 
-          : queryArgs?.territoryName || "";
-        const filterKey = typeof queryArgs === 'object' && queryArgs?.filters 
-          ? JSON.stringify(queryArgs.filters) 
-          : "";
+        const territoryName =
+          typeof queryArgs === "string"
+            ? queryArgs
+            : queryArgs?.territoryName || "";
+        const filterKey =
+          typeof queryArgs === "object" && queryArgs?.filters
+            ? JSON.stringify(queryArgs.filters)
+            : "";
         return `${endpointName}(${territoryName})${filterKey}`;
       },
       providesTags: (result, error, queryArgs) => {
-        const territoryName = typeof queryArgs === 'string' 
-          ? queryArgs 
-          : queryArgs?.territoryName || "";
+        const territoryName =
+          typeof queryArgs === "string"
+            ? queryArgs
+            : queryArgs?.territoryName || "";
         return [{ type: "PRODUCT", id: `TERRITORY-${territoryName}` }];
       },
       transformResponse: (response) => {
@@ -351,17 +386,21 @@ const productApi = api.injectEndpoints({
         if (!cityName) {
           throw new Error("City name is required");
         }
-        
+
         // Build query parameters from filters (no encoding)
         const queryParts = [];
-        
+
         // Add category IDs (can be multiple)
-        if (filters.categoryIds && Array.isArray(filters.categoryIds) && filters.categoryIds.length > 0) {
+        if (
+          filters.categoryIds &&
+          Array.isArray(filters.categoryIds) &&
+          filters.categoryIds.length > 0
+        ) {
           filters.categoryIds.forEach((id) => {
             queryParts.push(`categoryId=${id}`);
           });
         }
-        
+
         // Add price range
         if (filters.priceMin !== undefined && filters.priceMin > 0) {
           queryParts.push(`basePrice[gt]=${filters.priceMin}`);
@@ -369,15 +408,16 @@ const productApi = api.injectEndpoints({
         if (filters.priceMax !== undefined && filters.priceMax > 0) {
           queryParts.push(`basePrice[lt]=${filters.priceMax}`);
         }
-        
+
         // Add province if provided
         if (filters.province) {
           queryParts.push(`province=${filters.province}`);
         }
-        
-        const queryString = queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
+
+        const queryString =
+          queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
         const url = `/product/city/${cityName}${queryString}`;
-        
+
         return {
           url,
           method: "GET",
@@ -385,18 +425,17 @@ const productApi = api.injectEndpoints({
       },
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
         // Handle both old format (string) and new format (object)
-        const cityName = typeof queryArgs === 'string' 
-          ? queryArgs 
-          : queryArgs?.cityName || "";
-        const filterKey = typeof queryArgs === 'object' && queryArgs?.filters 
-          ? JSON.stringify(queryArgs.filters) 
-          : "";
+        const cityName =
+          typeof queryArgs === "string" ? queryArgs : queryArgs?.cityName || "";
+        const filterKey =
+          typeof queryArgs === "object" && queryArgs?.filters
+            ? JSON.stringify(queryArgs.filters)
+            : "";
         return `${endpointName}(${cityName})${filterKey}`;
       },
       providesTags: (result, error, queryArgs) => {
-        const cityName = typeof queryArgs === 'string' 
-          ? queryArgs 
-          : queryArgs?.cityName || "";
+        const cityName =
+          typeof queryArgs === "string" ? queryArgs : queryArgs?.cityName || "";
         return [{ type: "PRODUCT", id: `CITY-${cityName}` }];
       },
       transformResponse: (response) => {
@@ -424,6 +463,7 @@ export const {
   useGetProductByProvinceQuery,
   useGetProductByTerritoryQuery,
   useGetProductByCityQuery,
+  useGetSearchProductsQuery,
 } = productApi;
 
 // Export directly to ensure it's available
