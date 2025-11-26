@@ -21,7 +21,8 @@ import {
 import { getImageUrl } from "../../../../redux/baseUrl";
 import useToast from "../../../../hooks/useShowToast";
 import { BiEdit } from "react-icons/bi";
-
+import { setStoreInfo } from "../../../../features/sellerStoreSlice/sellerStoreSlice";
+import { useDispatch } from "react-redux";
 export default function EditStoreInfoForm() {
   const {
     data: storeInfo,
@@ -31,7 +32,7 @@ export default function EditStoreInfoForm() {
   const [updateStoreInfo, { isLoading: isUpdating }] =
     useUpdateStoreInfoMutation();
   const toast = useToast();
-
+  const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     storeName: "",
@@ -48,6 +49,17 @@ export default function EditStoreInfoForm() {
   const [coverPreview, setCoverPreview] = useState(null);
   const [bannerPreviews, setBannerPreviews] = useState([]);
   const [bannerFiles, setBannerFiles] = useState([]);
+
+  useEffect(() => {
+    if (storeInfo?.data?.name) {
+      dispatch(
+        setStoreInfo({
+          storeName: storeInfo.data.name,
+          storeLogo: storeInfo.data.logo,
+        })
+      );
+    }
+  }, [storeInfo, dispatch]);
 
   // Sync formData when storeInfo loads
   useEffect(() => {
