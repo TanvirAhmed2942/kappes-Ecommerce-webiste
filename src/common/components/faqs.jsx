@@ -38,7 +38,7 @@ export default function FAQSection() {
 
   // console.log("faqs", faqs)
   const faqItems =
-    faqs?.data?.map((faq) => ({
+    faqs?.data?.faqs?.map((faq) => ({
       id: faq._id,
       question: faq.question,
       answer: faq.answer,

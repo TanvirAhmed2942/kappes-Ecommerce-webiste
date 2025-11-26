@@ -50,6 +50,10 @@ export const api = createApi({
     "subcategory",
     "MyOrders",
     "ProductReviews",
+    "FAQs",
+    "FAQsSeller",
+    "PrivacyPolicy",
+    "TermsAndConditions",
   ],
 });
 
