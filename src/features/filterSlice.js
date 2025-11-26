@@ -4,7 +4,7 @@ const initialState = {
   collapse: false,
   selectedCategory: [],
   priceRangeLow: 0,
-  priceRangeHigh: 500,
+  priceRangeHigh: 10000,
   location: { territory: null, province: null, city: null },
 };
 const filterSlice = createSlice({

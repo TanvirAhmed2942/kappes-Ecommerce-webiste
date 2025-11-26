@@ -1,14 +1,19 @@
 "use client";
-import React, { useEffect, useMemo } from "react";
-  import { Card, CardContent } from "../../components/ui/card";
+import React, { useEffect, useMemo, useState } from "react";
+import { Card, CardContent } from "../../components/ui/card";
 import { Progress } from "../../components/ui/progress";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import useProductReviews from "../../hooks/useProductReviews";
 import { getImageUrl } from "../../redux/baseUrl";
+import ReviewModal from "./ReviewModal";
+import { useParams } from "next/navigation";
 
 function ReviewAndFeedback() {
   const { reviews, isLoading, error } = useProductReviews();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const params = useParams();
+  const productId = params?.id;
 
   // Calculate review summary from actual reviews
   const reviewSummary = useMemo(() => {
@@ -121,18 +126,35 @@ function ReviewAndFeedback() {
             <p className="text-gray-500">
               No reviews available for this product
             </p>
-            <p className="text-sm text-gray-400 mt-2">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="text-sm text-red-600 hover:text-red-700 underline mt-2 cursor-pointer"
+            >
               Be the first to leave a review!
-            </p>
+            </button>
           </div>
         </div>
+
+        <ReviewModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          productId={productId}
+        />
       </div>
     );
   }
 
   return (
     <div className="w-full mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-6">Reviews</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Reviews</h2>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        >
+          Write a Review
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
         {/* Rating Summary */}
@@ -217,6 +239,12 @@ function ReviewAndFeedback() {
           ))}
         </div>
       </div>
+
+      <ReviewModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        productId={productId}
+      />
     </div>
   );
 }

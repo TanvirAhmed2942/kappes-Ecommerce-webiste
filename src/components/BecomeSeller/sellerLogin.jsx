@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-  } from "../../components/ui/card";
+} from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { Label } from "../../components/ui/label";
@@ -62,6 +62,7 @@ export default function SellerLogin() {
       const loginCredentials = {
         email: email.trim(),
         password: password,
+        roles: ["VENDOR", "SHOP ADMIN"],
       };
 
       const response = await loginUser(loginCredentials).unwrap();
@@ -77,11 +78,12 @@ export default function SellerLogin() {
         });
 
         // Only redirect to seller dashboard if role is VENDOR
-        if (userRole === "VENDOR") {
+        if (userRole === "VENDOR" || userRole === "SHOP ADMIN") {
           toast.showSuccess("Login successful!", {
             description: "You are now logged in.",
           });
-          router.push("/seller/overview");
+          localStorage.setItem("shop", response?.data?.shop?._id);
+          router.push("/seller/overview?shop=" + response?.data?.shop?._id);
         } else {
           toast.showError("Access Denied", {
             description: "Only vendors can access the seller dashboard.",
@@ -96,7 +98,7 @@ export default function SellerLogin() {
         });
       }
     } catch (error) {
-      console.error("Login error:", error);
+      // console.error("Login error:", error);
 
       // Handle validation errors from API
       if (error?.data?.error && Array.isArray(error.data.error)) {

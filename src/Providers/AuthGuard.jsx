@@ -6,28 +6,73 @@ import useAuth from "../hooks/useAuth";
 import useToast from "../hooks/useShowToast";
 import { Button } from "../components/ui/button";
 
-export const AuthGuard = ({ children, requiredRole = null }) => {
-  const { isLoggedIn, role, isVendor } = useAuth();
+export const AuthGuard = ({
+  children,
+  requiredRole = null,
+  excludedRoles = null,
+}) => {
+  const { isLoggedIn, role, isVendor, isShopAdmin } = useAuth();
   const router = useRouter();
   const { showError } = useToast();
   const [hasShownError, setHasShownError] = useState(false);
 
-  // Check if user has the required role
+  // Check if user has the required role(s)
   const hasRequiredRole = () => {
     if (!requiredRole) return true; // No role requirement
-    
+
+    // Handle array of roles
+    const requiredRoles = Array.isArray(requiredRole)
+      ? requiredRole
+      : [requiredRole];
+
     // Map role strings to auth checks
     const roleChecks = {
       VENDOR: isVendor || role === "VENDOR",
+      "SHOP ADMIN": isShopAdmin || role === "SHOP ADMIN",
       SELLER: role === "SELLER",
       ADMIN: role === "ADMIN",
       USER: role === "USER",
     };
-    
-    return roleChecks[requiredRole] || false;
+
+    // Check if user has any of the required roles
+    return requiredRoles.some((reqRole) => roleChecks[reqRole] || false);
   };
 
-  const userHasAccess = isLoggedIn && hasRequiredRole();
+  // Check if user has any excluded role(s)
+  const hasExcludedRole = () => {
+    if (!excludedRoles) return false; // No role exclusion
+
+    // Handle array of roles
+    const excludedRolesList = Array.isArray(excludedRoles)
+      ? excludedRoles
+      : [excludedRoles];
+
+    // Map role strings to auth checks
+    const roleChecks = {
+      VENDOR: isVendor || role === "VENDOR",
+      "SHOP ADMIN": isShopAdmin || role === "SHOP ADMIN",
+      SELLER: role === "SELLER",
+      ADMIN: role === "ADMIN",
+      USER: role === "USER",
+    };
+
+    // Check if user has any of the excluded roles
+    return excludedRolesList.some(
+      (excludedRole) => roleChecks[excludedRole] || false
+    );
+  };
+
+  // Determine if user has access
+  const userHasAccess = (() => {
+    // If user is not logged in
+    if (!isLoggedIn) {
+      // Allow access if no role is required, deny if role is required
+      return !requiredRole;
+    }
+
+    // If user is logged in, check role requirements and exclusions
+    return hasRequiredRole() && !hasExcludedRole();
+  })();
 
   useEffect(() => {
     // Reset error state when login status or role changes
@@ -37,7 +82,8 @@ export const AuthGuard = ({ children, requiredRole = null }) => {
   useEffect(() => {
     // Only show error once when access is denied
     if (!userHasAccess && !hasShownError) {
-      if (!isLoggedIn) {
+      if (!isLoggedIn && requiredRole) {
+        // Only show login error if a role is required
         showError("Please login to access this page");
         setHasShownError(true);
 
@@ -47,7 +93,10 @@ export const AuthGuard = ({ children, requiredRole = null }) => {
 
         return () => clearTimeout(timeoutId);
       } else if (requiredRole && !hasRequiredRole()) {
-        showError(`Access denied. This page requires ${requiredRole} role.`);
+        const roleText = Array.isArray(requiredRole)
+          ? requiredRole.join(" or ")
+          : requiredRole;
+        showError(`Access denied. This page requires ${roleText} role.`);
         setHasShownError(true);
 
         const timeoutId = setTimeout(() => {
@@ -55,9 +104,32 @@ export const AuthGuard = ({ children, requiredRole = null }) => {
         }, 3000);
 
         return () => clearTimeout(timeoutId);
+      } else if (excludedRoles && hasExcludedRole()) {
+        const excludedText = Array.isArray(excludedRoles)
+          ? excludedRoles.join(" and ")
+          : excludedRoles;
+        showError(
+          `Access denied. ${excludedText} users cannot access this page.`
+        );
+        setHasShownError(true);
+
+        const timeoutId = setTimeout(() => {
+          router.replace("/seller/overview");
+        }, 3000);
+
+        return () => clearTimeout(timeoutId);
       }
     }
-  }, [isLoggedIn, role, userHasAccess, hasShownError, router, showError, requiredRole]);
+  }, [
+    isLoggedIn,
+    role,
+    userHasAccess,
+    hasShownError,
+    router,
+    showError,
+    requiredRole,
+    excludedRoles,
+  ]);
 
   // Render children with blur effect if access is denied
   return userHasAccess ? (
@@ -67,10 +139,22 @@ export const AuthGuard = ({ children, requiredRole = null }) => {
       <div className="bg-white p-6 rounded-lg shadow-xl text-center opacity-90 space-y-4">
         <p className="text-red-600 font-semibold mb-4">Access Denied</p>
         <p className="text-gray-700">
-          {!isLoggedIn
+          {!isLoggedIn && requiredRole
             ? "Please log in to access this page"
+            : excludedRoles && hasExcludedRole()
+            ? `${
+                Array.isArray(excludedRoles)
+                  ? excludedRoles.join(" and ")
+                  : excludedRoles
+              } users cannot access this page. Your current role: ${
+                role || "N/A"
+              }`
             : requiredRole
-            ? `This page requires ${requiredRole} role. Your current role: ${role || "N/A"}`
+            ? `This page requires ${
+                Array.isArray(requiredRole)
+                  ? requiredRole.join(" or ")
+                  : requiredRole
+              } role. Your current role: ${role || "N/A"}`
             : "You don't have permission to access this page"}
         </p>
         <div className="flex gap-2 justify-center">
@@ -80,12 +164,19 @@ export const AuthGuard = ({ children, requiredRole = null }) => {
           >
             Go Back
           </Button>
-          {!isLoggedIn ? (
+          {!isLoggedIn && requiredRole ? (
             <Button
               className="bg-kappes hover:bg-red-800 text-white"
               onClick={() => router.replace("/auth/login")}
             >
               Login
+            </Button>
+          ) : excludedRoles && hasExcludedRole() ? (
+            <Button
+              className="bg-kappes hover:bg-red-800 text-white"
+              onClick={() => router.replace("/seller/overview")}
+            >
+              Go to Dashboard
             </Button>
           ) : (
             <Button
@@ -102,10 +193,14 @@ export const AuthGuard = ({ children, requiredRole = null }) => {
 };
 
 // Higher-order component for route protection
-export const withAuth = (WrappedComponent, requiredRole = null) => {
+export const withAuth = (
+  WrappedComponent,
+  requiredRole = null,
+  excludedRoles = null
+) => {
   return function ProtectedRoute(props) {
     return (
-      <AuthGuard requiredRole={requiredRole}>
+      <AuthGuard requiredRole={requiredRole} excludedRoles={excludedRoles}>
         <WrappedComponent {...props} />
       </AuthGuard>
     );

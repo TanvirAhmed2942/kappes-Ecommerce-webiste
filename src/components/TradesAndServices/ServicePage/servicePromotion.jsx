@@ -31,7 +31,9 @@ function ServicePromotion({ bannerImages = [] }) {
           id: index + 1,
           image: banner?.startsWith("http")
             ? banner
-            : `${getImageUrl}${banner}`,
+            : `${getImageUrl}${
+                banner?.startsWith("/") ? banner.slice(1) : banner
+              }`,
         }))
       : defaultServicePromotionImage;
 

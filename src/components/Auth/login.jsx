@@ -1,5 +1,3 @@
-
-
 "use client";
 import { useState } from "react";
 import {
@@ -57,6 +55,7 @@ export default function LogIn() {
     const loginCredentials = {
       email: data.email.trim(),
       password: data.password.trim(),
+      roles: ["USER"],
       // remember: data.remember,
     };
 
@@ -79,6 +78,7 @@ export default function LogIn() {
         });
       }
     } catch (err) {
+      console.log("Login error:", err);
       showError("Login Failed", {
         description:
           err?.data?.message ||

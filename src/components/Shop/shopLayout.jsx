@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Filter from "./filter";
 import ShopProductList from "./productList";
 import { useGetShopProductsQuery } from "../../redux/productApi/productApi";
@@ -11,7 +11,69 @@ function ShopLayout() {
   const [products, setProducts] = useState([]);
   const [sortOption, setSortOption] = useState("featured");
 
-  const { data, isLoading, error } = useGetShopProductsQuery();
+  // Get filter state from Redux
+  const filterState = useSelector((state) => state.filter);
+
+  // Build filters object for API queries
+  // Create a new array reference for categoryIds to ensure change detection
+  const filters = useMemo(() => {
+    const filterObj = {
+      categoryIds: [...(filterState.selectedCategory || [])], // Create new array reference
+      priceMin: filterState.priceRangeLow || 0,
+      priceMax: filterState.priceRangeHigh || 10000,
+    };
+
+    // Add location filters if they exist
+    if (
+      filterState.location?.city &&
+      Array.isArray(filterState.location.city) &&
+      filterState.location.city.length > 0
+    ) {
+      filterObj.city = filterState.location.city[0];
+    }
+
+    if (
+      filterState.location?.province &&
+      Array.isArray(filterState.location.province) &&
+      filterState.location.province.length > 0
+    ) {
+      filterObj.province = filterState.location.province[0];
+    }
+
+    if (
+      filterState.location?.territory &&
+      Array.isArray(filterState.location.territory) &&
+      filterState.location.territory.length > 0
+    ) {
+      filterObj.territory = filterState.location.territory[0];
+    }
+
+    return filterObj;
+  }, [
+    filterState.selectedCategory,
+    filterState.priceRangeLow,
+    filterState.priceRangeHigh,
+    filterState.location?.city,
+    filterState.location?.province,
+    filterState.location?.territory,
+  ]);
+
+  // Track previous filters to detect changes
+  const prevFiltersRef = useRef(JSON.stringify(filters));
+
+  // Create query args with new object reference to ensure change detection
+  const queryArgs = useMemo(
+    () => ({
+      filters: { ...filters }, // Spread to create new object reference
+      page: 1,
+      limit: 100, // Adjust as needed
+    }),
+    [filters]
+  );
+
+  const { data, isLoading, error } = useGetShopProductsQuery(queryArgs, {
+    refetchOnMountOrArgChange: true,
+  });
   const dispatch = useDispatch();
   const favorites = useSelector((state) => state.product);
 
@@ -20,10 +82,26 @@ function ShopLayout() {
     return acc;
   }, {});
 
+  // Clear products immediately when filters change
+  useEffect(() => {
+    const currentFilters = JSON.stringify(filters);
+    if (
+      prevFiltersRef.current !== currentFilters &&
+      prevFiltersRef.current !== JSON.stringify({})
+    ) {
+      // Filters changed - clear products immediately
+      setProducts([]);
+    }
+    prevFiltersRef.current = currentFilters;
+  }, [filters]);
+
   useEffect(() => {
     // Set products from API response when data is available
     if (data?.data?.result) {
       setProducts(data.data.result);
+    } else {
+      // Clear products if no data
+      setProducts([]);
     }
   }, [data]);
 
@@ -76,7 +154,7 @@ function ShopLayout() {
   };
 
   return (
-    <div className="flex gap-5 py-5 px-5 md:px-24 lg:px-32 w-full">
+    <div className="flex items-start justify-start gap-5 py-5 px-5 md:px-24 lg:px-32 w-full">
       <Filter filterVisible={filterVisible} />
       <ShopProductList
         products={products}

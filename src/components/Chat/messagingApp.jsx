@@ -22,7 +22,7 @@ const MessagingApp = () => {
   const { userId, isVendor, role } = useAuth();
 
   // Determine if user is vendor - check both isVendor flag and role
-  const isVendorUser = isVendor || role === "VENDOR";
+  const isVendorUser = isVendor || role === "VENDOR" || role === "SHOP ADMIN";
 
   // First, fetch shop ID for vendors
   const { data: shopIdData, isLoading: isLoadingShopId } = useGetShopIdQuery(

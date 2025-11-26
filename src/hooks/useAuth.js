@@ -1,3 +1,4 @@
+"use client";
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectIsLoggedIn,
@@ -11,7 +12,6 @@ import {
 } from "../../src/features/authSlice/authSlice";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
-
 
 const useAuth = () => {
   const dispatch = useDispatch();
@@ -100,6 +100,7 @@ const useAuth = () => {
     isAdmin: role === "ADMIN",
     isSeller: role === "SELLER",
     isVendor: role === "VENDOR",
+    isShopAdmin: role === "SHOP ADMIN",
     isUser: role === "USER",
   };
 };

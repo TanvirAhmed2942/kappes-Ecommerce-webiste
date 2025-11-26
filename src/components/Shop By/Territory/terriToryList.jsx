@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "../../../components/ui/select";
 
-function TerritoryList() {
+function TerritoryList({ onSelect }) {
   const territoryList = [
     {
       id: 1,
@@ -66,8 +66,11 @@ function TerritoryList() {
   const [selectedProvince, setSelectedProvince] = useState("");
 
   const handleSelectProvince = (provinceName) => {
-    console.log("Selected Province:", provinceName);
+    console.log("Selected Territory:", provinceName);
     setSelectedProvince(provinceName);
+    if (onSelect) {
+      onSelect(provinceName);
+    }
   };
 
   return (

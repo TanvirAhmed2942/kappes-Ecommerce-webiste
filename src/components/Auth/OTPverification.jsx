@@ -1,7 +1,12 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import {
   InputOTP,
@@ -202,6 +207,7 @@ export default function OTPverification() {
 
       console.log(response);
       if (response.data?.success === true) {
+        router.push("/trades-&-services/all-services");
         showSuccess(response.data?.message);
         // Restart timer by incrementing timerKey
         setTimerKey((prev) => prev + 1);

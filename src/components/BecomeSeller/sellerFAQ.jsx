@@ -2,11 +2,11 @@
 import { useEffect, useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useGetFAQsQuery } from "../../redux/policies&faqApi/policies&faqApi";
+import { useGetFAQsSellerQuery } from "../../redux/policies&faqApi/policies&faqApi";
 import useToast from "../../hooks/useShowToast";
 export default function SellerFAQ() {
   const [openFAQ, setOpenFAQ] = useState(1);
-  const { data: faqs, isLoading, error } = useGetFAQsQuery();
+  const { data: faqs, isLoading, error } = useGetFAQsSellerQuery();
   const toast = useToast();
 
   // Show error toast when error occurs
@@ -36,7 +36,7 @@ export default function SellerFAQ() {
 
   // console.log("faqs", faqs)
   const faqItems =
-    faqs?.data?.map((faq) => ({
+    faqs?.data?.faqs?.map((faq) => ({
       id: faq._id,
       question: faq.question,
       answer: faq.answer,
