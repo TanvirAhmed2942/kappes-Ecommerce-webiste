@@ -414,8 +414,8 @@ function ProductView() {
               <p className="text-sm text-gray-600">{stockStatus}</p>
             </div>
 
-            {/* Variant Availability Warning */}
-            {(!isValidVariantSlug || !isVariantAvailable) && (
+            {/* {/* Variant Availability Warning */}
+            {/* {(!isValidVariantSlug || !isVariantAvailable) && (
               <div
                 className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4"
                 role="alert"
@@ -429,7 +429,7 @@ function ProductView() {
                   Please select a different variant or check back later.
                 </p>
               </div>
-            )}
+            )} */}
 
             {/* Color Selection */}
             {availableVariants.color && availableVariants.color.length > 0 && (
