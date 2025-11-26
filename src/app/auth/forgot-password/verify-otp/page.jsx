@@ -2,19 +2,8 @@ import VerificationSuccess from "../../../../common/components/verificationSucce
 import OTPverification from "../../../../components/Auth/OTPverification";
 import React from "react";
 
-function VerifyOTP() {
-  return (
-    <div className="min-h-screen flex lg:pt-12 items-start justify-center bg-gray-50">
-      <OTPverification />
-
-      <VerificationSuccess Content={<Content />} />
-    </div>
-  );
-}
-
-export default VerifyOTP;
-
-export const Content = () => {
+// Content component moved inside the main component
+const Content = () => {
   return (
     <div className="flex flex-col items-center text-center p-4 sm:p-6">
       {/* Checkmark Icon */}
@@ -46,3 +35,15 @@ export const Content = () => {
     </div>
   );
 };
+
+function VerifyOTP() {
+  return (
+    <div className="min-h-screen flex lg:pt-12 items-start justify-center bg-gray-50">
+      <OTPverification />
+
+      <VerificationSuccess Content={<Content />} />
+    </div>
+  );
+}
+
+export default VerifyOTP;
