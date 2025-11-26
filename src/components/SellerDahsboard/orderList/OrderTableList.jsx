@@ -1,62 +1,69 @@
 "use client";
 
-import { Eye, Filter, Search, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../../../components/ui/alert-dialog';
-import { Button } from '../../../components/ui/button';
-import { Card, CardContent } from '../../../components/ui/card';
-import { Input } from '../../../components/ui/input';
+import { Eye, Filter, Search, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+
+import { Button } from "../../../components/ui/button";
+import { Card, CardContent } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../components/ui/select';
-import { useDeleteOrderMutation, useGetAllOrderQuery } from '../../../redux/sellerApi/orderlist/orderListApi';
+} from "../../../components/ui/select";
+import {
+  useDeleteOrderMutation,
+  useGetAllOrderQuery,
+} from "../../../redux/sellerApi/orderlist/orderListApi";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../../components/ui/alert-dialog";
 
 const OrderTableList = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('default');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("default");
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
   const router = useRouter();
-  const shopId = typeof window !== 'undefined' ? localStorage.getItem('shop') : null;
+  const shopId =
+    typeof window !== "undefined" ? localStorage.getItem("shop") : null;
 
-  const { data: orderData, isLoading, error } = useGetAllOrderQuery(
-    { status: "", id: shopId },
-    { skip: !shopId }
-  );
+  const {
+    data: orderData,
+    isLoading,
+    error,
+  } = useGetAllOrderQuery({ status: "", id: shopId }, { skip: !shopId });
 
-  const [deleteOrder, { isLoading: deleteOrderLoading }] = useDeleteOrderMutation();
+  const [deleteOrder, { isLoading: deleteOrderLoading }] =
+    useDeleteOrderMutation();
 
   // Format orders from API response
   const formatOrders = (orders) => {
     if (!orders || !Array.isArray(orders)) return [];
 
-    return orders.map(order => ({
+    return orders.map((order) => ({
       id: order._id,
       shortId: `#${order._id.slice(-8).toUpperCase()}`,
-      date: new Date(order.createdAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+      date: new Date(order.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       }),
-      customer: order.user?.full_name || 'Unknown Customer',
-      amount: `$${order.finalAmount?.toFixed(2) || '0.00'}`,
+      customer: order.user?.full_name || "Unknown Customer",
+      amount: `$${order.finalAmount?.toFixed(2) || "0.00"}`,
       status: order.status,
-      rawData: order // Keep original data for reference
+      rawData: order, // Keep original data for reference
     }));
   };
 
@@ -69,7 +76,7 @@ const OrderTableList = () => {
   const filteredOrders = useMemo(() => {
     if (!apiOrders.length) return [];
 
-    return apiOrders.filter(order => {
+    return apiOrders.filter((order) => {
       const matchesSearch =
         order.shortId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -77,7 +84,7 @@ const OrderTableList = () => {
         order.id.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesFilter =
-        filterStatus === 'default' ||
+        filterStatus === "default" ||
         order.status.toLowerCase() === filterStatus.toLowerCase();
 
       return matchesSearch && matchesFilter;
@@ -94,28 +101,28 @@ const OrderTableList = () => {
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
-      case 'delivered':
-        return 'text-green-600';
-      case 'pending':
-        return 'text-orange-500';
-      case 'cancelled':
-        return 'text-red-600';
-      case 'processing':
-        return 'text-blue-600';
-      case 'shipped':
-        return 'text-purple-600';
+      case "delivered":
+        return "text-green-600";
+      case "pending":
+        return "text-orange-500";
+      case "cancelled":
+        return "text-red-600";
+      case "processing":
+        return "text-blue-600";
+      case "shipped":
+        return "text-purple-600";
       default:
-        return 'text-gray-600';
+        return "text-gray-600";
     }
   };
 
   const handleView = (orderId) => {
-    console.log('View order', orderId);
+    console.log("View order", orderId);
     router.push(`/seller/order/${orderId}`);
   };
 
   const handleEdit = (orderId) => {
-    console.log('Edit order', orderId);
+    console.log("Edit order", orderId);
     // Implement edit functionality
   };
 
@@ -129,12 +136,12 @@ const OrderTableList = () => {
 
     try {
       const response = await deleteOrder(orderToDelete.id).unwrap();
-      console.log(response)
+      console.log(response);
       alert(response.message);
-      console.log('Order deleted successfully:', orderToDelete.id);
+      console.log("Order deleted successfully:", orderToDelete.id);
       // The order list will automatically refresh due to the invalidatesTags in the API
     } catch (error) {
-      console.error('Failed to delete order:', error.data);
+      console.error("Failed to delete order:", error.data);
       // You can add toast notification here if needed
     } finally {
       setDeleteDialogOpen(false);
@@ -258,7 +265,10 @@ const OrderTableList = () => {
                 <tbody className="bg-white divide-y divide-gray-100">
                   {paginatedOrders.length > 0 ? (
                     paginatedOrders.map((order, index) => (
-                      <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                      <tr
+                        key={order.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
                         <td className="px-6 py-4 text-sm text-gray-900 font-medium">
                           {order.shortId}
                         </td>
@@ -272,7 +282,11 @@ const OrderTableList = () => {
                           {order.amount}
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`text-sm font-medium ${getStatusColor(order.status)}`}>
+                          <span
+                            className={`text-sm font-medium ${getStatusColor(
+                              order.status
+                            )}`}
+                          >
                             {order.status}
                           </span>
                         </td>
@@ -309,8 +323,13 @@ const OrderTableList = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
-                        {apiOrders.length === 0 ? 'No orders found' : 'No orders match your search criteria'}
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 text-center text-gray-500"
+                      >
+                        {apiOrders.length === 0
+                          ? "No orders found"
+                          : "No orders match your search criteria"}
                       </td>
                     </tr>
                   )}
@@ -322,29 +341,39 @@ const OrderTableList = () => {
             {filteredOrders.length > 0 && (
               <div className="p-6 border-t border-gray-200 flex justify-between items-center">
                 <div className="text-sm text-gray-600">
-                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length} orders
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                  {Math.min(currentPage * itemsPerPage, filteredOrders.length)}{" "}
+                  of {filteredOrders.length} orders
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
-                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    onClick={() =>
+                      handlePageChange(Math.max(1, currentPage - 1))
+                    }
                     disabled={currentPage === 1}
                   >
                     Prev
                   </Button>
-                  {generatePageNumbers().map(page => (
+                  {generatePageNumbers().map((page) => (
                     <Button
                       key={page}
                       variant={currentPage === page ? "default" : "outline"}
                       onClick={() => handlePageChange(page)}
-                      className={currentPage === page ? "bg-red-700 hover:bg-red-800" : ""}
+                      className={
+                        currentPage === page
+                          ? "bg-red-700 hover:bg-red-800"
+                          : ""
+                      }
                     >
                       {page}
                     </Button>
                   ))}
                   <Button
                     variant="outline"
-                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    onClick={() =>
+                      handlePageChange(Math.min(totalPages, currentPage + 1))
+                    }
                     disabled={currentPage === totalPages}
                   >
                     Next
@@ -360,10 +389,12 @@ const OrderTableList = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this order?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Are you sure you want to delete this order?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the order{' '}
-              <strong>{orderToDelete?.shortId}</strong> for customer{' '}
+              This action cannot be undone. This will permanently delete the
+              order <strong>{orderToDelete?.shortId}</strong> for customer{" "}
               <strong>{orderToDelete?.customer}</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -376,7 +407,7 @@ const OrderTableList = () => {
               className="bg-red-600 hover:bg-red-700 text-white"
               disabled={deleteOrderLoading}
             >
-              {deleteOrderLoading ? 'Deleting...' : 'Delete Order'}
+              {deleteOrderLoading ? "Deleting..." : "Delete Order"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
