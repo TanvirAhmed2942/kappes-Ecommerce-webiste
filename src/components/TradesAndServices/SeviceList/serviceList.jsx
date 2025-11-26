@@ -4,6 +4,7 @@ import { MapPin, Phone, ArrowUpDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import useService from "../../../hooks/useService";
+import { getImageUrl } from "../../../redux/baseUrl";
 
 // Star rating component
 function StarRating({ rating }) {
@@ -91,12 +92,21 @@ function BusinessCard({ business }) {
       <div className="flex gap-3">
         <div className="h-12 w-12 bg-blue-100 rounded-md flex items-center justify-center overflow-hidden">
           <Image
-            src={business.logo || "/assets/tradesAndServies/freshPaint.png"}
+            src={
+              business.logo?.startsWith("http")
+                ? business.logo
+                : `${getImageUrl}${
+                    business.logo?.startsWith("/")
+                      ? business.logo.slice(1)
+                      : business.logo
+                  }`
+            }
             alt={business.name}
             width={48}
             height={48}
             className="object-contain"
           />
+          {/* {alert(business.logo)} */}
         </div>
         <div className="flex-1">
           <h3 className="font-semibold text-lg">{business.name}</h3>

@@ -27,7 +27,12 @@ const ChatBox = ({ selectedChat }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const { userId } = useAuth();
-  const chatId = selectedChat?.chatId || selectedChat?.id;
+
+  // Memoize chatId to avoid unnecessary recalculations
+  const chatId = useMemo(
+    () => selectedChat?.chatId || selectedChat?.id,
+    [selectedChat]
+  );
 
   // Fetch messages from API
   const {
@@ -44,15 +49,15 @@ const ChatBox = ({ selectedChat }) => {
   const messagesContainerRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Auto-scroll to bottom when new messages are added
-  const scrollToBottom = () => {
+  // Auto-scroll to bottom when new messages are added - memoized
+  const scrollToBottom = useCallback(() => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTo({
         top: messagesContainerRef.current.scrollHeight,
         behavior: "smooth",
       });
     }
-  };
+  }, []);
 
   // Handle real-time message from socket
   const handleSocketMessage = useCallback(
@@ -91,11 +96,14 @@ const ChatBox = ({ selectedChat }) => {
         scrollToBottom();
       }, 100);
     },
-    [chatId, dispatch]
+    [chatId, dispatch, scrollToBottom]
   );
 
-  // Set up socket listener for real-time messages
-  const socketEventName = chatId ? `getMessage::${chatId}` : null;
+  // Set up socket listener for real-time messages - memoized
+  const socketEventName = useMemo(
+    () => (chatId ? `getMessage::${chatId}` : null),
+    [chatId]
+  );
 
   // Log socket event name for debugging
   useEffect(() => {
@@ -184,7 +192,7 @@ const ChatBox = ({ selectedChat }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   useEffect(() => {
     // Mark messages as read when chat is visible and not minimized
@@ -193,7 +201,7 @@ const ChatBox = ({ selectedChat }) => {
     }
   }, [isChatOpen, isMinimized, unreadCount, dispatch]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if ((inputMessage.trim() === "" && !selectedImage) || !selectedChat) return;
 
     try {
@@ -235,56 +243,62 @@ const ChatBox = ({ selectedChat }) => {
         "Failed to send message. Please try again.";
       toast.showError(errorMessage);
     }
-  };
+  }, [inputMessage, selectedImage, selectedChat, createMessage, toast]);
 
-  const handleImageSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.showError("Please select an image file");
-        return;
+  const handleImageSelect = useCallback(
+    (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        // Validate file type
+        if (!file.type.startsWith("image/")) {
+          toast.showError("Please select an image file");
+          return;
+        }
+
+        // Validate file size (e.g., max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          toast.showError("Image size should be less than 5MB");
+          return;
+        }
+
+        setSelectedImage(file);
+
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
       }
+    },
+    [toast]
+  );
 
-      // Validate file size (e.g., max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.showError("Image size should be less than 5MB");
-        return;
-      }
-
-      setSelectedImage(file);
-
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
+  const handleRemoveImage = useCallback(() => {
     setSelectedImage(null);
     setImagePreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  };
+  }, []);
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+      }
+    },
+    [handleSendMessage]
+  );
 
-  const handleCloseChat = () => {
+  const handleCloseChat = useCallback(() => {
     dispatch(closeChat());
-  };
+  }, [dispatch]);
 
-  const handleMinimizeChat = () => {
+  const handleMinimizeChat = useCallback(() => {
     dispatch(minimizeChat());
-  };
+  }, [dispatch]);
 
   if (!selectedChat) {
     return (

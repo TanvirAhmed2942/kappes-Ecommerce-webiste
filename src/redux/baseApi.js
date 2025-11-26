@@ -30,6 +30,12 @@ export const api = createApi({
     "Messages",
     "ChatList",
     "Product"
+    "Chat",
+    "ShopAdmin",
+    "ShopInfo",
+    "Shop",
+    "Follow",
+    "Contact",
   ],
 });
 

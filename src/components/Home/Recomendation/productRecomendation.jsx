@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { IoArrowForward } from "react-icons/io5";
 import { Card } from "../../../components/ui/card";
 import Image from "next/image";
@@ -20,8 +20,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const ProductRecomendation = () => {
-  const navigationPrevRef = useRef(null);
-  const navigationNextRef = useRef(null);
+  const [swiperInstance, setSwiperInstance] = useState(null);
   const dispatch = useDispatch();
   const router = useRouter();
   const { recommendedProducts, isLoading, error, hasProducts } =
@@ -137,21 +136,12 @@ const ProductRecomendation = () => {
           modules={[Autoplay, Navigation]}
           spaceBetween={20}
           slidesPerView={1}
-          direction="horizontal"
           loop={true}
           autoplay={{
-            delay: 3000,
-            disableOnInteraction: true,
-            reverseDirection: true,
+            delay: 2000,
+            disableOnInteraction: false,
           }}
-          navigation={{
-            prevEl: navigationPrevRef.current,
-            nextEl: navigationNextRef.current,
-          }}
-          onBeforeInit={(swiper) => {
-            swiper.params.navigation.prevEl = navigationPrevRef.current;
-            swiper.params.navigation.nextEl = navigationNextRef.current;
-          }}
+          onSwiper={setSwiperInstance}
           breakpoints={{
             // Mobile
             640: {
@@ -206,7 +196,7 @@ const ProductRecomendation = () => {
                     alt={product.name || "Product"}
                     width={1200}
                     height={1200}
-                    className="object-contain max-h-full"
+                    className="object-cover object-center max-h-full"
                     // onError={(e) => {
                     //   e.target.src = "/assets/recomendationProduct/bag.png";
                     // }}
@@ -257,8 +247,8 @@ const ProductRecomendation = () => {
 
         {/* Custom Navigation Buttons */}
         <button
-          ref={navigationPrevRef}
-          className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white p-3 rounded-full shadow-lg z-10"
+          onClick={() => swiperInstance?.slidePrev()}
+          className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white p-3 rounded-full shadow-lg z-10 hover:bg-gray-100"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -275,8 +265,8 @@ const ProductRecomendation = () => {
           </svg>
         </button>
         <button
-          ref={navigationNextRef}
-          className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white p-3 rounded-full shadow-lg z-10"
+          onClick={() => swiperInstance?.slideNext()}
+          className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white p-3 rounded-full shadow-lg z-10 hover:bg-gray-100"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

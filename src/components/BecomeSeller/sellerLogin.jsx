@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-  } from "../../components/ui/card";
+} from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { Label } from "../../components/ui/label";
@@ -62,7 +62,7 @@ export default function SellerLogin() {
       const loginCredentials = {
         email: email.trim(),
         password: password,
-        role: "VENDOR",
+        roles: ["VENDOR", "SHOP ADMIN"],
       };
 
       const response = await loginUser(loginCredentials).unwrap();
@@ -78,7 +78,7 @@ export default function SellerLogin() {
         });
 
         // Only redirect to seller dashboard if role is VENDOR
-        if (userRole === "VENDOR") {
+        if (userRole === "VENDOR" || userRole === "SHOP ADMIN") {
           toast.showSuccess("Login successful!", {
             description: "You are now logged in.",
           });

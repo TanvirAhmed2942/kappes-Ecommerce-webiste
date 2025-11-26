@@ -66,6 +66,7 @@ function Cover() {
                 placeholder="Search Trades & Services"
                 searchServices={searchServices}
                 handleSearch={handleSearch}
+                searchType="services"
               />
             </div>
             <Button

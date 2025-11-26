@@ -14,9 +14,12 @@ import { Eye } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useGetMyOrdersQuery } from "../../../redux/userprofileApi/userprofileApi";
 import { Badge } from "../../../components/ui/badge";
+import OrderDetailsModal from "./OrderDetailsModal";
 
 export default function OrderHistory({ selectedMenu }) {
   const [search, setSearch] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: ordersResponse, isLoading, error } = useGetMyOrdersQuery();
 
   // Format currency
@@ -64,8 +67,22 @@ export default function OrderHistory({ selectedMenu }) {
       discount: order.discount || 0,
       deliveryCharge: order.deliveryCharge || 0,
       products: order.products || [],
+      // Store the full order data for detailed view
+      fullOrderData: order,
     }));
   }, [ordersResponse]);
+
+  // Handle view order details
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
+  };
+
+  // Close modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedOrder(null);
+  };
 
   // Filter orders based on search
   const filteredOrders = useMemo(() => {
@@ -179,7 +196,10 @@ export default function OrderHistory({ selectedMenu }) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Eye className="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-900" />
+                    <Eye
+                      className="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-900"
+                      onClick={() => handleViewOrder(order)}
+                    />
                   </TableCell>
                 </TableRow>
               ))
@@ -240,6 +260,16 @@ export default function OrderHistory({ selectedMenu }) {
           </Button>
         </div>
       )}
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        selectedOrder={selectedOrder}
+        formatCurrency={formatCurrency}
+        getStatusColor={getStatusColor}
+        getPaymentStatusColor={getPaymentStatusColor}
+      />
     </div>
   );
 }

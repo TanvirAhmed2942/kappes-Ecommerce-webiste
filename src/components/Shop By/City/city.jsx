@@ -7,9 +7,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  } from "../../../components/ui/select";
+} from "../../../components/ui/select";
 
-function CityList() {
+function CityList({ onSelect }) {
   const cityList = [
     {
       id: 1,
@@ -33,6 +33,9 @@ function CityList() {
   const handleSelectCity = (CityName) => {
     console.log("Selected City:", CityName);
     setSelectedCity(CityName);
+    if (onSelect) {
+      onSelect(CityName);
+    }
   };
 
   return (

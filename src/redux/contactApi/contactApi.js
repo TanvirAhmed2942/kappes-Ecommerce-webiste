@@ -1,11 +1,11 @@
 import { api } from "../baseApi";
 
-const shopuserChatApi = api.injectEndpoints({
+const contactApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    createChat: builder.mutation({
-      query: (data) => {
+    sendContactMessage: builder.mutation({
+      query: ({ data }) => {
         return {
-          url: `/chat`,
+          url: `/settings/message`,
           method: "POST",
           body: data,
           headers: {
@@ -13,11 +13,10 @@ const shopuserChatApi = api.injectEndpoints({
           },
         };
       },
-      invalidatesTags: ["ChatList", "Chat"],
+      invalidatesTags: ["Contact"],
     }),
   }),
-
   overrideExisting: true,
 });
 
-export const { useCreateChatMutation } = shopuserChatApi;
+export const { useSendContactMessageMutation } = contactApi;
