@@ -1,36 +1,52 @@
 "use client";
 
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-const MonthlyEarningChart = () => {
-  const [selectedYear, setSelectedYear] = useState('2024');
+const MonthlyEarningChart = ({ data }) => {
+  const [selectedYear, setSelectedYear] = useState('2025');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(null);
+  const [chartData, setChartData] = useState([]);
 
-  const data = [
-    { month: 'Jan', earning: 3100 },
-    { month: 'Feb', earning: 1500 },
-    { month: 'Mar', earning: 2000 },
-    { month: 'Apr', earning: 4200 },
-    { month: 'May', earning: 3100 },
-    { month: 'Jun', earning: 3560 },
-    { month: 'Jul', earning: 2300 },
-    { month: 'Aug', earning: 5000 },
-    { month: 'Sep', earning: 3300 },
-    { month: 'Oct', earning: 3600 },
-    { month: 'Nov', earning: 3000 },
-    { month: 'Dec', earning: 5800 }
-  ];
+  // Available years from API
+  const years = data?.yearEarnings?.map(year => year._id.toString()) || ['2025'];
 
-  const years = ['2024', '2023', '2022', '2021'];
+  // Month names
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  useEffect(() => {
+    if (data?.monthEarnings) {
+      // Create array with all 12 months initialized to 0
+      const monthlyData = Array.from({ length: 12 }, (_, i) => ({
+        month: monthNames[i],
+        earning: 0,
+        monthNumber: i + 1
+      }));
+
+      // Fill in actual data from API
+      data.monthEarnings.forEach(item => {
+        if (item._id.year.toString() === selectedYear) {
+          const monthIndex = item._id.month - 1;
+          if (monthIndex >= 0 && monthIndex < 12) {
+            monthlyData[monthIndex].earning = item.earnings || 0;
+          }
+        }
+      });
+
+      setChartData(monthlyData);
+    }
+  }, [data, selectedYear]);
+
+  const maxValue = Math.max(...chartData.map(d => d.earning), 1000);
+  const yAxisMax = Math.ceil(maxValue / 1000) * 1000;
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg font-semibold text-base">
-          ${payload[0].value}
+          €{payload[0].value.toFixed(2)}
         </div>
       );
     }
@@ -66,7 +82,7 @@ const MonthlyEarningChart = () => {
 
   return (
     <div className="">
-      <div className=" bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg shadow-sm p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Monthly Earning</h1>
@@ -105,7 +121,7 @@ const MonthlyEarningChart = () => {
         <div className="w-full h-96">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={data}
+              data={chartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
@@ -132,9 +148,8 @@ const MonthlyEarningChart = () => {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: '#9ca3af', fontSize: 14 }}
-                domain={[0, 6000]}
-                ticks={[0, 1000, 2000, 3000, 4000, 5000, 6000]}
-                tickFormatter={(value) => `${value / 1000}K`}
+                domain={[0, yAxisMax]}
+                tickFormatter={(value) => `€${value / 1000}K`}
               />
               <Tooltip
                 content={<CustomTooltip />}
@@ -146,7 +161,7 @@ const MonthlyEarningChart = () => {
               />
               {activeIndex !== null && (
                 <ReferenceLine
-                  y={data[activeIndex]?.earning}
+                  y={chartData[activeIndex]?.earning}
                   stroke="#991b1b"
                   strokeDasharray="5 5"
                   strokeWidth={2}
