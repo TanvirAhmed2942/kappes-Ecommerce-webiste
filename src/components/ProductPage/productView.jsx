@@ -9,6 +9,7 @@ import { Badge } from "../../components/ui/badge";
 import Image from "next/image";
 import { addCart } from "../../features/cartSlice";
 import { openChat } from "../../features/chatSlice";
+import { setBuyNowProduct } from "../../features/buyNowSlice";
 import provideIcon from "../../common/components/provideIcon";
 import Link from "next/link";
 import useProductDetails from "../../hooks/useProductDetails";
@@ -250,6 +251,52 @@ function ProductView() {
         "Failed to create chat. Please try again.";
       toast.showError(errorMessage);
     }
+  };
+
+  const handleBuyNow = () => {
+    if (!productDetails) return;
+    if (!selectedVariant?.variantId?._id) {
+      toast.showError("Please select a product variant (color, storage, etc.)");
+      return;
+    }
+    if (!userId) {
+      toast.showError("Please log in to buy now");
+      return;
+    }
+
+    // Prepare Buy Now product data for Redux
+    const buyNowData = {
+      shop: productDetails.shopId?._id || productDetails.shopId?.id,
+      products: [
+        {
+          product: productDetails._id || productDetails.id,
+          variant: selectedVariant.variantId._id,
+          quantity: quantity,
+        },
+      ],
+      // Additional product details for display
+      productDetails: {
+        id: productDetails._id || productDetails.id,
+        name: productDetails.name,
+        image: productImages[0] || "/assets/productPage/bag1.png",
+        price: selectedVariant.variantPrice,
+        quantity: quantity,
+        variantSpecs: {
+          color: selectedVariant.variantId.color?.name,
+          storage: selectedVariant.variantId.storage,
+          ram: selectedVariant.variantId.ram,
+          size: selectedVariant.variantId.size,
+        },
+        shopId: productDetails.shopId?._id || productDetails.shopId?.id,
+        shopName: productDetails.shopId?.name || "Shop",
+      },
+    };
+
+    // Store in Redux
+    dispatch(setBuyNowProduct(buyNowData));
+
+    // Navigate to billing procedure
+    router.push(`/check-out/billing-procedure`);
   };
 
   if (isLoading || !productDetails) {
@@ -518,9 +565,7 @@ function ProductView() {
               <Button
                 className="flex-1 bg-red-700 hover:bg-red-800"
                 disabled={!isProductInStock(productDetails, selectedVariant)}
-                onClick={() => {
-                  router.push("/check-out/billing-procedure");
-                }}
+                onClick={handleBuyNow}
               >
                 Buy Now
               </Button>

@@ -14,6 +14,7 @@ import storage from "redux-persist/lib/storage";
 import categorySlice from "./features/categorySlice/categorySlice";
 import serviceSlice from "./features/servieSlice/serviceSlice";
 import favProductSlice from "./features/favProductSlice.js/favProductSlice";
+import buyNowSlice from "./features/buyNowSlice";
 
 const persistConfig = {
   key: "auth",
@@ -41,6 +42,7 @@ export const store = configureStore({
     category: categorySlice,
     service: serviceSlice,
     favProduct: favProductSlice,
+    buyNow: buyNowSlice,
     [api.reducerPath]: api.reducer,
     auth: persistedAuthReducer,
     user: persistedUserReducer,
