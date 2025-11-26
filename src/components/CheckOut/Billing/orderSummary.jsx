@@ -8,6 +8,8 @@ import {
 } from "../../../redux/cartApi/cartApi";
 import useToast from "../../../hooks/useShowToast";
 import useUser from "../../../hooks/useUser";
+import { useSelector, useDispatch } from "react-redux";
+import { clearBuyNowProduct } from "../../../features/buyNowSlice";
 import {
   Card,
   CardContent,
@@ -24,7 +26,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
-  } from "../../../components/ui/sheet";
+} from "../../../components/ui/sheet";
 import Link from "next/link";
 import Image from "next/image";
 import { getImageUrl } from "../../../redux/baseUrl";
@@ -36,9 +38,14 @@ export default function OrderSummary({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const dispatch = useDispatch();
   const { user, profileData } = useUser();
   const { cartItems, totalAmount, formatCurrency, apiResponse, refetch } =
     useCart();
+
+  // Get Buy Now state from Redux
+  const { buyNowProduct, isBuyNowMode } = useSelector((state) => state.buyNow);
+
   const [placeOrder, { isLoading: isPlacingOrder }] = usePlaceOrderMutation();
   const [applyPromoCode, { isLoading: isApplyingPromo }] =
     useApplyPromoCodeMutation();
@@ -51,20 +58,31 @@ export default function OrderSummary({
 
   const userData = profileData?.data || user;
 
-  // Calculate totals from cart
+  // Determine which items to use (Buy Now or Cart)
+  const currentItems =
+    isBuyNowMode && buyNowProduct ? [buyNowProduct.productDetails] : cartItems;
+
+  // Calculate totals from current items (Buy Now or Cart)
   const itemCost =
-    totalAmount ||
-    cartItems.reduce(
-      (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
-      0
-    );
+    isBuyNowMode && buyNowProduct
+      ? buyNowProduct.productDetails.price *
+        buyNowProduct.productDetails.quantity
+      : totalAmount ||
+        cartItems.reduce(
+          (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
+          0
+        );
+
   const shippingFee = itemCost > 0 ? 29.0 : 0.0; // free shipping if no items
   const orderAmount = itemCost + shippingFee; // Total before discount
   const total =
     discountedPrice > 0 ? discountedPrice : orderAmount - discountAmount;
 
-  // Get shopId from cart items (assuming all items are from the same shop, or use first shop)
+  // Get shopId from current items (Buy Now or Cart)
   const getShopId = () => {
+    if (isBuyNowMode && buyNowProduct) {
+      return buyNowProduct.shop;
+    }
     if (cartItems.length === 0) return null;
     // Get the first shopId from cart items
     return cartItems[0]?.shopId || null;
@@ -137,34 +155,55 @@ export default function OrderSummary({
       return;
     }
 
-    if (cartItems.length === 0) {
-      toast.showError("Your cart is empty");
+    if (currentItems.length === 0) {
+      toast.showError(
+        isBuyNowMode ? "No product selected" : "Your cart is empty"
+      );
       return;
     }
 
-    // Group items by shopId (in case there are items from multiple shops)
-    const itemsByShop = {};
-    cartItems.forEach((item) => {
-      const shopId = item.shopId;
-      if (!shopId) {
-        console.error("Item missing shopId:", item);
-        return;
-      }
-      if (!itemsByShop[shopId]) {
-        itemsByShop[shopId] = [];
-      }
-      itemsByShop[shopId].push(item);
-    });
+    // Handle Buy Now mode vs Cart mode
+    let itemsByShop = {};
+
+    if (isBuyNowMode && buyNowProduct) {
+      // For Buy Now, use the stored product data
+      itemsByShop[buyNowProduct.shop] = [buyNowProduct.productDetails];
+    } else {
+      // For Cart mode, group items by shopId
+      cartItems.forEach((item) => {
+        const shopId = item.shopId;
+        if (!shopId) {
+          console.error("Item missing shopId:", item);
+          return;
+        }
+        if (!itemsByShop[shopId]) {
+          itemsByShop[shopId] = [];
+        }
+        itemsByShop[shopId].push(item);
+      });
+    }
 
     // Create orders for each shop
     const orderPromises = Object.entries(itemsByShop).map(
       async ([shopId, items]) => {
         // Transform items to API format
-        const products = items.map((item) => ({
-          product: item.productId || item.id,
-          variant: item.variantId,
-          quantity: item.quantity,
-        }));
+        const products = items.map((item) => {
+          if (isBuyNowMode && buyNowProduct) {
+            // For Buy Now mode, use the exact format from buyNowProduct
+            return {
+              product: item.id,
+              variant: buyNowProduct.products[0].variant,
+              quantity: item.quantity,
+            };
+          } else {
+            // For Cart mode, use existing logic
+            return {
+              product: item.productId || item.id,
+              variant: item.variantId,
+              quantity: item.quantity,
+            };
+          }
+        });
 
         const orderData = {
           shop: shopId,
@@ -190,8 +229,13 @@ export default function OrderSummary({
       // Show success message
       toast.showSuccess("Order placed successfully!");
 
-      // Refetch cart to clear it
-      refetch();
+      // Clear Buy Now data if in Buy Now mode
+      if (isBuyNowMode) {
+        dispatch(clearBuyNowProduct());
+      } else {
+        // Refetch cart to clear it for normal cart mode
+        refetch();
+      }
 
       // Redirect to success page
       router.push(responses?.[0]?.data?.url);
@@ -304,7 +348,7 @@ export default function OrderSummary({
           size="lg"
           disabled={
             !isAgreed ||
-            cartItems.length === 0 ||
+            currentItems.length === 0 ||
             isPlacingOrder ||
             !deliveryOption ||
             !paymentMethod ||
@@ -334,17 +378,21 @@ export default function OrderSummary({
             <div>
               <h3 className="text-lg font-semibold mb-4">Products</h3>
               <div className="space-y-3">
-                {cartItems.length > 0 ? (
-                  cartItems.map((item, index) => (
+                {currentItems.length > 0 ? (
+                  currentItems.map((item, index) => (
                     <Card key={index} className="p-4">
                       <div className="flex gap-4">
                         <div className="relative w-20 h-20 flex-shrink-0">
                           <Image
                             src={
-                              item.productImage?.startsWith("http")
-                                ? item.productImage
-                                : item.productImage
-                                ? `${getImageUrl}${item.productImage}`
+                              (item.productImage || item.image)?.startsWith(
+                                "http"
+                              )
+                                ? item.productImage || item.image
+                                : item.productImage || item.image
+                                ? `${getImageUrl}${
+                                    item.productImage || item.image
+                                  }`
                                 : "/assets/bag.png"
                             }
                             alt={item.name || "Product"}
@@ -357,28 +405,30 @@ export default function OrderSummary({
                             {item.name || item.productName || "Product"}
                           </h4>
                           <div className="mt-1 space-y-1 text-xs text-gray-600">
-                            {item.color && (
+                            {(item.color || item.variantSpecs?.color) && (
                               <p>
                                 <span className="font-medium">Color:</span>{" "}
-                                {item.color}
+                                {item.color || item.variantSpecs?.color}
                               </p>
                             )}
-                            {item.size && (
+                            {(item.size || item.variantSpecs?.size) && (
                               <p>
                                 <span className="font-medium">Size:</span>{" "}
-                                {item.size}
+                                {item.size || item.variantSpecs?.size}
                               </p>
                             )}
-                            {item.variant?.storage && (
+                            {(item.variant?.storage ||
+                              item.variantSpecs?.storage) && (
                               <p>
                                 <span className="font-medium">Storage:</span>{" "}
-                                {item.variant.storage}
+                                {item.variant?.storage ||
+                                  item.variantSpecs?.storage}
                               </p>
                             )}
-                            {item.variant?.ram && (
+                            {(item.variant?.ram || item.variantSpecs?.ram) && (
                               <p>
                                 <span className="font-medium">RAM:</span>{" "}
-                                {item.variant.ram}
+                                {item.variant?.ram || item.variantSpecs?.ram}
                               </p>
                             )}
                           </div>

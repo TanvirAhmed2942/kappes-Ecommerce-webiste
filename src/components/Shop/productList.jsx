@@ -57,7 +57,7 @@ export default function ShopProductList({
   if (isLoading) {
     return (
       <div className="w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5  gap-6 p-4">
           {[...Array(8)].map((_, index) => (
             <ProductCardSkeleton key={index} />
           ))}
@@ -84,28 +84,31 @@ export default function ShopProductList({
   );
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-4 border-b flex-wrap gap-2">
+    <div className="flex flex-col w-full ">
+      <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-2    border-b flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
+          <button
             size="icon"
             onClick={handleFilterVisible}
-            className={`relative ${filterVisible ? "ring-2 ring-red-400" : ""}`}
+            className={`relative ${
+              filterVisible ? "ring-2 rounded-2xl p-1 ring-red-400" : ""
+            }`}
           >
             <FiFilter
-              className={`${filterVisible ? "text-red-400" : "text-green-400"}`}
+              className={`${
+                filterVisible ? "text-red-400" : "text-green-400"
+              } cursor-pointer`}
             />
             {filterVisible && (
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full"></span>
             )}
-          </Button>
+          </button>
           <span className="text-sm text-gray-500 hidden sm:inline">
             Filter Products ({products?.length || 0} items)
           </span>
         </div>
 
-        <Select value={sortOption} onValueChange={setSortOption}>
+        {/* <Select value={sortOption} onValueChange={setSortOption}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
@@ -119,7 +122,7 @@ export default function ShopProductList({
               <SelectItem value="newest">Newest First</SelectItem>
             </SelectGroup>
           </SelectContent>
-        </Select>
+        </Select> */}
       </div>
 
       {error ? (
@@ -169,7 +172,7 @@ export default function ShopProductList({
               className="absolute left-0 right-0"
               style={{ transform: `translateY(${offsetY}px)` }}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5  xl:gap-3 xl:py-2 xl:px-0 py-4 gap-4">
                 {visibleItems.map((product) => {
                   const productPrice = getProductPrice(product);
                   const hasDiscount = hasDiscountedPrice(product);

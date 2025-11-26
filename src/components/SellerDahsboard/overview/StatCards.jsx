@@ -1,17 +1,17 @@
 import { Package, TrendingUp } from 'lucide-react';
 
-const StatCards = () => {
+const StatCards = ({ data }) => {
   const stats = [
     {
       title: 'Total Order',
-      value: '500',
+      value: data?.totalOrders || 0,
       icon: Package,
       bgColor: 'bg-orange-50',
       iconColor: 'text-orange-500'
     },
     {
       title: 'Total Earning',
-      value: '€5000',
+      value: `€${data?.totalEarnings?.toFixed(2) || 0}`,
       icon: TrendingUp,
       bgColor: 'bg-green-50',
       iconColor: 'text-green-500'

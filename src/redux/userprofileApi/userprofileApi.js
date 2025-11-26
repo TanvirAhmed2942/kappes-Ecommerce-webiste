@@ -28,6 +28,17 @@ const userprofileApi = api.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["MyOrders"],
+    }),
+    cancelOrder: builder.mutation({
+      query: (orderId) => {
+        return {
+          url: `/order/cancel/${orderId}`,
+          method: "DELETE",
+        };
+      },
+
+      invalidatesTags: ["MyOrders", "UserProfile"],
     }),
   }),
   overrideExisting: true,
@@ -37,4 +48,5 @@ export const {
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
   useGetMyOrdersQuery,
+  useCancelOrderMutation,
 } = userprofileApi;

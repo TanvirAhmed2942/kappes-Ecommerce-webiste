@@ -1,6 +1,11 @@
 "use client";
 import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
 import ReviewAndFeedback from "./reviewAndFeedback";
 import useProductDetails from "../../hooks/useProductDetails";
 
@@ -61,15 +66,6 @@ const ProductDescription = ({ description, isLoading }) => {
         {description ? (
           <>
             <p>{description}</p>
-
-            <div className="mt-4">
-              <h3 className="font-medium mb-2">Features:</h3>
-              <ul className="list-disc list-inside">
-                <li>High quality materials</li>
-                <li>Carefully crafted design</li>
-                <li>Long-lasting durability</li>
-              </ul>
-            </div>
           </>
         ) : (
           <p>No description available for this product.</p>

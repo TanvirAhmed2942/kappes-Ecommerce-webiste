@@ -1,5 +1,3 @@
-
-
 "use client";
 import { useState } from "react";
 import {
@@ -57,7 +55,7 @@ export default function LogIn() {
     const loginCredentials = {
       email: data.email.trim(),
       password: data.password.trim(),
-      role: "USER",
+      roles: ["USER"],
       // remember: data.remember,
     };
 

@@ -1,12 +1,10 @@
 import { Comfortaa, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-
-
-import Footer from '../components/Footer/footer';
-import NavBar from '../components/Navbar';
+import Footer from "../components/Footer/footer";
+import NavBar from "../components/Navbar";
 import Head from "./Head";
-import Providers from '../Providers/providers';
+import Providers from "../Providers/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

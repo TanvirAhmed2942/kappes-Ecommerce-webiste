@@ -12,13 +12,23 @@ import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import { Eye } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useGetMyOrdersQuery } from "../../../redux/userprofileApi/userprofileApi";
+import {
+  useCancelOrderMutation,
+  useGetMyOrdersQuery,
+} from "../../../redux/userprofileApi/userprofileApi";
 import { Badge } from "../../../components/ui/badge";
+import OrderDetailsModal from "./OrderDetailsModal";
+import { TbBasketCancel } from "react-icons/tb";
+import useToast from "../../../hooks/useShowToast";
 
 export default function OrderHistory({ selectedMenu }) {
   const [search, setSearch] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: ordersResponse, isLoading, error } = useGetMyOrdersQuery();
-
+  const [cancelOrder, { isLoading: cancelOrderLoading }] =
+    useCancelOrderMutation();
+  const { showSuccess, showError } = useToast();
   // Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {
@@ -64,8 +74,39 @@ export default function OrderHistory({ selectedMenu }) {
       discount: order.discount || 0,
       deliveryCharge: order.deliveryCharge || 0,
       products: order.products || [],
+      // Store the full order data for detailed view
+      fullOrderData: order,
     }));
   }, [ordersResponse]);
+
+  // Handle view order details
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
+  };
+
+  // Handle cancel order
+  const handleCancelOrder = async (order) => {
+    if (!order) return;
+    console.log("Cancel order", order);
+    try {
+      const response = await cancelOrder(order._id).unwrap();
+      console.log(response);
+      showSuccess(response.message || "Order cancelled successfully");
+      // The order list will automatically refresh due to the invalidatesTags in the API
+    } catch (error) {
+      console.error("Failed to cancel order:", error);
+      showError(
+        error?.data?.message || "Failed to cancel order. Please try again."
+      );
+    }
+  };
+
+  // Close modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedOrder(null);
+  };
 
   // Filter orders based on search
   const filteredOrders = useMemo(() => {
@@ -178,8 +219,18 @@ export default function OrderHistory({ selectedMenu }) {
                       {order.paymentStatus}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Eye className="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-900" />
+                  <TableCell className="text-right flex items-center gap-2 justify-end">
+                    <Eye
+                      title="View Order"
+                      className="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-900"
+                      onClick={() => handleViewOrder(order)}
+                    />
+                    <TbBasketCancel
+                      title="Cancel Order"
+                      className="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-900"
+                      onClick={() => handleCancelOrder(order)}
+                      disabled={cancelOrderLoading}
+                    />
                   </TableCell>
                 </TableRow>
               ))
@@ -240,6 +291,16 @@ export default function OrderHistory({ selectedMenu }) {
           </Button>
         </div>
       )}
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        selectedOrder={selectedOrder}
+        formatCurrency={formatCurrency}
+        getStatusColor={getStatusColor}
+        getPaymentStatusColor={getPaymentStatusColor}
+      />
     </div>
   );
 }

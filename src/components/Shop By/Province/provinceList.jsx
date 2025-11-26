@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "../../../components/ui/select";
 
-function ProvinceList() {
+function ProvinceList({ onSelect }) {
   const provinceList = [
     {
       id: 1,
@@ -68,6 +68,9 @@ function ProvinceList() {
   const handleSelectProvince = (provinceName) => {
     console.log("Selected Province:", provinceName);
     setSelectedProvince(provinceName);
+    if (onSelect) {
+      onSelect(provinceName);
+    }
   };
 
   return (

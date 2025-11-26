@@ -21,7 +21,6 @@ const LogoutAlertModal = ({ open, onOpenChange, onConfirm, onCancel }) => {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-2">
-         
           <Button
             type="button"
             variant="outline"
@@ -30,14 +29,14 @@ const LogoutAlertModal = ({ open, onOpenChange, onConfirm, onCancel }) => {
           >
             Cancel
           </Button>
-        
+
           <Button
             type="button"
             onClick={onConfirm}
             className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white "
           >
             OK
-          </Button> 
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -45,4 +44,3 @@ const LogoutAlertModal = ({ open, onOpenChange, onConfirm, onCancel }) => {
 };
 
 export default LogoutAlertModal;
-

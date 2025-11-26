@@ -1,7 +1,5 @@
 "use client";
 
-
-
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { ChevronRight, HandCoins, MapPin, Store, Tag } from "lucide-react";
 import Image from "next/image";
@@ -13,8 +11,12 @@ import { FaRegUser } from "react-icons/fa";
 import { HiOutlineShoppingCart } from "react-icons/hi";
 import { MdLogout } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
-import SearchBox from '../../common/components/searchBox';
-import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
+import SearchBox from "../../common/components/searchBox";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "../../components/ui/avatar";
 import {
   Drawer,
   DrawerContent,
@@ -22,10 +24,10 @@ import {
   DrawerTrigger,
 } from "../../components/ui/drawer";
 import { Button } from "../ui/button";
-import { getImageUrl } from '../../redux/baseUrl';
-import useUser from '../../hooks/useUser';
-import useAuth from '../../hooks/useAuth';
-import { openChat } from '../../features/chatSlice';
+import { getImageUrl } from "../../redux/baseUrl";
+import useUser from "../../hooks/useUser";
+import useAuth from "../../hooks/useAuth";
+import { openChat } from "../../features/chatSlice";
 function TopNav() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const dispatch = useDispatch();
@@ -82,7 +84,7 @@ function TopNav() {
 
       {/* Search box */}
       <div className="md:w-1/2 w-full">
-        <SearchBox />
+        <SearchBox searchType="products" />
       </div>
 
       {/* Right Section */}

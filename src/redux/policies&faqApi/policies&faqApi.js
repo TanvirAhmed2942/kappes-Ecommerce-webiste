@@ -5,10 +5,20 @@ const policiesAndFaqApi = api.injectEndpoints({
     getFAQs: builder.query({
       query: () => {
         return {
-          url: `/faq`,
+          url: `/faq?type=for_website`,
           method: "GET",
         };
       },
+      providesTags: ["FAQs"],
+    }),
+    getFAQsSeller: builder.query({
+      query: () => {
+        return {
+          url: `/faq?type=for_seller`,
+          method: "GET",
+        };
+      },
+      providesTags: ["FAQsSeller"],
     }),
     getPrivacyPolicy: builder.query({
       query: () => {
@@ -17,6 +27,7 @@ const policiesAndFaqApi = api.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["PrivacyPolicy"],
     }),
     getTermsAndConditions: builder.query({
       query: () => {
@@ -25,6 +36,7 @@ const policiesAndFaqApi = api.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: ["TermsAndConditions"],
     }),
   }),
   overrideExisting: true,
@@ -32,6 +44,7 @@ const policiesAndFaqApi = api.injectEndpoints({
 
 export const {
   useGetFAQsQuery,
+  useGetFAQsSellerQuery,
   useGetPrivacyPolicyQuery,
   useGetTermsAndConditionsQuery,
 } = policiesAndFaqApi;

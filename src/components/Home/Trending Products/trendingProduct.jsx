@@ -114,7 +114,7 @@ const TrendingProduct = () => {
                     alt={product.name}
                     width={1200}
                     height={1200}
-                    className="object-contain max-h-full"
+                    className="object-cover object-center max-h-full"
                   />
                 </div>
 
