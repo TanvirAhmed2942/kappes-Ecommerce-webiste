@@ -49,6 +49,7 @@ export const api = createApi({
     "variant",
     "subcategory",
     "MyOrders",
+    "ProductReviews",
   ],
 });
 

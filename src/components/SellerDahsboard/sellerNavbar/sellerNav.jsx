@@ -17,6 +17,7 @@ import { getImageUrl } from "../../../redux/baseUrl";
 import useUser from "../../../hooks/useUser";
 import useAuth from "../../../hooks/useAuth";
 import { openChat } from "../../../features/chatSlice";
+import { logout } from "../../../features/authSlice/authSlice";
 import LogoutAlertModal from "./logoutAlertModal";
 
 const SellerNav = () => {
@@ -60,7 +61,9 @@ const SellerNav = () => {
   // Handle logout confirmation
   const handleLogoutConfirm = () => {
     setIsLogoutModalOpen(false);
-    handleLogout();
+    // Clear auth state manually without using the hook's logout function
+    // which redirects to /auth/login
+    dispatch(logout());
     router.push("/auth/become-seller-login");
   };
 
@@ -112,7 +115,7 @@ const SellerNav = () => {
         {/* Conditional: Sign In or User Name */}
         {!isLoggedIn ? (
           <Link
-            href="/auth/login"
+            href="/auth/logins"
             className="flex items-center gap-1 sm:gap-2 text-gray-500 hover:text-gray-700 text-sm sm:text-base"
           >
             <FaRegUser className="w-5 h-5 sm:w-7 sm:h-7 cursor-pointer" />

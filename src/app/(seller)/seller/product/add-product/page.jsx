@@ -1,49 +1,49 @@
 "use client";
 
-import { Minus, Plus, Upload, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { Button } from '../../../../../components/ui/button';
-import { Card, CardContent } from '../../../../../components/ui/card';
-import { Input } from '../../../../../components/ui/input';
-import { Label } from '../../../../../components/ui/label';
+import { Minus, Plus, Upload, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Button } from "../../../../../components/ui/button";
+import { Card, CardContent } from "../../../../../components/ui/card";
+import { Input } from "../../../../../components/ui/input";
+import { Label } from "../../../../../components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../../../components/ui/select';
-import { Textarea } from '../../../../../components/ui/textarea';
+} from "../../../../../components/ui/select";
+import { Textarea } from "../../../../../components/ui/textarea";
 
-import { IoArrowBack } from 'react-icons/io5';
-import { useGetAllBrandQuery } from '../../../../../redux/sellerApi/brand/brandApi';
-import { useGetAllCategoryQuery } from '../../../../../redux/sellerApi/category/categoryApi';
-import { useCreateProductMutation } from '../../../../../redux/sellerApi/product/productApi';
-import { useGetSubCategoryReletedToCategoryQuery } from '../../../../../redux/sellerApi/subCategory/subCategoryApi';
-import { useGetAllVariantQuery } from '../../../../../redux/sellerApi/variant/variantApi';
+import { IoArrowBack } from "react-icons/io5";
+import { useGetAllBrandQuery } from "../../../../../redux/sellerApi/brand/brandApi";
+import { useGetAllCategoryQuery } from "../../../../../redux/sellerApi/category/categoryApi";
+import { useCreateProductMutation } from "../../../../../redux/sellerApi/product/productApi";
+import { useGetSubCategoryReletedToCategoryQuery } from "../../../../../redux/sellerApi/subCategory/subCategoryApi";
+import { useGetAllVariantQuery } from "../../../../../redux/sellerApi/variant/variantApi";
 
 const AddProductForm = () => {
   const router = useRouter();
 
   // Basic Info States
-  const [productName, setProductName] = useState('');
-  const [description, setDescription] = useState('');
-  const [basePrice, setBasePrice] = useState('');
+  const [productName, setProductName] = useState("");
+  const [description, setDescription] = useState("");
+  const [basePrice, setBasePrice] = useState("");
   const [tags, setTags] = useState([]);
-  const [tagInput, setTagInput] = useState('');
+  const [tagInput, setTagInput] = useState("");
 
   // Category & Brand States
-  const [categoryId, setCategoryId] = useState('');
-  const [subcategoryId, setSubcategoryId] = useState('');
-  const [brandId, setBrandId] = useState('');
-  const [shopId, setShopId] = useState('691af5eb80ccb62017c06c6f');
+  const [categoryId, setCategoryId] = useState("");
+  const [subcategoryId, setSubcategoryId] = useState("");
+  const [brandId, setBrandId] = useState("");
+  const [shopId, setShopId] = useState("691af5eb80ccb62017c06c6f");
 
   // Variant States
-  const [selectedColor, setSelectedColor] = useState('#3b82f6');
-  const [colorName, setColorName] = useState('Blue');
-  const [volume, setVolume] = useState('');
-  const [variantPrice, setVariantPrice] = useState('');
+  const [selectedColor, setSelectedColor] = useState("#3b82f6");
+  const [colorName, setColorName] = useState("Blue");
+  const [volume, setVolume] = useState("");
+  const [variantPrice, setVariantPrice] = useState("");
   const [variantQuantity, setVariantQuantity] = useState(1);
 
   // Image States
@@ -58,30 +58,31 @@ const AddProductForm = () => {
   const { data: categoryData } = useGetAllCategoryQuery();
 
   // Pass categoryId to the subcategory query
-  const { data: subcategoryData, isLoading: subcategoryLoading } = useGetSubCategoryReletedToCategoryQuery(categoryId, {
-    skip: !categoryId, // Skip the query if no category is selected
-  });
+  const { data: subcategoryData, isLoading: subcategoryLoading } =
+    useGetSubCategoryReletedToCategoryQuery(categoryId, {
+      skip: !categoryId, // Skip the query if no category is selected
+    });
 
   const { data: variantData } = useGetAllVariantQuery();
   const { data: brandData } = useGetAllBrandQuery();
 
   const colors = [
-    { name: 'Blue', value: '#3b82f6' },
-    { name: 'Green', value: '#22c55e' },
-    { name: 'Cyan', value: '#06b6d4' },
-    { name: 'Yellow', value: '#eab308' },
-    { name: 'Red', value: '#ef4444' },
-    { name: 'Purple', value: '#a855f7' },
-    { name: 'Pink', value: '#ec4899' },
-    { name: 'Orange', value: '#f97316' },
-    { name: 'Gray', value: '#6b7280' },
-    { name: 'Black', value: '#000000' },
+    { name: "Blue", value: "#3b82f6" },
+    { name: "Green", value: "#22c55e" },
+    { name: "Cyan", value: "#06b6d4" },
+    { name: "Yellow", value: "#eab308" },
+    { name: "Red", value: "#ef4444" },
+    { name: "Purple", value: "#a855f7" },
+    { name: "Pink", value: "#ec4899" },
+    { name: "Orange", value: "#f97316" },
+    { name: "Gray", value: "#6b7280" },
+    { name: "Black", value: "#000000" },
   ];
 
   // Filter subcategories when category changes
   useEffect(() => {
-    console.log('Category ID:', categoryId);
-    console.log('Subcategory Data:', subcategoryData);
+    console.log("Category ID:", categoryId);
+    console.log("Subcategory Data:", subcategoryData);
 
     if (categoryId && subcategoryData?.data) {
       // Since the API already returns subcategories related to the category,
@@ -91,36 +92,36 @@ const AddProductForm = () => {
         ? subcategoryData.data
         : subcategoryData.data.subCategorys || subcategoryData.data || [];
 
-      console.log('All subcategories:', subcategories);
+      console.log("All subcategories:", subcategories);
 
       // If the API doesn't filter by category, we need to do it manually
       const filtered = subcategories.filter(
         (sub) => sub.categoryId && sub.categoryId._id === categoryId
       );
 
-      console.log('Filtered subcategories:', filtered);
+      console.log("Filtered subcategories:", filtered);
 
       setFilteredSubcategories(filtered);
-      setSubcategoryId(''); // Reset subcategory when category changes
+      setSubcategoryId(""); // Reset subcategory when category changes
     } else {
       setFilteredSubcategories([]);
-      setSubcategoryId('');
+      setSubcategoryId("");
     }
   }, [categoryId, subcategoryData]);
 
   const removeTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
-      setTagInput('');
+      setTagInput("");
     }
   };
 
   const handleTagKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       addTag();
     }
@@ -139,7 +140,9 @@ const AddProductForm = () => {
   };
 
   const removeAdditionalImage = (indexToRemove) => {
-    setAdditionalImages(additionalImages.filter((_, index) => index !== indexToRemove));
+    setAdditionalImages(
+      additionalImages.filter((_, index) => index !== indexToRemove)
+    );
   };
 
   const handleColorSelect = (color) => {
@@ -149,18 +152,27 @@ const AddProductForm = () => {
 
   const handleSubmit = async () => {
     // Validation
-    if (!productName || !description || !basePrice || !categoryId || !subcategoryId || !brandId) {
-      alert('Please fill all required fields: Product Name, Description, Base Price, Category, Subcategory, and Brand');
+    if (
+      !productName ||
+      !description ||
+      !basePrice ||
+      !categoryId ||
+      !subcategoryId ||
+      !brandId
+    ) {
+      alert(
+        "Please fill all required fields: Product Name, Description, Base Price, Category, Subcategory, and Brand"
+      );
       return;
     }
 
     if (description.length < 10) {
-      alert('Description must be at least 10 characters long');
+      alert("Description must be at least 10 characters long");
       return;
     }
 
     if (!featureImage) {
-      alert('Please upload a feature image');
+      alert("Please upload a feature image");
       return;
     }
 
@@ -181,44 +193,51 @@ const AddProductForm = () => {
           {
             color: {
               name: colorName,
-              code: selectedColor
+              code: selectedColor,
             },
             ...(volume && { volume: parseFloat(volume) }),
             variantPrice: parseFloat(variantPrice || basePrice),
-            variantQuantity: parseInt(variantQuantity)
-          }
-        ]
+            variantQuantity: parseInt(variantQuantity),
+          },
+        ],
       };
 
-      formData.append('data', JSON.stringify(productData));
+      formData.append("data", JSON.stringify(productData));
 
       // Add feature image
       if (featureImage) {
-        formData.append('image', featureImage);
+        formData.append("image", featureImage);
       }
 
       // Add additional images
       additionalImages.forEach((img) => {
-        formData.append('image', img);
+        formData.append("image", img);
       });
 
       const response = await createProduct(formData).unwrap();
-      alert('Product created successfully!');
-      router.push('/seller/product');
+      alert("Product created successfully!");
+      router.push("/seller/product");
     } catch (error) {
-      alert('Failed to create product: ' + (error?.data?.message || 'Unknown error'));
-      console.error('Error:', error);
+      alert(
+        "Failed to create product: " + (error?.data?.message || "Unknown error")
+      );
+      console.error("Error:", error);
     }
   };
 
   const handleCancel = () => {
-    router.push('/seller/product');
+    router.push("/seller/product");
   };
 
   return (
     <div className="">
       <div className="">
-        <button onClick={() => window.history.back()} className='border px-5 py-2 shadow rounded mb-5 cursor-pointer'><IoArrowBack /></button>
+        <button
+          onClick={() => window.history.back()}
+          className="border px-5 py-2 shadow rounded mb-5 cursor-pointer"
+        >
+          <IoArrowBack />
+        </button>
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Add Product</h1>
 
         <Card className="shadow-sm">
@@ -227,7 +246,10 @@ const AddProductForm = () => {
               {/* Left Column */}
               <div className="space-y-6">
                 <div>
-                  <Label htmlFor="productName" className="text-base font-medium">
+                  <Label
+                    htmlFor="productName"
+                    className="text-base font-medium"
+                  >
                     Product Name <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -240,7 +262,10 @@ const AddProductForm = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="description" className="text-base font-medium">
+                  <Label
+                    htmlFor="description"
+                    className="text-base font-medium"
+                  >
                     Description <span className="text-red-500">*</span>
                   </Label>
                   <Textarea
@@ -255,10 +280,11 @@ const AddProductForm = () => {
                   </p>
                 </div>
 
-                <div className='w-full'>
+                <div className="w-full">
                   <Label htmlFor="category" className="text-base font-medium">
                     Product Category <span className="text-red-500">*</span>
                   </Label>
+
                   <Select value={categoryId} onValueChange={setCategoryId}>
                     <SelectTrigger className="mt-2 w-full">
                       <SelectValue placeholder="Select category" />
@@ -273,14 +299,22 @@ const AddProductForm = () => {
                   </Select>
                 </div>
 
-                <div className='w-full'>
-                  <Label htmlFor="subcategory" className="text-base font-medium">
+                <div className="w-full">
+                  <Label
+                    htmlFor="subcategory"
+                    className="text-base font-medium"
+                  >
                     Product Subcategory <span className="text-red-500">*</span>
                   </Label>
+
                   <Select
                     value={subcategoryId}
                     onValueChange={setSubcategoryId}
-                    disabled={!categoryId || filteredSubcategories.length === 0 || subcategoryLoading}
+                    disabled={
+                      !categoryId ||
+                      filteredSubcategories.length === 0 ||
+                      subcategoryLoading
+                    }
                   >
                     <SelectTrigger className="mt-2 w-full">
                       <SelectValue
@@ -288,17 +322,20 @@ const AddProductForm = () => {
                           subcategoryLoading
                             ? "Loading subcategories..."
                             : !categoryId
-                              ? "Select category first"
-                              : filteredSubcategories.length === 0
-                                ? "No subcategory available"
-                                : "Select subcategory"
+                            ? "Select category first"
+                            : filteredSubcategories.length === 0
+                            ? "No subcategory available"
+                            : "Select subcategory"
                         }
                       />
                     </SelectTrigger>
                     <SelectContent>
                       {filteredSubcategories.length > 0 ? (
                         filteredSubcategories.map((subcategory) => (
-                          <SelectItem key={subcategory._id} value={subcategory._id}>
+                          <SelectItem
+                            key={subcategory._id}
+                            value={subcategory._id}
+                          >
                             {subcategory.name}
                           </SelectItem>
                         ))
@@ -309,11 +346,13 @@ const AddProductForm = () => {
                       )}
                     </SelectContent>
                   </Select>
-                  {categoryId && filteredSubcategories.length === 0 && !subcategoryLoading && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      No subcategories available for this category
-                    </p>
-                  )}
+                  {categoryId &&
+                    filteredSubcategories.length === 0 &&
+                    !subcategoryLoading && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        No subcategories available for this category
+                      </p>
+                    )}
                   {subcategoryLoading && (
                     <p className="text-xs text-gray-500 mt-1">
                       Loading subcategories...
@@ -321,7 +360,7 @@ const AddProductForm = () => {
                   )}
                 </div>
 
-                <div className='w-full'>
+                <div className="w-full">
                   <Label htmlFor="brand" className="text-base font-medium">
                     Brand <span className="text-red-500">*</span>
                   </Label>
@@ -430,12 +469,17 @@ const AddProductForm = () => {
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium">Additional Images</Label>
+                  <Label className="text-base font-medium">
+                    Additional Images
+                  </Label>
                   <div className="mt-2">
                     {additionalImages.length > 0 && (
                       <div className="grid grid-cols-3 gap-2 mb-2">
                         {additionalImages.map((img, index) => (
-                          <div key={index} className="relative border-2 border-gray-300 rounded-lg overflow-hidden">
+                          <div
+                            key={index}
+                            className="relative border-2 border-gray-300 rounded-lg overflow-hidden"
+                          >
                             <img
                               src={URL.createObjectURL(img)}
                               alt={`Additional ${index + 1}`}
@@ -481,10 +525,11 @@ const AddProductForm = () => {
                       <button
                         key={index}
                         onClick={() => handleColorSelect(color)}
-                        className={`w-10 h-10 rounded-full transition-all ${selectedColor === color.value
-                          ? 'ring-2 ring-offset-2 ring-gray-400'
-                          : ''
-                          }`}
+                        className={`w-10 h-10 rounded-full transition-all ${
+                          selectedColor === color.value
+                            ? "ring-2 ring-offset-2 ring-gray-400"
+                            : ""
+                        }`}
                         style={{ backgroundColor: color.value }}
                         title={color.name}
                       />
@@ -510,7 +555,10 @@ const AddProductForm = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="variantPrice" className="text-base font-medium">
+                  <Label
+                    htmlFor="variantPrice"
+                    className="text-base font-medium"
+                  >
                     Variant Price
                   </Label>
                   <Input
@@ -524,14 +572,19 @@ const AddProductForm = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="variantQuantity" className="text-base font-medium">
+                  <Label
+                    htmlFor="variantQuantity"
+                    className="text-base font-medium"
+                  >
                     Variant Quantity
                   </Label>
                   <div className="mt-2 w-full flex items-stretch border border-gray-300 rounded-lg overflow-hidden">
                     <input
                       type="number"
                       value={variantQuantity}
-                      onChange={(e) => setVariantQuantity(parseInt(e.target.value) || 1)}
+                      onChange={(e) =>
+                        setVariantQuantity(parseInt(e.target.value) || 1)
+                      }
                       className="flex-1 text-center py-2 border-0 focus:outline-none focus:ring-2 focus:ring-red-500"
                     />
                     <div className="flex flex-col border-l border-gray-300">
@@ -542,7 +595,9 @@ const AddProductForm = () => {
                         <Plus className="w-3 h-3 text-gray-600" />
                       </button>
                       <button
-                        onClick={() => setVariantQuantity(Math.max(1, variantQuantity - 1))}
+                        onClick={() =>
+                          setVariantQuantity(Math.max(1, variantQuantity - 1))
+                        }
                         className="px-2 py-1 hover:bg-gray-100"
                       >
                         <Minus className="w-3 h-3 text-gray-600" />
@@ -567,7 +622,7 @@ const AddProductForm = () => {
                 className="px-8 bg-red-700 hover:bg-red-800 text-white"
                 disabled={isLoading}
               >
-                {isLoading ? 'Publishing...' : 'Publish Product'}
+                {isLoading ? "Publishing..." : "Publish Product"}
               </Button>
             </div>
           </CardContent>
