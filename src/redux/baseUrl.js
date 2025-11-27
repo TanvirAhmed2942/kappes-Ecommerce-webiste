@@ -4,7 +4,8 @@ export const getBaseUrl = () => {
 };
 
 export const getSocketUrl = () => {
-  return "http://10.10.7.103:6002";
+  // return "http://10.10.7.103:6002";
+  return "https://asif7001.binarybards.online";
 };
 
 // export const getImageUrl = "http://10.10.7.103:7001/";
