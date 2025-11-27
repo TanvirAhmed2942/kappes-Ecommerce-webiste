@@ -327,7 +327,7 @@ function ProductView() {
         <div className="flex flex-col md:flex-row gap-14">
           {/* Left - Images */}
           <div className="w-full md:w-1/2">
-            <div className="relative mb-4 bg-gray-50 rounded-lg overflow-hidden">
+            <div className="relative mb-4 bg-white rounded-lg overflow-hidden">
               <Image
                 width={500}
                 height={500}
@@ -349,7 +349,7 @@ function ProductView() {
             </div>
 
             <div className="flex justify-between overflow-x-auto border-2 rounded-2xl p-3 h-30">
-              {productImages.slice(0, 4).map((image, index) => (
+              {productImages.map((image, index) => (
                 <Button
                   key={index}
                   variant="ghost"
@@ -365,7 +365,7 @@ function ProductView() {
                     alt={`Thumbnail ${index + 1}`}
                     width={500}
                     height={500}
-                    className="w-auto h-full object-cover"
+                    className="w-20 h-full object-cover"
                   />
                 </Button>
               ))}
