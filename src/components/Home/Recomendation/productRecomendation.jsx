@@ -2,6 +2,7 @@
 import React, { useRef, useState } from "react";
 import { IoArrowForward } from "react-icons/io5";
 import { Card } from "../../../components/ui/card";
+import { Skeleton } from "../../../components/ui/skeleton";
 import Image from "next/image";
 // Import Swiper and required modules
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -59,12 +60,32 @@ const ProductRecomendation = () => {
     return (
       <div className="w-full px-4 py-16 lg:px-32">
         <div className="flex items-center justify-between pb-6">
-          <h2 className="text-3xl font-extrabold font-comfortaa">
-            Recommended for you
-          </h2>
+          <Skeleton className="h-9 w-64" />
+          <Skeleton className="h-6 w-16" />
         </div>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <Card
+              key={`skeleton-${index}`}
+              className="relative bg-white rounded-xl shadow-sm p-0 overflow-hidden h-80"
+            >
+              <div className="w-full h-52 flex justify-center items-center">
+                <Skeleton className="w-full h-full" />
+              </div>
+              <div className="px-3 text-wrap -mt-3.5 space-y-2">
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-3/4" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-4 w-12" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-8" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
     );

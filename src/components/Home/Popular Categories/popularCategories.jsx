@@ -8,6 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "../../../components/ui/carousel";
+import { Skeleton } from "../../../components/ui/skeleton";
 import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
 import Link from "next/link";
@@ -87,15 +88,15 @@ function PopularCategories() {
         >
           <CarouselContent>
             {isLoading
-              ? // Loading skeleton
+              ? // Loading skeleton using shadcn Skeleton
                 Array.from({ length: 6 }).map((_, index) => (
                   <CarouselItem
                     key={`skeleton-${index}`}
                     className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/6"
                   >
                     <div className="flex flex-col items-center p-4 gap-2">
-                      <div className="w-24 h-24 rounded-full bg-gray-200 animate-pulse"></div>
-                      <div className="h-4 w-16 bg-gray-200 animate-pulse rounded"></div>
+                      <Skeleton className="w-24 h-24 rounded-full" />
+                      <Skeleton className="h-4 w-16 rounded" />
                     </div>
                   </CarouselItem>
                 ))
