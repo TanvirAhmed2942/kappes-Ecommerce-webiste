@@ -31,18 +31,34 @@ const CouponList = () => {
   const { data: couponsData, isLoading, error, refetch } = useGetCouponsQuery();
   const [deleteCoupon, { isLoading: isDeleting }] = useDeleteCouponMutation();
 
-  const coupons = couponsData?.data || [];
+  // Ensure coupons is always an array
+  const coupons = Array.isArray(couponsData?.data)
+    ? couponsData.data
+    : Array.isArray(couponsData)
+    ? couponsData
+    : [];
+
+  // Debug logging
+  console.log("Coupons API Response:", couponsData);
+  console.log("Processed coupons array:", coupons);
 
   const filteredCoupons = useMemo(() => {
+    // Ensure coupons is an array before filtering
+    if (!Array.isArray(coupons)) {
+      console.warn("Coupons is not an array:", coupons);
+      return [];
+    }
+
     if (!searchTerm.trim()) {
       return coupons;
     }
+
     const searchLower = searchTerm.toLowerCase();
     return coupons.filter(
       (coupon) =>
-        coupon.code?.toLowerCase().includes(searchLower) ||
-        coupon.discountType?.toLowerCase().includes(searchLower) ||
-        coupon.discountValue?.toString().includes(searchLower)
+        coupon?.code?.toLowerCase().includes(searchLower) ||
+        coupon?.discountType?.toLowerCase().includes(searchLower) ||
+        coupon?.discountValue?.toString().includes(searchLower)
     );
   }, [coupons, searchTerm]);
 
@@ -139,7 +155,18 @@ const CouponList = () => {
                 <div className="text-center py-8">Loading coupons...</div>
               ) : error ? (
                 <div className="text-center py-8 text-red-600">
-                  Error loading coupons: {error.message || "Unknown error"}
+                  Error loading coupons:{" "}
+                  {error?.data?.message || error?.message || "Unknown error"}
+                  <div className="text-xs mt-2 text-gray-500">
+                    Please check your connection and try again.
+                  </div>
+                </div>
+              ) : !Array.isArray(filteredCoupons) ? (
+                <div className="text-center py-8 text-red-600">
+                  Invalid data format received from server.
+                  <div className="text-xs mt-2 text-gray-500">
+                    Expected array but got: {typeof filteredCoupons}
+                  </div>
                 </div>
               ) : filteredCoupons.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
@@ -181,79 +208,80 @@ const CouponList = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCoupons.map((coupon) => (
-                      <TableRow key={coupon._id}>
-                        <TableCell className="text-gray-900 font-medium">
-                          {coupon.code}
-                        </TableCell>
-                        <TableCell className="text-gray-900">
-                          {coupon.discountType}
-                        </TableCell>
-                        <TableCell className="text-gray-900">
-                          {coupon.discountType === "Percentage"
-                            ? `${coupon.discountValue}%`
-                            : `$${coupon.discountValue}`}
-                        </TableCell>
-                        <TableCell className="text-gray-900">
-                          {coupon.minOrderAmount
-                            ? `$${coupon.minOrderAmount}`
-                            : "N/A"}
-                        </TableCell>
-                        <TableCell className="text-gray-900">
-                          {coupon.maxDiscountAmount
-                            ? `$${coupon.maxDiscountAmount}`
-                            : "N/A"}
-                        </TableCell>
-                        <TableCell className="text-gray-900">
-                          {formatDate(coupon.startDate)}
-                        </TableCell>
-                        <TableCell className="text-gray-900">
-                          {formatDate(coupon.endDate)}
-                        </TableCell>
-                        <TableCell className="text-gray-900">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              coupon.isActive
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {coupon.isActive ? "Active" : "Inactive"}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleView(coupon)}
-                              className="border-orange-400 text-orange-500 h-10 w-10 hover:bg-orange-50 hover:text-orange-600"
-                              disabled={isDeleting}
+                    {Array.isArray(filteredCoupons) &&
+                      filteredCoupons.map((coupon) => (
+                        <TableRow key={coupon?._id || Math.random()}>
+                          <TableCell className="text-gray-900 font-medium">
+                            {coupon?.code || "N/A"}
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {coupon?.discountType || "N/A"}
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {coupon?.discountType === "Percentage"
+                              ? `${coupon?.discountValue || 0}%`
+                              : `$${coupon?.discountValue || 0}`}
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {coupon?.minOrderAmount
+                              ? `$${coupon.minOrderAmount}`
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {coupon?.maxDiscountAmount
+                              ? `$${coupon.maxDiscountAmount}`
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {formatDate(coupon?.startDate)}
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {formatDate(coupon?.endDate)}
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                coupon?.isActive
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
                             >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleEdit(coupon)}
-                              className="border-green-400 text-green-500 h-10 w-10 hover:bg-green-50 hover:text-green-600"
-                              disabled={isDeleting}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleDelete(coupon)}
-                              className="border-red-400 text-red-500 h-10 w-10 hover:bg-red-50 hover:text-red-600"
-                              disabled={isDeleting}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                              {coupon?.isActive ? "Active" : "Inactive"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleView(coupon)}
+                                className="border-orange-400 text-orange-500 h-10 w-10 hover:bg-orange-50 hover:text-orange-600"
+                                disabled={isDeleting}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleEdit(coupon)}
+                                className="border-green-400 text-green-500 h-10 w-10 hover:bg-green-50 hover:text-green-600"
+                                disabled={isDeleting}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleDelete(coupon)}
+                                className="border-red-400 text-red-500 h-10 w-10 hover:bg-red-50 hover:text-red-600"
+                                disabled={isDeleting}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
               )}

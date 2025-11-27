@@ -1,19 +1,19 @@
-import { api } from '../../baseApi';
+import { api } from "../../baseApi";
 
 const productApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getAllProduct: builder.query({
-      query: (searchTerm) => {
+      query: (id, searchTerm) => {
         const url = searchTerm
-          ? `/product?searchTerm=${searchTerm}`
-          : `/product`;
+          ? `/product/shop/${id}?searchTerm=${searchTerm}`
+          : `/product/shop/${id}`;
 
         return {
           url,
           method: "GET",
         };
       },
-      providesTags: ['Product'],
+      providesTags: ["Product"],
     }),
 
     getProductById: builder.query({
@@ -23,7 +23,7 @@ const productApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['Product'],
+      providesTags: ["Product"],
     }),
 
     createProduct: builder.mutation({
@@ -34,7 +34,7 @@ const productApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ['Product'],
+      invalidatesTags: ["Product"],
     }),
 
     updateProduct: builder.mutation({
@@ -45,7 +45,7 @@ const productApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ['Product'],
+      invalidatesTags: ["Product"],
     }),
 
     deleteProduct: builder.mutation({
@@ -55,7 +55,7 @@ const productApi = api.injectEndpoints({
           method: "DELETE",
         };
       },
-      invalidatesTags: ['Product'],
+      invalidatesTags: ["Product"],
     }),
   }),
   overrideExisting: true,

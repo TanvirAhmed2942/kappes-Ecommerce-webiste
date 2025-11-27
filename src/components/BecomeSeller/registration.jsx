@@ -10,7 +10,7 @@ import {
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { Label } from "../../components/ui/label";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import {
   Select,
@@ -19,8 +19,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-  import { useGetCategoryQuery } from "../../redux/productApi/productApi";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "../../components/ui/input-otp";
+import { useGetCategoryQuery } from "../../redux/productApi/productApi";
 import { useCreateSellerMutation } from "../../redux/sellerApi/sellerApi";
+import {
+  useVerifyEmailMutation,
+  useResendOtpMutation,
+} from "../../redux/authApi/authApi";
 import useToast from "../../hooks/useShowToast";
 import { useRouter } from "next/navigation";
 
@@ -33,6 +42,8 @@ export default function SellerRegistrationForm() {
     error: categoriesError,
   } = useGetCategoryQuery();
   const [createSeller, { isLoading: isSubmitting }] = useCreateSellerMutation();
+  const [verifyEmail, { isLoading: isVerifying }] = useVerifyEmailMutation();
+  const [resendOtp, { isLoading: isResending }] = useResendOtpMutation();
 
   // Form state
   const [fullName, setFullName] = useState("");
@@ -46,12 +57,41 @@ export default function SellerRegistrationForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // OTP verification state
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [countdown, setCountdown] = useState(30);
+  const [canResend, setCanResend] = useState(false);
+
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  // Start countdown timer
+  const startCountdown = () => {
+    setCanResend(false);
+    setCountdown(30);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // Handle back to registration
+  const handleBackToRegistration = () => {
+    setShowOtpVerification(false);
+    setOtp("");
+    setErrors({});
   };
 
   // Extract categories from API response
@@ -125,10 +165,12 @@ export default function SellerRegistrationForm() {
 
       if (response?.success) {
         toast.showSuccess(
-          response?.message || "Seller account created successfully!"
+          response?.message ||
+            "Seller account created successfully! Please verify your email."
         );
-        // Redirect to login page or dashboard
-        router.push("./become-seller-login");
+        // Show OTP verification form
+        setShowOtpVerification(true);
+        startCountdown();
       } else {
         toast.showError(response?.message || "Failed to create seller account");
       }
@@ -186,6 +228,145 @@ export default function SellerRegistrationForm() {
       }
     }
   };
+
+  // Handle OTP verification
+  const handleOtpVerification = async () => {
+    if (!otp || otp.length < 4) {
+      toast.showError("Please enter complete OTP");
+      return;
+    }
+
+    try {
+      const response = await verifyEmail({
+        oneTimeCode: Number(otp),
+        email: email.trim(),
+      }).unwrap();
+
+      if (response?.success) {
+        toast.showSuccess(response?.message || "Email verified successfully!");
+        // Redirect to seller login
+        router.push("./become-seller-login");
+      } else {
+        toast.showError(response?.message || "Invalid OTP. Please try again.");
+      }
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.data?.errorMessages?.[0]?.message ||
+        error?.data?.error?.[0]?.message ||
+        "Invalid OTP. Please try again.";
+      toast.showError(errorMessage);
+    }
+  };
+
+  // Handle resend OTP
+  const handleResendOtp = async () => {
+    try {
+      const response = await resendOtp({ email: email.trim() }).unwrap();
+
+      if (response?.success) {
+        toast.showSuccess(response?.message || "OTP sent successfully!");
+        startCountdown();
+      } else {
+        toast.showError(response?.message || "Failed to resend OTP");
+      }
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.data?.errorMessages?.[0]?.message ||
+        "Failed to resend OTP. Please try again.";
+      toast.showError(errorMessage);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  // OTP Verification Component
+  if (showOtpVerification) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBackToRegistration}
+              className="h-8 w-8"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <CardTitle className="text-2xl font-bold text-red-700">
+              Verify Your Email
+            </CardTitle>
+          </div>
+          <p className="text-center text-gray-600 text-sm px-6">
+            Enter the OTP sent to your email to complete your seller
+            registration.
+          </p>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-center">
+              <InputOTP maxLength={4} value={otp} onChange={setOtp}>
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+
+            <p className="text-center text-gray-600 text-sm">
+              A code has been sent to
+              <span className="block mt-1 text-xs text-gray-500 font-medium">
+                {email}
+              </span>
+            </p>
+
+            {!canResend ? (
+              <p className="text-center text-red-700 text-sm font-bold">
+                Resend in {formatTime(countdown)}
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={isResending}
+                className="text-center text-red-700 text-sm font-bold underline hover:text-red-800 w-full bg-transparent border-none cursor-pointer disabled:opacity-50"
+              >
+                {isResending ? "Sending..." : "Resend OTP"}
+              </button>
+            )}
+
+            <Button
+              onClick={handleOtpVerification}
+              className="w-full bg-red-700 hover:bg-red-800 text-white"
+              size="lg"
+              disabled={isVerifying || otp.length < 4}
+            >
+              {isVerifying ? "Verifying..." : "Verify Email"}
+            </Button>
+          </div>
+        </CardContent>
+
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-gray-600">
+            Didn't receive the code? Check your spam folder or try resending.
+          </p>
+        </CardFooter>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md ">

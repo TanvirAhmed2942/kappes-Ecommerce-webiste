@@ -37,7 +37,7 @@ const AddProductForm = () => {
   const [categoryId, setCategoryId] = useState("");
   const [subcategoryId, setSubcategoryId] = useState("");
   const [brandId, setBrandId] = useState("");
-  const [shopId, setShopId] = useState("691af5eb80ccb62017c06c6f");
+  const [shopId, setShopId] = useState(localStorage.getItem("shop"));
 
   // Variant States
   const [selectedColor, setSelectedColor] = useState("#3b82f6");
