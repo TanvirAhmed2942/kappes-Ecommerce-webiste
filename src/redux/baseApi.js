@@ -54,6 +54,7 @@ export const api = createApi({
     "FAQsSeller",
     "PrivacyPolicy",
     "TermsAndConditions",
+    "StripeConnectedAccount",
   ],
 });
 

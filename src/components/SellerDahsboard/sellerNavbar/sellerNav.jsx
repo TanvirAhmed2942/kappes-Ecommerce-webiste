@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AiOutlineMessage } from "react-icons/ai";
 import { FaRegUser } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
+import { LiaCcStripe } from "react-icons/lia";
 import {
   Avatar,
   AvatarFallback,
@@ -19,13 +20,48 @@ import useAuth from "../../../hooks/useAuth";
 import { openChat } from "../../../features/chatSlice";
 import { logout } from "../../../features/authSlice/authSlice";
 import LogoutAlertModal from "./logoutAlertModal";
-
+import ConnectStripeForSellerModal from "../../Navbar/connectStripeForSellerModal";
+import { useConnectStripeMutation } from "../../../redux/sellerApi/connectStripeApi/connectStripeApi";
+import useToast from "../../../hooks/useShowToast";
 const SellerNav = () => {
+  const { showSuccess, showError } = useToast();
   const dispatch = useDispatch();
   const router = useRouter();
   const { isLoggedIn, logout: handleLogout } = useAuth();
-  const { userImage, userName } = useUser();
+  const {
+    userImage,
+    userName,
+    profileData,
+    isLoading: isProfileLoading,
+  } = useUser();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [
+    isConnectStripeForSellerModalOpen,
+    setIsConnectStripeForSellerModalOpen,
+  ] = useState(false);
+  const [connectStripe, { isLoading: isConnectStripeLoading }] =
+    useConnectStripeMutation();
+
+  // Check if Stripe account needs to be connected
+  useEffect(() => {
+    // Only check after profile data has loaded
+    if (isLoggedIn && !isProfileLoading && profileData?.data) {
+      const stripeAccount = profileData.data.stripeConnectedAccount;
+      // Show modal if stripeConnectedAccount is null, undefined, or empty string
+      if (
+        stripeAccount === null ||
+        stripeAccount === undefined ||
+        stripeAccount === ""
+      ) {
+        setIsConnectStripeForSellerModalOpen(true);
+      } else {
+        setIsConnectStripeForSellerModalOpen(false);
+      }
+    } else if (isLoggedIn && !isProfileLoading && !profileData?.data) {
+      // If profile data failed to load, don't show modal
+      setIsConnectStripeForSellerModalOpen(false);
+    }
+  }, [isLoggedIn, isProfileLoading, profileData?.data?.stripeConnectedAccount]);
 
   const cartItemCount = useSelector((state) =>
     state.cart.reduce((total, item) => total + item.quantity, 0)
@@ -73,6 +109,31 @@ const SellerNav = () => {
   };
   const handleClickUser = () => {
     router.push("/seller/overview");
+  };
+
+  // Handle Stripe modal actions
+  const handleStripeContinue = async () => {
+    // Don't close modal immediately - keep it open to show loading state
+    try {
+      const response = await connectStripe();
+      if (response.data?.data?.url) {
+        showSuccess(response.data.message || "Redirecting to Stripe...");
+        // Redirect to Stripe connection URL
+        window.location.href = response.data.data.url;
+      } else if (response.data) {
+        showSuccess(response.data.message);
+        setIsConnectStripeForSellerModalOpen(false);
+      }
+    } catch (error) {
+      showError(error?.data?.message || "Failed to connect Stripe account");
+      console.log(error?.data?.message);
+      // Close modal on error so user can try again
+      setIsConnectStripeForSellerModalOpen(false);
+    }
+  };
+
+  const handleStripeNotNow = () => {
+    setIsConnectStripeForSellerModalOpen(false);
   };
   return (
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-2 sm:px-4 py-2 flex items-center justify-between gap-2 sm:gap-4 lg:px-8 xl:px-32">
@@ -142,6 +203,28 @@ const SellerNav = () => {
             <span className="hidden sm:inline-block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 max-w-[120px] sm:max-w-[200px] truncate">
               {userName || "User"}
             </span>
+            {(() => {
+              const stripeAccount = profileData?.data?.stripeConnectedAccount;
+              // Show green if account is connected (not null, not undefined, not empty)
+              if (
+                stripeAccount !== null &&
+                stripeAccount !== undefined &&
+                stripeAccount !== ""
+              ) {
+                return <LiaCcStripe className="w-7 h-7 text-green-400" />;
+              } else {
+                // Show red if not connected (null, undefined, or empty)
+                return (
+                  <LiaCcStripe
+                    className="w-7 h-7 text-red-400 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsConnectStripeForSellerModalOpen(true);
+                    }}
+                  />
+                );
+              }
+            })()}
           </div>
         )}
       </div>
@@ -152,6 +235,15 @@ const SellerNav = () => {
         onOpenChange={setIsLogoutModalOpen}
         onConfirm={handleLogoutConfirm}
         onCancel={handleLogoutCancel}
+      />
+
+      {/* Connect Stripe Modal */}
+      <ConnectStripeForSellerModal
+        open={isConnectStripeForSellerModalOpen}
+        onOpenChange={setIsConnectStripeForSellerModalOpen}
+        onContinue={handleStripeContinue}
+        onNotNow={handleStripeNotNow}
+        isLoading={isConnectStripeLoading}
       />
     </nav>
   );

@@ -10,8 +10,7 @@ import {
   selectUserId,
   setUser,
 } from "../../src/features/userSlice/userSlice";
-import { useGetUserProfileQuery } from '../redux/userprofileApi/userprofileApi';
-
+import { useGetUserProfileQuery } from "../redux/userprofileApi/userprofileApi";
 
 const useUser = () => {
   const dispatch = useDispatch();
@@ -58,9 +57,12 @@ const useUser = () => {
   useEffect(() => {
     if (profileData?.data && profileData.success && profileData.data._id) {
       const newUserData = profileData.data;
-      
+
       // Always update if hash is different or if we haven't synced yet
-      if (lastSyncedHashRef.current !== profileDataHash && profileDataHash !== null) {
+      if (
+        lastSyncedHashRef.current !== profileDataHash &&
+        profileDataHash !== null
+      ) {
         dispatch(setUser(newUserData));
         lastSyncedHashRef.current = profileDataHash;
       }

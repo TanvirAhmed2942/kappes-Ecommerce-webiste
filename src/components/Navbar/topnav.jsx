@@ -33,13 +33,26 @@ function TopNav() {
   const dispatch = useDispatch();
   const { role, isLoggedIn, logout: handleLogout } = useAuth();
   console.log("isLoggedIn", isLoggedIn);
-  const { userImage, userName } = useUser();
+  const { userImage, userName, profileData } = useUser();
   console.log("userImage", userImage);
   console.log("userName", userName);
   const cartItemCount = useSelector((state) =>
     state.cart.reduce((total, item) => total + item.quantity, 0)
   );
 
+  const [
+    isConnectStripeForSellerModalOpen,
+    setIsConnectStripeForSellerModalOpen,
+  ] = useState(false);
+
+  if (isLoggedIn && role === "VENDOR") {
+    if (
+      profileData?.data?.stripeConnectedAccount === null ||
+      profileData?.data?.stripeConnectedAccount === undefined
+    ) {
+      setIsConnectStripeForSellerModalOpen(true);
+    }
+  }
   // Get unread message count from Redux
   const { unreadCount, isChatOpen, currentSeller } = useSelector(
     (state) => state.chat
