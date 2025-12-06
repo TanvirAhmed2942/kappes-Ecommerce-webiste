@@ -1,4 +1,4 @@
-import { api } from '../../baseApi';
+import { api } from "../../baseApi";
 
 const CategoryApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,7 +9,7 @@ const CategoryApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['category'],
+      providesTags: ["category"],
     }),
 
     getCategoryById: builder.query({
@@ -19,7 +19,7 @@ const CategoryApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['category'],
+      providesTags: ["category"],
     }),
 
     getAllSubCategoryOfCategory: builder.query({
@@ -29,7 +29,7 @@ const CategoryApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['category'],
+      providesTags: ["category"],
     }),
 
     createCategory: builder.mutation({
@@ -40,7 +40,7 @@ const CategoryApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ['cetegory'],
+      invalidatesTags: ["category"],
     }),
 
     updateCetgory: builder.mutation({
@@ -51,9 +51,8 @@ const CategoryApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ['category'],
+      invalidatesTags: ["category"],
     }),
-
 
     updateCetgoryStatus: builder.mutation({
       query: ({ data, id }) => {
@@ -63,10 +62,8 @@ const CategoryApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ['category'],
+      invalidatesTags: ["category"],
     }),
-
-
 
     deleteCategory: builder.mutation({
       query: (id) => {
@@ -75,7 +72,7 @@ const CategoryApi = api.injectEndpoints({
           method: "DELETE",
         };
       },
-      invalidatesTags: ['category'],
+      invalidatesTags: ["category"],
     }),
   }),
   overrideExisting: true,

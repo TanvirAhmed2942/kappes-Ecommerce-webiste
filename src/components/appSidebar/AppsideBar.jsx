@@ -22,6 +22,9 @@ import {
 } from "../../features/sellerStoreSlice/sellerStoreSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { getImageUrl } from "../../redux/baseUrl";
+import { VscTag } from "react-icons/vsc";
+import { TbPackages } from "react-icons/tb";
+import { BsBoxSeam } from "react-icons/bs";
 import { useGetStoreInfoQuery } from "../../redux/sellerApi/storeInfoApi/storeInfoApi";
 const AppSidebar = () => {
   const [activeItem, setActiveItem] = useState("Overview");
@@ -42,7 +45,10 @@ const AppSidebar = () => {
       active: true,
       path: "/seller/overview",
     },
-    { icon: Package, label: "Product", path: "/seller/product" },
+    { icon: Package, label: "Category", path: "/seller/category" },
+    { icon: TbPackages, label: "SubCategory", path: "/seller/subcategory" },
+    { icon: VscTag, label: "Brand", path: "/seller/brand" },
+    { icon: BsBoxSeam, label: "Product", path: "/seller/product" },
     { icon: ShoppingCart, label: "Order List", path: "/seller/order" },
     { icon: Ticket, label: "Coupon", path: "/seller/coupon" },
     { icon: Store, label: "Store info", path: "/seller/store" },

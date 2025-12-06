@@ -1,5 +1,4 @@
-import { api } from '../../baseApi';
-
+import { api } from "../../baseApi";
 
 const brandApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -10,9 +9,18 @@ const brandApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['brand'],
+      providesTags: ["brand"],
     }),
 
+    getBrandById: builder.query({
+      query: (id) => {
+        return {
+          url: `/brand/single/${id}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["brand"],
+    }),
 
     createBrand: builder.mutation({
       query: (data) => {
@@ -22,7 +30,7 @@ const brandApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ['brand'],
+      invalidatesTags: ["brand"],
     }),
 
     updateCetgory: builder.mutation({
@@ -33,10 +41,8 @@ const brandApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ['brand'],
+      invalidatesTags: ["brand"],
     }),
-
-
 
     deleteCategory: builder.mutation({
       query: (id) => {
@@ -45,7 +51,7 @@ const brandApi = api.injectEndpoints({
           method: "DELETE",
         };
       },
-      invalidatesTags: ['brand'],
+      invalidatesTags: ["brand"],
     }),
   }),
   overrideExisting: true,
@@ -53,6 +59,7 @@ const brandApi = api.injectEndpoints({
 
 export const {
   useGetAllBrandQuery,
+  useGetBrandByIdQuery,
   useCreateBrandMutation,
   useUpdateCetgoryMutation,
   useDeleteCategoryMutation,
