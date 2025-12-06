@@ -7,8 +7,7 @@ import OrderHistory from "./OrderHistory/orderHistory";
 import ChangePassword from "../Auth/changePassword";
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import WishList from "./WishList/wishList";
-
-
+import FollowedShop from "./FollowedShop/FollowedShop";
 function ProfileLayout() {
   // Using number IDs to match the existing Sidebar component
   const [selectedMenu, setSelectedMenu] = useState(1);
@@ -23,6 +22,8 @@ function ProfileLayout() {
       case 3:
         return <WishList selectedMenu={selectedMenu} />;
       case 4:
+        return <FollowedShop selectedMenu={selectedMenu} />;
+      case 5:
         return <ChangePassword selectedMenu={selectedMenu} />;
       default:
         return <PersonalInfo selectedMenu={selectedMenu} />;
@@ -68,6 +69,9 @@ const MobileTabs = ({ setSelectedMenu, selectedMenu }) => {
             Wish List
           </TabsTrigger>
           <TabsTrigger value="4" className="whitespace-nowrap cursor-pointer">
+            Followed Shops
+          </TabsTrigger>
+          <TabsTrigger value="5" className="whitespace-nowrap cursor-pointer">
             Change Password
           </TabsTrigger>
         </TabsList>

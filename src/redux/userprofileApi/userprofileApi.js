@@ -11,6 +11,15 @@ const userprofileApi = api.injectEndpoints({
       },
       providesTags: ["UserProfile"],
     }),
+    getFollowedShops: builder.query({
+      query: () => {
+        return {
+          url: "/shop/followed",
+          method: "GET",
+        };
+      },
+      providesTags: ["UserProfile"],
+    }),
     updateUserProfile: builder.mutation({
       query: ({ data }) => {
         return {
@@ -49,4 +58,5 @@ export const {
   useUpdateUserProfileMutation,
   useGetMyOrdersQuery,
   useCancelOrderMutation,
+  useGetFollowedShopsQuery,
 } = userprofileApi;

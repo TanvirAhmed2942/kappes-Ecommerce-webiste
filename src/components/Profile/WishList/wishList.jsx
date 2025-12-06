@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import WishListCard from "./wishListCard";
-  import useFavProducts from "../../../hooks/useFavProducts";
+import useFavProducts from "../../../hooks/useFavProducts";
 import { useGetFavProductsQuery } from "../../../redux/productApi/productApi";
 
 function WishList({ selectedMenu }) {
@@ -13,14 +13,14 @@ function WishList({ selectedMenu }) {
 
   // Debug: Log the data to see what we're getting
   React.useEffect(() => {
-    console.log("=== WishList Debug ===");
-    console.log("favProducts from hook:", favProducts);
-    console.log("favProducts type:", typeof favProducts);
-    console.log("favProducts isArray:", Array.isArray(favProducts));
-    console.log("favProducts length:", favProducts?.length);
-    console.log("rawApiData:", rawApiData);
-    console.log("isLoading:", isLoading);
-    console.log("error:", error);
+    // console.log("=== WishList Debug ===");
+    // console.log("favProducts from hook:", favProducts);
+    // console.log("favProducts type:", typeof favProducts);
+    // console.log("favProducts isArray:", Array.isArray(favProducts));
+    // console.log("favProducts length:", favProducts?.length);
+    // console.log("rawApiData:", rawApiData);
+    // console.log("isLoading:", isLoading);
+    // console.log("error:", error);
   }, [favProducts, isLoading, error, rawApiData]);
 
   // Extract products from wishlist items (handle different API response structures)
@@ -149,7 +149,7 @@ function WishList({ selectedMenu }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 items-stretch">
         {products.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <div className="text-gray-400 mb-4">

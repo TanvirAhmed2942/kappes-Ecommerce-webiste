@@ -51,7 +51,7 @@ export default function WishListCard({ product }) {
     : "/assets/fallback.jpg";
 
   return (
-    <div className="bg-white rounded-xl border shadow-sm overflow-hidden w-full h-fit max-w-xs sm:max-w-sm md:max-w-[260px] relative hover:shadow-md transition">
+    <div className="bg-white rounded-xl border shadow-sm overflow-hidden w-full h-full max-w-xs sm:max-w-sm md:max-w-[260px] relative hover:shadow-md transition flex flex-col">
       <button
         className={`absolute top-3 right-3 text-red-500 z-50 ${
           isLoading ? "opacity-50 cursor-wait" : ""
@@ -63,7 +63,7 @@ export default function WishListCard({ product }) {
         <Heart size={18} fill="red" />
       </button>
 
-      <div className="w-full aspect-square relative mb-3">
+      <div className="w-full aspect-square relative flex-shrink-0">
         <Image
           src={imageSrc}
           alt={name || "Product"}
@@ -72,12 +72,12 @@ export default function WishListCard({ product }) {
         />
       </div>
 
-      <div className="px-4 pb-3">
-        <h3 className="text-sm font-medium text-gray-900 mb-1 truncate">
+      <div className="px-4 py-3 flex flex-col flex-grow text-left">
+        <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2 min-h-[2.5rem]">
           {name || "Product Name"}
         </h3>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-1">
           <span className="text-lg font-bold text-[#AF1500]">
             ${discountedPrice.toFixed(2)}
           </span>
@@ -87,11 +87,15 @@ export default function WishListCard({ product }) {
             </span>
           )}
         </div>
-        {rating > 0 && (
-          <div className="text-yellow-400 text-sm mt-1">
-            ⭐ {rating.toFixed(1)} ({reviews} reviews)
-          </div>
-        )}
+        <div className="min-h-[1.25rem]">
+          {rating > 0 ? (
+            <div className="text-yellow-400 text-sm">
+              ⭐ {rating.toFixed(1)} ({reviews} reviews)
+            </div>
+          ) : (
+            <div className="text-sm text-transparent">-</div>
+          )}
+        </div>
       </div>
     </div>
   );

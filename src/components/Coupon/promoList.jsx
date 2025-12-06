@@ -1,22 +1,17 @@
 "use client";
 import { useState } from "react";
-import { Calendar, Copy, ShoppingBag } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../components/ui/tooltip";
-import { toast } from "sonner";
 import { useGetCouponsQuery } from "../../redux/couponApi/couponApi";
 import Image from "next/image";
 import { getImageUrl } from "../../redux/baseUrl";
+import PromoCodeModal from "./PromoCodeModal";
 
 const PromoCodeList = () => {
   const { data: couponsData, isLoading, error } = useGetCouponsQuery();
+  const [selectedPromo, setSelectedPromo] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Format date to readable format
   const formatDate = (dateString) => {
@@ -51,27 +46,44 @@ const PromoCodeList = () => {
   // Map API response to UI structure
   const promos =
     couponsData?.success && couponsData?.data?.result
-      ? couponsData.data.result.map((coupon) => ({
-          id: coupon._id || "N/A",
-          title: "N/A", // Shop name not in response
-          image: "/assets/shopBrandCard/pawLogo.png", // Placeholder image
-          expiry: formatDate(coupon.endDate),
-          discount: formatDiscount(
-            coupon.discountType,
-            coupon.discountValue,
-            coupon.maxDiscountAmount
-          ),
-          description: coupon.description || "N/A",
-          code: coupon.code || "N/A",
-          minOrderAmount: coupon.minOrderAmount || 0,
-          maxDiscountAmount: coupon.maxDiscountAmount || 0,
-          discountType: coupon.discountType || "N/A",
-          discountValue: coupon.discountValue || 0,
-          startDate: coupon.startDate || "N/A",
-          endDate: coupon.endDate || "N/A",
-          isActive: coupon.isActive ?? true,
-        }))
+      ? couponsData.data.result.map((coupon) => {
+          // Extract shop information if available
+          const shop = coupon.shop || coupon.shopId;
+          const shopLogo =
+            shop?.logo || shop?.image || coupon.logo || coupon.image || null;
+          const shopName =
+            shop?.name ||
+            shop?.storeName ||
+            coupon.shopName ||
+            "The Canuck Mall";
+
+          return {
+            id: coupon._id || "N/A",
+            title: shopName,
+            image: shopLogo || "/assets/logo.png", // Use shop logo if available, otherwise default logo
+            expiry: formatDate(coupon.endDate),
+            discount: formatDiscount(
+              coupon.discountType,
+              coupon.discountValue,
+              coupon.maxDiscountAmount
+            ),
+            description: coupon.description || "N/A",
+            code: coupon.code || "N/A",
+            minOrderAmount: coupon.minOrderAmount || 0,
+            maxDiscountAmount: coupon.maxDiscountAmount || 0,
+            discountType: coupon.discountType || "N/A",
+            discountValue: coupon.discountValue || 0,
+            startDate: coupon.startDate || "N/A",
+            endDate: coupon.endDate || "N/A",
+            isActive: coupon.isActive ?? true,
+          };
+        })
       : [];
+
+  const handleShowPromoCode = (promo) => {
+    setSelectedPromo(promo);
+    setIsModalOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -106,42 +118,24 @@ const PromoCodeList = () => {
   return (
     <div className="container mx-auto p-4 w-full">
       {promos.map((promo) => (
-        <PromoCodeCard key={promo.id} promo={promo} />
+        <PromoCodeCard
+          key={promo.id}
+          promo={promo}
+          onShowPromoCode={handleShowPromoCode}
+        />
       ))}
+      {selectedPromo && (
+        <PromoCodeModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          promo={selectedPromo}
+        />
+      )}
     </div>
   );
 };
 
-const PromoCodeCard = ({ promo }) => {
-  const [showCode, setShowCode] = useState(false);
-
-  const handleCopyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(promo.code);
-      toast.success("Promo code copied!", {
-        description: `${promo.code} has been copied to your clipboard.`,
-        duration: 3000,
-      });
-    } catch (err) {
-      // Fallback for older browsers or if clipboard API fails
-      const textArea = document.createElement("textarea");
-      textArea.value = promo.code;
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      try {
-        document.execCommand("copy");
-        toast.success("Promo code copied!", {
-          description: `${promo.code} has been copied to your clipboard.`,
-          duration: 3000,
-        });
-      } catch (fallbackErr) {
-        toast.error("Failed to copy promo code");
-      }
-      document.body.removeChild(textArea);
-    }
-  };
-
+const PromoCodeCard = ({ promo, onShowPromoCode }) => {
   return (
     <Card className="overflow-hidden mb-4 rounded-2xl shadow-sm border p-0">
       <div className="flex flex-col-reverse md:flex-row">
@@ -191,43 +185,13 @@ const PromoCodeCard = ({ promo }) => {
 
             {/* Promo Code */}
             <div className="mt-3">
-              {showCode ? (
-                <div className="flex items-center">
-                  <Badge
-                    variant="outline"
-                    className="bg-gray-100 border-dashed border-gray-300 text-gray-800 px-3 py-1"
-                  >
-                    {promo.code !== "N/A" ? promo.code : "N/A"}
-                  </Badge>
-                  {promo.code !== "N/A" && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="ml-2"
-                            onClick={handleCopyCode}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Copy code</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              ) : (
-                <Button
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => setShowCode(true)}
-                  disabled={promo.code === "N/A"}
-                >
-                  Show Promo Code
-                </Button>
-              )}
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => onShowPromoCode(promo)}
+                disabled={promo.code === "N/A"}
+              >
+                Show Promo Code
+              </Button>
             </div>
           </div>
         </div>
@@ -235,7 +199,13 @@ const PromoCodeCard = ({ promo }) => {
         {/* Right section */}
         <div className="bg-red-700 flex md:w-32 w-full justify-center items-center p-6 md:rounded-none rounded-b-2xl md:rounded-r-2xl md:rounded-l-none">
           <div className="bg-white rounded-full p-3">
-            <ShoppingBag className="w-8 h-8 text-red-700" />
+            <Image
+              src="/assets/logo.png"
+              alt="logo"
+              width={64}
+              height={64}
+              className="w-10 h-10 object-contain"
+            />
           </div>
         </div>
       </div>

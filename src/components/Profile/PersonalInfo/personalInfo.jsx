@@ -22,13 +22,10 @@ import useToast from "../../../hooks/useShowToast";
 export default function PersonalInfo({ selectedMenu }) {
   const { user, profileData, updateUserProfile } = useUser();
 
-  // Update user data (including userId) in Redux when profile data is fetched
-  // This ensures userId is available in Redux for other components to use
   useEffect(() => {
     if (profileData?.data && profileData.success && profileData.data._id) {
       const profileUserId = profileData.data._id;
-      // Sync to Redux if userId is missing or different
-      // This ensures userId is always available in Redux for other components
+
       if (!user._id || user._id !== profileUserId) {
         updateUserProfile(profileData.data);
       }

@@ -54,10 +54,11 @@ export default function AddCouponForm() {
         };
 
         // Map discountType to form value
+        const discountTypeLower = coupon.discountType?.toLowerCase() || "";
         const discountTypeValue =
-          coupon.discountType?.toLowerCase() === "percentage"
+          discountTypeLower === "percentage"
             ? "percentage"
-            : coupon.discountType?.toLowerCase() === "flat"
+            : discountTypeLower === "flat" || discountTypeLower === "fixed"
             ? "flat"
             : "";
 
@@ -164,9 +165,21 @@ export default function AddCouponForm() {
       ).toISOString();
 
       if (isEditMode) {
-        // Update coupon
+        // Map discountType to API enum values
+        const discountTypeMap = {
+          percentage: "Percentage",
+          flat: "Fixed",
+        };
+        const apiDiscountType =
+          discountTypeMap[formData.discountType] || formData.discountType;
+
+        // Update coupon - include all fields
         const payload = {
           code: formData.code.toUpperCase().trim(),
+          name: formData.title.trim(),
+          description: formData.description.trim(),
+          discountType: apiDiscountType,
+          discountValue: discountAmount,
           startDate: startDateISO,
           endDate: endDateISO,
         };
