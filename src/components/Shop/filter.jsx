@@ -26,6 +26,7 @@ import {
   DrawerTrigger,
 } from "../../components/ui/drawer";
 import { useGetCategoryQuery } from "../../redux/productApi/productApi";
+import { useSearchParams } from "next/navigation";
 
 const territoryList = ["Yukon", "Northwest Territories", "Nunavut"];
 const provinceList = [
@@ -89,6 +90,11 @@ function FilterContent() {
   const dispatch = useDispatch();
   const { selectedCategory, priceRangeLow, priceRangeHigh, location } =
     useSelector((state) => state.filter);
+  const searchParams = useSearchParams();
+
+  // Check if a specific category was selected from URL params
+  const categoryParam = searchParams.get("category");
+  const isSpecificCategorySelected = Boolean(categoryParam);
 
   // Fetch categories from API
   const { data: categoriesData, isLoading: isLoadingCategories } =
@@ -184,52 +190,54 @@ function FilterContent() {
         />
       </div>
       <ScrollArea className="h-screen w-full mt-2 pr-4 flex flex-col gap-4">
-        {/* Category Section */}
+        {/* Category Section - Hide when specific category is selected from URL */}
         <div className="h-full flex flex-col gap-4">
-          <Card className="border shadow-sm">
-            <CardContent className="pt-4">
-              <Label className="text-base font-medium">Category</Label>
-              <ScrollArea className="h-64 w-full mt-2 pr-4">
-                {isLoadingCategories ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="text-sm text-gray-500">
-                      Loading categories...
-                    </div>
-                  </div>
-                ) : categories.length === 0 ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="text-sm text-gray-500">
-                      No categories available
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {categories.map((category) => (
-                      <div
-                        key={category._id}
-                        className="flex items-center space-x-2"
-                      >
-                        <Checkbox
-                          className="data-[state=checked]:bg-red-700 data-[state=checked]:border-none"
-                          id={`category-${category._id}`}
-                          checked={checkedCategories.includes(category._id)}
-                          onCheckedChange={() =>
-                            handleCategoryChange(category._id)
-                          }
-                        />
-                        <label
-                          htmlFor={`category-${category._id}`}
-                          className="text-sm font-medium leading-none cursor-pointer"
-                        >
-                          {category.name}
-                        </label>
+          {!isSpecificCategorySelected && (
+            <Card className="border shadow-sm">
+              <CardContent className="pt-4">
+                <Label className="text-base font-medium">Category</Label>
+                <ScrollArea className="h-64 w-full mt-2 pr-4">
+                  {isLoadingCategories ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-sm text-gray-500">
+                        Loading categories...
                       </div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                    </div>
+                  ) : categories.length === 0 ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-sm text-gray-500">
+                        No categories available
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {categories.map((category) => (
+                        <div
+                          key={category._id}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            className="data-[state=checked]:bg-red-700 data-[state=checked]:border-none"
+                            id={`category-${category._id}`}
+                            checked={checkedCategories.includes(category._id)}
+                            onCheckedChange={() =>
+                              handleCategoryChange(category._id)
+                            }
+                          />
+                          <label
+                            htmlFor={`category-${category._id}`}
+                            className="text-sm font-medium leading-none cursor-pointer"
+                          >
+                            {category.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Price Range Section */}
           <Card className="border shadow-sm">

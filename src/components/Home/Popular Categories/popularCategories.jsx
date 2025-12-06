@@ -12,12 +12,25 @@ import { Skeleton } from "../../../components/ui/skeleton";
 import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { setSelectedCategory } from "../../../features/filterSlice";
 
 import useCategory from "../../../hooks/useCategory";
 import { getImageUrl } from "../../../redux/baseUrl";
 function PopularCategories() {
   const { categories, isLoading, hasCategories } = useCategory();
+  const router = useRouter();
+  const dispatch = useDispatch();
   console.log("categories from API", categories);
+
+  const handleCategoryClick = (categoryId, categoryName) => {
+    // Set only this category as selected in Redux
+    dispatch(setSelectedCategory([categoryId]));
+    // Navigate to categories page with category ID and name in params
+    const encodedName = encodeURIComponent(categoryName);
+    router.push(`/categories?category=${categoryId}&name=${encodedName}`);
+  };
 
   // Fallback static categories for when API data is not available
   const fallbackCategories = [
@@ -105,7 +118,12 @@ function PopularCategories() {
                     key={category.id}
                     className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/6"
                   >
-                    <div className="flex flex-col items-center p-4 gap-2">
+                    <div
+                      className="flex flex-col items-center p-4 gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() =>
+                        handleCategoryClick(category.id, category.name)
+                      }
+                    >
                       <div className="w-24 h-24 rounded-full bg-gray-100 p-4 flex ring-1 items-center justify-center overflow-hidden">
                         <Image
                           src={`${getImageUrl}${category?.image}`}
