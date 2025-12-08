@@ -4,6 +4,7 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Textarea } from "../../../components/ui/textarea";
+import { Checkbox } from "../../../components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -11,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   useCreateSubcategoryMutation,
   useUpdateSubcategoryMutation,
@@ -21,7 +22,7 @@ import { useGetAllCategoryQuery } from "../../../redux/sellerApi/category/catego
 import useToast from "../../../hooks/useShowToast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getImageUrl } from "../../../redux/baseUrl";
-import { Upload, X, Plus } from "lucide-react";
+import { Upload, X } from "lucide-react";
 
 export default function AddEditSubCategory() {
   const [createSubCategory, { isLoading: isCreating }] =
@@ -76,9 +77,37 @@ export default function AddEditSubCategory() {
     image: null,
   });
   const [imagePreview, setImagePreview] = useState(null);
-  const [requiredFields, setRequiredFields] = useState([""]); // Array of field names
+  const [selectedVariantFields, setSelectedVariantFields] = useState([]); // fixed list selections
   const prevSubCategoryIdRef = useRef(null);
   const isFormPopulatedRef = useRef(false);
+
+  const VARIANT_FIELDS = useMemo(
+    () => [
+      { key: "color", label: "Color" },
+      { key: "storage", label: "Storage" },
+      { key: "ram", label: "RAM" },
+      { key: "network_type", label: "Network Type" },
+      { key: "operating_system", label: "Operating System" },
+      { key: "storage_type", label: "Storage Type" },
+      { key: "processor_type", label: "Processor Type" },
+      { key: "processor", label: "Processor" },
+      { key: "graphics_card_type", label: "Graphics Card Type" },
+      { key: "graphics_card_size", label: "Graphics Card Size" },
+      { key: "screen_size", label: "Screen Size" },
+      { key: "resolution", label: "Resolution" },
+      { key: "lens_kit", label: "Lens Kit" },
+      { key: "material", label: "Material" },
+      { key: "dimension", label: "Dimension" },
+      { key: "flavour", label: "Flavour" },
+      { key: "size", label: "Size" },
+      { key: "fabric", label: "Fabric" },
+      { key: "weight", label: "Weight" },
+      { key: "volume", label: "Volume" },
+      { key: "dimensions", label: "Dimensions" },
+      { key: "capacity", label: "Capacity" },
+    ],
+    []
+  );
 
   // Extract categories from API response
   const categories = Array.isArray(categoriesData?.data?.categorys)
@@ -99,7 +128,7 @@ export default function AddEditSubCategory() {
         image: null,
       });
       setImagePreview(null);
-      setRequiredFields([""]);
+      setSelectedVariantFields([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -165,14 +194,14 @@ export default function AddEditSubCategory() {
           image: null, // Don't set image file, just preview
         });
 
-        // Set required fields from API response
+        // Set fixed required fields selections
         if (
           Array.isArray(subCategory.requiredFieldsForVariant) &&
           subCategory.requiredFieldsForVariant.length > 0
         ) {
-          setRequiredFields(subCategory.requiredFieldsForVariant);
+          setSelectedVariantFields(subCategory.requiredFieldsForVariant);
         } else {
-          setRequiredFields([""]);
+          setSelectedVariantFields([]);
         }
 
         // Set image preview from existing image
@@ -240,24 +269,12 @@ export default function AddEditSubCategory() {
     }
   };
 
-  const handleAddField = () => {
-    setRequiredFields((prev) => [...prev, ""]);
-  };
-
-  const handleRemoveField = (index) => {
-    setRequiredFields((prev) => {
-      const newFields = prev.filter((_, i) => i !== index);
-      // Ensure at least one empty field remains
-      return newFields.length === 0 ? [""] : newFields;
-    });
-  };
-
-  const handleFieldChange = (index, value) => {
-    setRequiredFields((prev) => {
-      const newFields = [...prev];
-      newFields[index] = value;
-      return newFields;
-    });
+  const toggleVariantField = (fieldKey) => {
+    setSelectedVariantFields((prev) =>
+      prev.includes(fieldKey)
+        ? prev.filter((f) => f !== fieldKey)
+        : [...prev, fieldKey]
+    );
   };
 
   const handlePublish = async () => {
@@ -282,17 +299,12 @@ export default function AddEditSubCategory() {
     try {
       const formDataToSend = new FormData();
 
-      // Filter out empty fields and create array of strings
-      const requiredFieldsArray = requiredFields
-        .map((field) => field.trim())
-        .filter((field) => field.length > 0);
-
       // Create the subcategory data object
       const subCategoryDataObj = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         categoryId: formData.categoryId,
-        requiredFieldsForVariant: requiredFieldsArray,
+        requiredFieldsForVariant: selectedVariantFields,
       };
 
       formDataToSend.append("data", JSON.stringify(subCategoryDataObj));
@@ -369,7 +381,7 @@ export default function AddEditSubCategory() {
       image: null,
     });
     setImagePreview(null);
-    setRequiredFields([""]);
+    setSelectedVariantFields([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -481,51 +493,35 @@ export default function AddEditSubCategory() {
               />
             </div>
 
-            {/* Required Fields for Variant */}
+            {/* Required Fields for Variant (Fixed Options) */}
             <div className="space-y-2 col-span-2">
               <Label className="text-base">
                 Required Fields for Variant
                 <span className="text-gray-500 text-sm ml-2">
-                  (e.g., Weight, Screen Size, Battery)
+                  Select applicable fields
                 </span>
               </Label>
-              <div className="space-y-3">
-                {requiredFields.map((field, index) => (
-                  <div key={index} className="flex gap-2 items-center">
-                    <Input
-                      placeholder={`Field ${
-                        index + 1
-                      } (e.g., Weight, Screen Size)`}
-                      value={field}
-                      onChange={(e) => handleFieldChange(index, e.target.value)}
-                      className="h-12 flex-1"
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {VARIANT_FIELDS.map((field) => (
+                  <label
+                    key={field.key}
+                    className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-colors"
+                  >
+                    <Checkbox
+                      checked={selectedVariantFields.includes(field.key)}
+                      onCheckedChange={() => toggleVariantField(field.key)}
                       disabled={isLoading}
                     />
-                    {requiredFields.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleRemoveField(index)}
-                        className="h-12 w-12 border-red-400 text-red-500 hover:bg-red-50 hover:text-red-600"
-                        disabled={isLoading}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
+                    <span className="text-sm text-gray-800">{field.label}</span>
+                  </label>
                 ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAddField}
-                  className="w-full border-dashed border-2 border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-900"
-                  disabled={isLoading}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Field
-                </Button>
               </div>
+              {selectedVariantFields.length === 0 && (
+                <p className="text-xs text-gray-500">
+                  Select at least one field if variants require specific
+                  attributes.
+                </p>
+              )}
             </div>
 
             {/* Subcategory Image */}

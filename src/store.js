@@ -16,6 +16,7 @@ import serviceSlice from "./features/servieSlice/serviceSlice";
 import favProductSlice from "./features/favProductSlice.js/favProductSlice";
 import buyNowSlice from "./features/buyNowSlice";
 import sellerStoreSlice from "./features/sellerStoreSlice/sellerStoreSlice";
+import variantSlice from "./features/variantSlice/variantSlice";
 const persistConfig = {
   key: "auth",
   storage,
@@ -28,8 +29,18 @@ const userPersistConfig = {
   whitelist: ["user"], // only user will be persisted
 };
 
+const variantPersistConfig = {
+  key: "variant",
+  storage,
+  whitelist: ["variantId", "stock", "price"],
+};
+
 const persistedAuthReducer = persistReducer(persistConfig, authSlice);
 const persistedUserReducer = persistReducer(userPersistConfig, userSlice);
+const persistedVariantReducer = persistReducer(
+  variantPersistConfig,
+  variantSlice
+);
 
 export const store = configureStore({
   reducer: {
@@ -43,6 +54,7 @@ export const store = configureStore({
     service: serviceSlice,
     favProduct: favProductSlice,
     buyNow: buyNowSlice,
+    variant: persistedVariantReducer,
     [api.reducerPath]: api.reducer,
     auth: persistedAuthReducer,
     user: persistedUserReducer,

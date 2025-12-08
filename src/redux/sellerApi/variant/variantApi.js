@@ -1,15 +1,20 @@
-import { api } from '../../baseApi';
+import { api } from "../../baseApi";
 
 const subCategoryApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getAllVariant: builder.query({
-      query: () => {
+      query: (subCategoryId) => {
+        const params = new URLSearchParams();
+        if (subCategoryId) {
+          params.append("subCategoryId", subCategoryId);
+        }
+        const queryString = params.toString();
         return {
-          url: `/variant`,
+          url: `/variant${queryString ? `?${queryString}` : ""}`,
           method: "GET",
         };
       },
-      providesTags: ['variant'],
+      providesTags: ["variant"],
     }),
 
     getVariantById: builder.query({
@@ -19,7 +24,7 @@ const subCategoryApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['variant'],
+      providesTags: ["variant"],
     }),
 
     getVariantBySlug: builder.query({
@@ -29,7 +34,7 @@ const subCategoryApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['variant'],
+      providesTags: ["variant"],
     }),
 
     getVariantByCategoryId: builder.query({
@@ -39,9 +44,8 @@ const subCategoryApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['variant'],
+      providesTags: ["variant"],
     }),
-
 
     getVariantFieldBySubCategoryId: builder.query({
       query: (id) => {
@@ -50,7 +54,7 @@ const subCategoryApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['variant'],
+      providesTags: ["variant"],
     }),
 
     createVariant: builder.mutation({
@@ -61,7 +65,7 @@ const subCategoryApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ['variant'],
+      invalidatesTags: ["variant"],
     }),
 
     updateSubVariant: builder.mutation({
@@ -72,7 +76,7 @@ const subCategoryApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ['variant'],
+      invalidatesTags: ["variant"],
     }),
 
     deleteSubcategory: builder.mutation({
@@ -82,7 +86,7 @@ const subCategoryApi = api.injectEndpoints({
           method: "DELETE",
         };
       },
-      invalidatesTags: ['variant'],
+      invalidatesTags: ["variant"],
     }),
   }),
   overrideExisting: true,

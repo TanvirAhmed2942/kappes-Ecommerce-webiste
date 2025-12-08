@@ -55,6 +55,7 @@ export const api = createApi({
     "PrivacyPolicy",
     "TermsAndConditions",
     "StripeConnectedAccount",
+    "Variant",
   ],
 });
 

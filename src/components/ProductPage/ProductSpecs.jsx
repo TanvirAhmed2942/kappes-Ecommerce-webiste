@@ -3,6 +3,33 @@ import React from "react";
 import { Card } from "../../components/ui/card";
 import { getVariantSpecs } from "../../utils/productUtils";
 
+// Allowed variant fields that should be displayed in specifications
+// This matches the VARIANT_FIELDS from AddEditSubCategory.jsx
+const ALLOWED_VARIANT_FIELDS = [
+  "color",
+  "storage",
+  "ram",
+  "network_type",
+  "operating_system",
+  "storage_type",
+  "processor_type",
+  "processor",
+  "graphics_card_type",
+  "graphics_card_size",
+  "screen_size",
+  "resolution",
+  "lens_kit",
+  "material",
+  "dimension",
+  "flavour",
+  "size",
+  "fabric",
+  "weight",
+  "volume",
+  "dimensions",
+  "capacity",
+];
+
 // This component displays product specifications based on available data in slugDetails and variants
 const ProductSpecs = ({ productDetails, selectedVariant = null }) => {
   if (!productDetails) {
@@ -10,7 +37,18 @@ const ProductSpecs = ({ productDetails, selectedVariant = null }) => {
   }
 
   // Get specifications from selected variant if available
-  const variantSpecs = selectedVariant ? getVariantSpecs(selectedVariant) : {};
+  const allVariantSpecs = selectedVariant
+    ? getVariantSpecs(selectedVariant)
+    : {};
+
+  // Filter to only show allowed variant fields
+  const variantSpecs = {};
+  Object.keys(allVariantSpecs).forEach((key) => {
+    if (ALLOWED_VARIANT_FIELDS.includes(key)) {
+      variantSpecs[key] = allVariantSpecs[key];
+    }
+  });
+
   const slugDetails = productDetails.slugDetails || {};
 
   console.log("slugDetails", slugDetails);
@@ -57,11 +95,15 @@ const ProductSpecs = ({ productDetails, selectedVariant = null }) => {
       }
     });
 
-    // Add additional details from slug details
+    // Add additional details from slug details (only allowed fields)
     Object.entries(slugDetails).forEach(([key, values]) => {
-      // Skip if already added as a variant spec or not a meaningful spec
+      // Only show allowed variant fields and skip if already added as a variant spec
       const skipKeys = ["categoryId", "subCategoryId", "color"];
-      if (!variantSpecs[key] && !skipKeys.includes(key)) {
+      if (
+        ALLOWED_VARIANT_FIELDS.includes(key) &&
+        !variantSpecs[key] &&
+        !skipKeys.includes(key)
+      ) {
         specs.push({
           key,
           value: Array.isArray(values) ? values.join(", ") : values,

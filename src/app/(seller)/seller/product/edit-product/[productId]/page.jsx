@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus, Upload, X } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -51,16 +51,11 @@ const EditProductForm = () => {
   const [brandId, setBrandId] = useState("");
   const [shopId, setShopId] = useState("691af5eb80ccb62017c06c6f");
 
-  // Variant States
-  const [selectedColor, setSelectedColor] = useState("#3b82f6");
-  const [colorName, setColorName] = useState("Blue");
-  const [volume, setVolume] = useState("");
-  const [variantPrice, setVariantPrice] = useState("");
-  const [variantQuantity, setVariantQuantity] = useState(1);
+  // Variant selection
+  const [selectedVariants, setSelectedVariants] = useState([]);
 
   // Image States
   const [featureImage, setFeatureImage] = useState(null);
-  const [additionalImages, setAdditionalImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
 
   // Filtered subcategories based on selected category
@@ -75,21 +70,13 @@ const EditProductForm = () => {
       skip: !categoryId,
     });
 
-  const { data: variantData } = useGetAllVariantQuery();
+  const { data: variantData, isLoading: variantLoading } =
+    useGetAllVariantQuery(subcategoryId, {
+      skip: !subcategoryId, // Skip query if no subcategory is selected
+    });
   const { data: brandData } = useGetAllBrandQuery();
 
-  const colors = [
-    { name: "Blue", value: "#3b82f6" },
-    { name: "Green", value: "#22c55e" },
-    { name: "Cyan", value: "#06b6d4" },
-    { name: "Yellow", value: "#eab308" },
-    { name: "Red", value: "#ef4444" },
-    { name: "Purple", value: "#a855f7" },
-    { name: "Pink", value: "#ec4899" },
-    { name: "Orange", value: "#f97316" },
-    { name: "Gray", value: "#6b7280" },
-    { name: "Black", value: "#000000" },
-  ];
+  const variants = variantData?.data?.result || [];
 
   // Pre-fill form data when product data is loaded
   useEffect(() => {
@@ -110,17 +97,14 @@ const EditProductForm = () => {
       setBrandId(product.brandId?._id || "");
       setShopId(product.shopId?._id || "691af5eb80ccb62017c06c6f");
 
-      // Variant Info
-      if (
-        product.product_variant_Details &&
-        product.product_variant_Details.length > 0
-      ) {
-        const variant = product.product_variant_Details[0];
-        setSelectedColor(variant.variantId?.color?.code || "#3b82f6");
-        setColorName(variant.variantId?.color?.name || "Blue");
-        setVariantPrice(variant.variantPrice?.toString() || "");
-        setVariantQuantity(variant.variantQuantity || 1);
-        // Volume might be in variant data if available
+      // Variant selections
+      if (product.product_variant_Details?.length > 0) {
+        const mapped = product.product_variant_Details.map((item) => ({
+          variantId: item.variantId?._id || item.variantId,
+          variantPrice: item.variantPrice ?? parseFloat(product.basePrice),
+          variantQuantity: item.variantQuantity ?? 1,
+        }));
+        setSelectedVariants(mapped);
       }
 
       // Existing Images
@@ -153,9 +137,7 @@ const EditProductForm = () => {
   // Function to get complete image URL
   const getCompleteImageUrl = (imagePath) => {
     if (!imagePath) return "";
-    // If it's already a full URL, return as is
     if (imagePath.startsWith("http")) return imagePath;
-    // Otherwise, combine with base URL
     return `${getImageUrl}${imagePath}`;
   };
 
@@ -184,26 +166,44 @@ const EditProductForm = () => {
     }
   };
 
-  const handleAdditionalImagesUpload = (e) => {
-    const files = Array.from(e.target.files);
-    setAdditionalImages([...additionalImages, ...files]);
+  const toggleVariant = (variant) => {
+    setSelectedVariants((prev) => {
+      const exists = prev.find((item) => item.variantId === variant._id);
+      if (exists) {
+        return prev.filter((item) => item.variantId !== variant._id);
+      }
+      return [
+        ...prev,
+        {
+          variantId: variant._id,
+          variantPrice: basePrice ? parseFloat(basePrice) : 0,
+          variantQuantity: 1,
+        },
+      ];
+    });
   };
 
-  const removeAdditionalImage = (indexToRemove) => {
-    setAdditionalImages(
-      additionalImages.filter((_, index) => index !== indexToRemove)
+  const getVariantSelection = (variantId) =>
+    selectedVariants.find((item) => item.variantId === variantId);
+
+  const updateVariantPrice = (variantId, value) => {
+    setSelectedVariants((prev) =>
+      prev.map((item) =>
+        item.variantId === variantId
+          ? { ...item, variantPrice: Number(value) || 0 }
+          : item
+      )
     );
   };
 
-  const removeExistingImage = (indexToRemove) => {
-    setExistingImages(
-      existingImages.filter((_, index) => index !== indexToRemove)
+  const updateVariantQuantity = (variantId, value) => {
+    setSelectedVariants((prev) =>
+      prev.map((item) =>
+        item.variantId === variantId
+          ? { ...item, variantQuantity: Number(value) || 1 }
+          : item
+      )
     );
-  };
-
-  const handleColorSelect = (color) => {
-    setSelectedColor(color.value);
-    setColorName(color.name);
   };
 
   const handleSubmit = async () => {
@@ -227,6 +227,19 @@ const EditProductForm = () => {
       return;
     }
 
+    if (selectedVariants.length === 0) {
+      alert("Select at least one variant for this product");
+      return;
+    }
+
+    const invalidVariant = selectedVariants.find(
+      (v) => !v.variantPrice || v.variantQuantity < 1
+    );
+    if (invalidVariant) {
+      alert("Each selected variant needs price and quantity greater than 0");
+      return;
+    }
+
     try {
       const formData = new FormData();
 
@@ -240,17 +253,17 @@ const EditProductForm = () => {
         subcategoryId: subcategoryId,
         shopId: shopId,
         brandId: brandId,
-        product_variant_Details: [
-          {
-            color: {
-              name: colorName,
-              code: selectedColor,
-            },
-            ...(volume && { volume: parseFloat(volume) }),
-            variantPrice: parseFloat(variantPrice || basePrice),
-            variantQuantity: parseInt(variantQuantity),
-          },
-        ],
+        product_variant_Details: selectedVariants.map((variant) => ({
+          variantId: variant.variantId,
+          variantPrice:
+            typeof variant.variantPrice === "number"
+              ? variant.variantPrice
+              : parseFloat(variant.variantPrice) || parseFloat(basePrice),
+          variantQuantity:
+            typeof variant.variantQuantity === "number"
+              ? variant.variantQuantity
+              : parseInt(variant.variantQuantity) || 1,
+        })),
       };
 
       formData.append("data", JSON.stringify(productData));
@@ -259,11 +272,6 @@ const EditProductForm = () => {
       if (featureImage) {
         formData.append("image", featureImage);
       }
-
-      // Add additional images
-      additionalImages.forEach((img) => {
-        formData.append("image", img);
-      });
 
       // Call update mutation
       const response = await editProduct({
@@ -568,173 +576,104 @@ const EditProductForm = () => {
                   )}
                 </div>
 
-                {/* Additional Images Section */}
-                <div>
+                <div className="space-y-3">
                   <Label className="text-base font-medium">
-                    Additional Images
+                    Select Variants
                   </Label>
-                  <div className="mt-2">
-                    {/* Show existing additional images */}
-                    {existingImages.length > 1 && (
-                      <div className="grid grid-cols-3 gap-2 mb-2">
-                        {existingImages.slice(1).map((img, index) => (
+                  {variantLoading ? (
+                    <p className="text-sm text-gray-500">Loading variants...</p>
+                  ) : variants.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      No variants available. Create one first.
+                    </p>
+                  ) : (
+                    <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                      {variants.map((variant) => {
+                        const selection = getVariantSelection(variant._id);
+                        const isSelected = Boolean(selection);
+                        const title =
+                          variant.flavour ||
+                          variant.color?.name ||
+                          variant.slug ||
+                          "Variant";
+                        const subLabel =
+                          variant.weight ||
+                          variant.dimensions ||
+                          variant.color?.code ||
+                          variant.description;
+
+                        return (
                           <div
-                            key={index}
-                            className="relative border-2 border-gray-300 rounded-lg overflow-hidden"
+                            key={variant._id}
+                            className="border border-gray-200 rounded-lg p-3 flex flex-col gap-3"
                           >
-                            <img
-                              src={getCompleteImageUrl(img)}
-                              alt={`Existing ${index + 1}`}
-                              className="w-full h-24 object-cover"
-                            />
-                            <div className="absolute top-1 right-1 p-1 bg-blue-500 text-white rounded-full text-xs">
-                              Ex
-                            </div>
-                            <button
-                              onClick={() => removeExistingImage(index + 1)}
-                              className="absolute top-1 left-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
+                            <label className="flex items-start gap-3 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleVariant(variant)}
+                                className="mt-1 h-4 w-4 accent-red-600"
+                              />
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900">
+                                  {title}
+                                </p>
+                                {subLabel && (
+                                  <p className="text-xs text-gray-500">
+                                    {subLabel}
+                                  </p>
+                                )}
+                                <p className="text-xs text-gray-500">
+                                  {variant.categoryId?.name} •{" "}
+                                  {variant.subCategoryId?.name}
+                                </p>
+                              </div>
+                            </label>
+
+                            {isSelected && (
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <Label className="text-xs text-gray-600">
+                                    Variant Price
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    value={
+                                      selection.variantPrice ?? basePrice ?? ""
+                                    }
+                                    placeholder={basePrice || "0"}
+                                    onChange={(e) =>
+                                      updateVariantPrice(
+                                        variant._id,
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-xs text-gray-600">
+                                    Variant Quantity
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    min="1"
+                                    value={selection.variantQuantity ?? 1}
+                                    onChange={(e) =>
+                                      updateVariantQuantity(
+                                        variant._id,
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Show newly uploaded additional images */}
-                    {additionalImages.length > 0 && (
-                      <div className="grid grid-cols-3 gap-2 mb-2">
-                        {additionalImages.map((img, index) => (
-                          <div
-                            key={index}
-                            className="relative border-2 border-gray-300 rounded-lg overflow-hidden"
-                          >
-                            <img
-                              src={URL.createObjectURL(img)}
-                              alt={`Additional ${index + 1}`}
-                              className="w-full h-24 object-cover"
-                            />
-                            <button
-                              onClick={() => removeAdditionalImage(index)}
-                              className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Upload new additional images */}
-                    <label className="block border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleAdditionalImagesUpload}
-                        className="hidden"
-                      />
-                      <div className="flex flex-col items-center">
-                        <div className="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center mb-3">
-                          <Upload className="w-6 h-6 text-gray-600" />
-                        </div>
-                        <p className="text-sm text-gray-600 mb-1">
-                          Drop your images here or
-                        </p>
-                        <span className="text-sm text-red-600 font-medium hover:text-red-700">
-                          Click to upload additional images
-                        </span>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-base font-medium">Variant Color</Label>
-                  <div className="mt-2 flex flex-wrap gap-3">
-                    {colors.map((color, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleColorSelect(color)}
-                        className={`w-10 h-10 rounded-full transition-all ${
-                          selectedColor === color.value
-                            ? "ring-2 ring-offset-2 ring-gray-400"
-                            : ""
-                        }`}
-                        style={{ backgroundColor: color.value }}
-                        title={color.name}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Selected: {colorName} ({selectedColor})
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="volume" className="text-base font-medium">
-                    Volume (Optional)
-                  </Label>
-                  <Input
-                    id="volume"
-                    type="number"
-                    placeholder="e.g., 500"
-                    value={volume}
-                    onChange={(e) => setVolume(e.target.value)}
-                    className="mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label
-                    htmlFor="variantPrice"
-                    className="text-base font-medium"
-                  >
-                    Variant Price
-                  </Label>
-                  <Input
-                    id="variantPrice"
-                    type="number"
-                    placeholder="Leave empty to use base price"
-                    value={variantPrice}
-                    onChange={(e) => setVariantPrice(e.target.value)}
-                    className="mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label
-                    htmlFor="variantQuantity"
-                    className="text-base font-medium"
-                  >
-                    Variant Quantity
-                  </Label>
-                  <div className="mt-2 w-full flex items-stretch border border-gray-300 rounded-lg overflow-hidden">
-                    <input
-                      type="number"
-                      value={variantQuantity}
-                      onChange={(e) =>
-                        setVariantQuantity(parseInt(e.target.value) || 1)
-                      }
-                      className="flex-1 text-center py-2 border-0 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
-                    <div className="flex flex-col border-l border-gray-300">
-                      <button
-                        onClick={() => setVariantQuantity(variantQuantity + 1)}
-                        className="px-2 py-1 hover:bg-gray-100 border-b border-gray-300"
-                      >
-                        <Plus className="w-3 h-3 text-gray-600" />
-                      </button>
-                      <button
-                        onClick={() =>
-                          setVariantQuantity(Math.max(1, variantQuantity - 1))
-                        }
-                        className="px-2 py-1 hover:bg-gray-100"
-                      >
-                        <Minus className="w-3 h-3 text-gray-600" />
-                      </button>
+                        );
+                      })}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -38,11 +38,18 @@ const ProductList = () => {
   const router = useRouter();
   const shopId = localStorage.getItem("shop");
 
-  const { data, isLoading } = useGetAllProductQuery(shopId, searchTerm);
+  const { data, isLoading, error } = useGetAllProductQuery(shopId, searchTerm);
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
 
-  const products = data?.data?.result || [];
-  const meta = data?.data?.meta || { total: 0, page: 1, totalPage: 1 };
+  // Handle different response structures
+  const products =
+    data?.data?.result || data?.data?.products || data?.result || [];
+  const meta = data?.data?.meta || {
+    total: 0,
+    page: 1,
+    totalPage: 1,
+    limit: 10,
+  };
 
   const handleView = (product) => {
     setSelectedProduct(product);
@@ -110,9 +117,26 @@ const ProductList = () => {
 
             <div className="overflow-x-auto">
               {isLoading ? (
-                <div className="text-center py-8">Loading...</div>
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-700"></div>
+                  <p className="mt-2 text-gray-500">Loading products...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-8">
+                  <p className="text-red-500">
+                    Error loading products:{" "}
+                    {error?.data?.message || error?.message || "Unknown error"}
+                  </p>
+                </div>
               ) : products.length === 0 ? (
-                <div className="text-center py-8">No products found</div>
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-lg">No products found</p>
+                  {searchTerm && (
+                    <p className="text-gray-400 text-sm mt-2">
+                      Try adjusting your search term
+                    </p>
+                  )}
+                </div>
               ) : (
                 <Table>
                   <TableHeader>
@@ -125,6 +149,9 @@ const ProductList = () => {
                       </TableHead>
                       <TableHead className="font-semibold text-gray-900">
                         Category
+                      </TableHead>
+                      <TableHead className="font-semibold text-gray-900">
+                        Subcategory
                       </TableHead>
                       <TableHead className="font-semibold text-gray-900">
                         Price
@@ -153,10 +180,18 @@ const ProductList = () => {
                           {product.categoryId?.name || "N/A"}
                         </TableCell>
                         <TableCell className="text-gray-900">
-                          ${product.basePrice}
+                          {product.subcategoryId?.name || "N/A"}
                         </TableCell>
                         <TableCell className="text-gray-900">
-                          {product.totalStock}
+                          ${product.basePrice?.toFixed(2) || "0.00"}
+                        </TableCell>
+                        <TableCell className="text-gray-900">
+                          {product.totalStock ??
+                            (product.product_variant_Details?.reduce(
+                              (sum, v) => sum + (v.variantQuantity || 0),
+                              0
+                            ) ||
+                              0)}
                         </TableCell>
                         <TableCell className="text-gray-900">
                           {formatDate(product.createdAt)}
@@ -196,36 +231,51 @@ const ProductList = () => {
               )}
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex justify-end items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-              >
-                Prev
-              </Button>
-              {[...Array(meta.totalPage)].map((_, i) => (
-                <Button
-                  key={i}
-                  variant={currentPage === i + 1 ? "default" : "outline"}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={
-                    currentPage === i + 1 ? "bg-red-700 hover:bg-red-800" : ""
-                  }
-                >
-                  {i + 1}
-                </Button>
-              ))}
-              <Button
-                variant="outline"
-                onClick={() =>
-                  setCurrentPage(Math.min(meta.totalPage, currentPage + 1))
-                }
-                disabled={currentPage === meta.totalPage}
-              >
-                Next
-              </Button>
-            </div>
+            {meta.totalPage > 1 && (
+              <div className="p-6 border-t border-gray-200 flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  Showing {products.length} of {meta.total} products
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1 || isLoading}
+                  >
+                    Prev
+                  </Button>
+                  {[...Array(Math.min(meta.totalPage, 10))].map((_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <Button
+                        key={i}
+                        variant={
+                          currentPage === pageNum ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={
+                          currentPage === pageNum
+                            ? "bg-red-700 hover:bg-red-800 text-white"
+                            : ""
+                        }
+                        disabled={isLoading}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setCurrentPage(Math.min(meta.totalPage, currentPage + 1))
+                    }
+                    disabled={currentPage === meta.totalPage || isLoading}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -296,17 +346,28 @@ const ProductList = () => {
                   <p>{selectedProduct.categoryId?.name || "N/A"}</p>
                 </div>
                 <div>
+                  <h3 className="font-semibold text-gray-700">Subcategory</h3>
+                  <p>{selectedProduct.subcategoryId?.name || "N/A"}</p>
+                </div>
+                <div>
                   <h3 className="font-semibold text-gray-700">Brand</h3>
                   <p>{selectedProduct.brandId?.name || "N/A"}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h3 className="font-semibold text-gray-700">Price</h3>
-                    <p>${selectedProduct.basePrice}</p>
+                    <h3 className="font-semibold text-gray-700">Base Price</h3>
+                    <p>${selectedProduct.basePrice?.toFixed(2) || "0.00"}</p>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-700">Stock</h3>
-                    <p>{selectedProduct.totalStock}</p>
+                    <h3 className="font-semibold text-gray-700">Total Stock</h3>
+                    <p>
+                      {selectedProduct.totalStock ??
+                        (selectedProduct.product_variant_Details?.reduce(
+                          (sum, v) => sum + (v.variantQuantity || 0),
+                          0
+                        ) ||
+                          0)}
+                    </p>
                   </div>
                 </div>
                 <div>
@@ -329,34 +390,115 @@ const ProductList = () => {
           {selectedProduct && (
             <div className="mt-6">
               <h3 className="font-semibold text-gray-700 mb-3">Variants</h3>
-              <div className="space-y-2">
-                {selectedProduct.product_variant_Details?.map(
-                  (variant, idx) => (
-                    <div key={idx} className="border p-3 rounded">
-                      <p>
-                        <span className="font-semibold">Color:</span>{" "}
-                        {variant.variantId?.color?.name}
-                      </p>
-                      <p>
-                        <span className="font-semibold">Storage:</span>{" "}
-                        {variant.variantId?.storage}
-                      </p>
-                      <p>
-                        <span className="font-semibold">RAM:</span>{" "}
-                        {variant.variantId?.ram}
-                      </p>
-                      <p>
-                        <span className="font-semibold">Price:</span> $
-                        {variant.variantPrice}
-                      </p>
-                      <p>
-                        <span className="font-semibold">Quantity:</span>{" "}
-                        {variant.variantQuantity}
-                      </p>
-                    </div>
-                  )
-                )}
-              </div>
+              {selectedProduct.product_variant_Details?.length > 0 ? (
+                <div className="space-y-3">
+                  {selectedProduct.product_variant_Details.map(
+                    (variant, idx) => {
+                      const variantData = variant.variantId || {};
+                      const skipKeys = [
+                        "_id",
+                        "categoryId",
+                        "subCategoryId",
+                        "createdBy",
+                        "isDeleted",
+                        "slug",
+                        "createdAt",
+                        "updatedAt",
+                        "__v",
+                        "id",
+                        "images",
+                        "image",
+                        "description",
+                      ];
+
+                      return (
+                        <div
+                          key={idx}
+                          className="border p-4 rounded-lg bg-gray-50"
+                        >
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                              <span className="font-semibold text-gray-700">
+                                Variant Price:
+                              </span>{" "}
+                              <span className="text-gray-900">
+                                $
+                                {variant.variantPrice || variant.price || "N/A"}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-gray-700">
+                                Quantity:
+                              </span>{" "}
+                              <span className="text-gray-900">
+                                {variant.variantQuantity ||
+                                  variant.quantity ||
+                                  0}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="border-t pt-3">
+                            <h4 className="font-semibold text-gray-700 mb-2 text-sm">
+                              Variant Details:
+                            </h4>
+                            <div className="grid grid-cols-2 gap-2">
+                              {Object.keys(variantData)
+                                .filter((key) => !skipKeys.includes(key))
+                                .map((key) => {
+                                  const value = variantData[key];
+                                  let displayValue = value;
+
+                                  // Handle color object
+                                  if (
+                                    key === "color" &&
+                                    typeof value === "object"
+                                  ) {
+                                    displayValue = (
+                                      <div className="flex items-center gap-2">
+                                        <div
+                                          className="w-4 h-4 rounded-full border border-gray-300"
+                                          style={{
+                                            backgroundColor:
+                                              value.code || value,
+                                          }}
+                                        />
+                                        <span>
+                                          {value.name || value.code || value}
+                                        </span>
+                                      </div>
+                                    );
+                                  } else if (
+                                    value === null ||
+                                    value === undefined ||
+                                    value === ""
+                                  ) {
+                                    return null;
+                                  }
+
+                                  return (
+                                    <div key={key} className="text-sm">
+                                      <span className="font-medium text-gray-600 capitalize">
+                                        {key
+                                          .replace(/([A-Z])/g, " $1")
+                                          .toLowerCase()}
+                                        :
+                                      </span>{" "}
+                                      <span className="text-gray-900">
+                                        {displayValue}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">No variants available</p>
+              )}
             </div>
           )}
         </DialogContent>
