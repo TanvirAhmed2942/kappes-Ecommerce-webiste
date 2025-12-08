@@ -1,7 +1,8 @@
 "use client"; // Ensure this is a Client Component
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import ProvinceRelatedProducts from "./provinceRelatedProducts";
 import {
   Select,
@@ -64,8 +65,24 @@ const locationsData = {
 };
 
 function ShopByProvinceLayout() {
-  const [selectedType, setSelectedType] = useState("province");
-  const [selectedLocation, setSelectedLocation] = useState("Manitoba");
+  const searchParams = useSearchParams();
+  const typeParam = searchParams.get("type");
+  const locationParam = searchParams.get("location");
+
+  const [selectedType, setSelectedType] = useState(typeParam || "province");
+  const [selectedLocation, setSelectedLocation] = useState(
+    locationParam ? decodeURIComponent(locationParam) : "Manitoba"
+  );
+
+  // Update state when URL params change
+  useEffect(() => {
+    if (typeParam) {
+      setSelectedType(typeParam);
+    }
+    if (locationParam) {
+      setSelectedLocation(decodeURIComponent(locationParam));
+    }
+  }, [typeParam, locationParam]);
 
   // Get current locations based on selected type
   const currentLocations = useMemo(() => {

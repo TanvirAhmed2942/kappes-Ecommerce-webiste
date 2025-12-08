@@ -1,11 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-
-
-import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import provideIcon from '../../common/components/provideIcon';
+import { usePathname, useRouter } from "next/navigation";
+import provideIcon from "../../common/components/provideIcon";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,12 +11,78 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import { Button } from "../ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "../ui/drawer";
 
-import { Button } from '../ui/button';
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '../ui/drawer';
+// All locations data with flags
+const locationsData = {
+  province: [
+    {
+      id: 1,
+      name: "British Columbia",
+      image: "/assets/province/britshColumbia.png",
+    },
+    { id: 2, name: "Alberta", image: "/assets/province/alberta.png" },
+    { id: 3, name: "Manitoba", image: "/assets/province/manitoba.png" },
+    { id: 4, name: "Saskatchewan", image: "/assets/province/saskatchewan.png" },
+    { id: 5, name: "Ontario", image: "/assets/province/ontario.png" },
+    { id: 6, name: "Quebec", image: "/assets/province/quebec.png" },
+    {
+      id: 7,
+      name: "New Brunswick",
+      image: "/assets/province/newBrunswick.png",
+    },
+    { id: 8, name: "Nova Scotia", image: "/assets/province/novaScotia.png" },
+    {
+      id: 9,
+      name: "Prince Edward Island",
+      image: "/assets/province/princeEdwardIsland.png",
+    },
+    {
+      id: 10,
+      name: "Newfoundland",
+      image: "/assets/province/newFoundland.png",
+    },
+  ],
+  territory: [
+    { id: 1, name: "Yukon", image: "/assets/city/Yukon.png" },
+    {
+      id: 2,
+      name: "Northwest Territories",
+      image: "/assets/city/Northwest Territories.png",
+    },
+    { id: 3, name: "Nunavut", image: "/assets/city/Nunavut.png" },
+  ],
+  city: [
+    { id: 1, name: "Toronto", image: "/assets/province/ontario.png" },
+    { id: 2, name: "Vancouver", image: "/assets/province/britshColumbia.png" },
+    { id: 3, name: "Montreal", image: "/assets/province/quebec.png" },
+    { id: 4, name: "Calgary", image: "/assets/province/alberta.png" },
+    { id: 5, name: "Edmonton", image: "/assets/province/alberta.png" },
+    { id: 6, name: "Ottawa", image: "/assets/province/ontario.png" },
+    { id: 7, name: "Winnipeg", image: "/assets/province/manitoba.png" },
+    { id: 8, name: "Halifax", image: "/assets/province/novaScotia.png" },
+  ],
+};
+
 function BottomNav() {
-  const rotatingWords = ["Province", "Territory", "City"];
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedType, setSelectedType] = useState("province");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const router = useRouter();
   const currentPath = usePathname();
 
   // Helper function to check if a path is active
@@ -47,8 +111,9 @@ function BottomNav() {
   // Helper function to get link classes based on active state
   const getLinkClasses = (href, baseClasses = "") => {
     const active = isActive(href);
-    return `${baseClasses} transition-all duration-300 ease-in-out relative ${active ? "" : ""
-      }`;
+    return `${baseClasses} transition-all duration-300 ease-in-out relative ${
+      active ? "" : ""
+    }`;
   };
 
   // Custom Link component with hover animation
@@ -78,8 +143,9 @@ function BottomNav() {
       <button
         ref={ref}
         {...props}
-        className={`bg-transparent px-2 flex gap-2 items-center transition-all duration-300 ease-in-out relative group cursor-pointer text-white ${active ? "" : ""
-          }`}
+        className={`bg-transparent px-2 flex gap-2 items-center transition-all duration-300 ease-in-out relative group cursor-pointer text-white ${
+          active ? "" : ""
+        }`}
       >
         <span>{provideIcon({ name: "shop" })}</span>
         <span>Shop</span>
@@ -100,15 +166,17 @@ function BottomNav() {
   // Helper function specifically for drawer menu items
   const getDrawerLinkClasses = (href, baseClasses = "") => {
     const active = isActive(href);
-    return `${baseClasses} ${active ? "text-red-800 font-semibold" : "hover:text-red-700"
-      }`;
+    return `${baseClasses} ${
+      active ? "text-red-800 font-semibold" : "hover:text-red-700"
+    }`;
   };
 
   // Helper function for drawer submenu items (More section)
   const getDrawerSubLinkClasses = (href, baseClasses = "") => {
     const active = isActive(href);
-    return `${baseClasses} ${active ? "text-red-800 font-semibold" : "hover:text-red-700"
-      }`;
+    return `${baseClasses} ${
+      active ? "text-red-800 font-semibold" : "hover:text-red-700"
+    }`;
   };
 
   const links = [
@@ -161,13 +229,20 @@ function BottomNav() {
     return morePaths.some((path) => isActive(path));
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % rotatingWords.length);
-    }, 1250); // 1s display + 0.5s animation in/out
+  // Get all locations for dropdown
+  const allLocations = [
+    ...locationsData.province.map((loc) => ({ ...loc, type: "province" })),
+    ...locationsData.territory.map((loc) => ({ ...loc, type: "territory" })),
+    ...locationsData.city.map((loc) => ({ ...loc, type: "city" })),
+  ];
 
-    return () => clearInterval(interval);
-  }, []);
+  // Handle location selection from dropdown
+  const handleLocationSelect = (locationName, locationType) => {
+    const encodedLocation = encodeURIComponent(locationName);
+    router.push(
+      `/shop-by-province?type=${locationType}&location=${encodedLocation}`
+    );
+  };
 
   const containerVariants = {
     initial: {},
@@ -223,8 +298,9 @@ function BottomNav() {
                 {/* Shop Section with Sub-items */}
                 <div className="space-y-2">
                   <p
-                    className={`font-medium flex gap-2 items-center ${isShopActive() ? "text-red-800" : ""
-                      }`}
+                    className={`font-medium flex gap-2 items-center ${
+                      isShopActive() ? "text-red-800" : ""
+                    }`}
                   >
                     <span>{provideIcon({ name: "shop" })}</span>
                     <span>Shop</span>
@@ -280,8 +356,9 @@ function BottomNav() {
                 </Link>
                 <div className="space-y-2">
                   <p
-                    className={`font-medium ${isMoreActive() ? "text-red-800" : ""
-                      }`}
+                    className={`font-medium ${
+                      isMoreActive() ? "text-red-800" : ""
+                    }`}
                   >
                     More
                   </p>
@@ -351,56 +428,122 @@ function BottomNav() {
             <DropdownMenuTrigger asChild>
               <ShopDropdownButton />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
+            <DropdownMenuContent className="w-64">
               <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
                   <Link
                     href="/shop"
-                    className={`flex items-center gap-2 ${isActive("/shop")
-                      ? "bg-kappes text-white font-semibold"
-                      : ""
-                      }`}
+                    className={`flex items-center gap-2 ${
+                      isActive("/shop")
+                        ? "bg-kappes text-white font-semibold"
+                        : ""
+                    }`}
                   >
                     {provideIcon({ name: "shop" })} All Products
                   </Link>
                 </DropdownMenuItem>
 
-                <DropdownMenuItem asChild>
-                  <Link
-                    href="/shop-by-province"
-                    className={`flex items-center gap-2 ${isActive("/shop-by-province")
-                      ? "bg-kappes text-white font-semibold"
-                      : ""
+                {/* Nested Dropdown for Shop By Province/Territory/City */}
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={`w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-red-700 hover:text-white ${
+                        isActive("/shop-by-province")
+                          ? "bg-kappes text-white font-semibold"
+                          : ""
                       }`}
+                    >
+                      {provideIcon({ name: "searchByProvince" })}
+                      <span>Shop By Province, Territory, City</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-64 max-h-[500px] overflow-y-scroll"
+                    side="right"
+                    align="start"
                   >
-                    {provideIcon({ name: "searchByProvince" })} Shop By{" "}
-                    <div className="h-6 overflow-hidden relative w-[90px]">
-                      <AnimatePresence mode="wait">
-                        <motion.span
-                          key={rotatingWords[currentIndex]}
-                          initial={{ y: -30, opacity: 0 }}
-                          animate={{ y: 2, opacity: 1 }}
-                          exit={{ y: 30, opacity: 0 }}
-                          transition={{
-                            duration: 0.25, // fast drop in and out
-                            ease: "easeOut",
-                          }}
-                          className="absolute font-bold"
+                    <DropdownMenuGroup>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground ">
+                        Provinces
+                      </div>
+                      {locationsData.province.map((location) => (
+                        <DropdownMenuItem
+                          key={`province-${location.id}`}
+                          onClick={() =>
+                            handleLocationSelect(location.name, "province")
+                          }
+                          className="cursor-pointer"
                         >
-                          {rotatingWords[currentIndex]}
-                        </motion.span>
-                      </AnimatePresence>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
+                          <div className="flex items-center gap-2">
+                            <Image
+                              src={location.image}
+                              alt={location.name}
+                              width={20}
+                              height={20}
+                              className="object-contain"
+                            />
+                            <span>{location.name}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">
+                        Territories
+                      </div>
+                      {locationsData.territory.map((location) => (
+                        <DropdownMenuItem
+                          key={`territory-${location.id}`}
+                          onClick={() =>
+                            handleLocationSelect(location.name, "territory")
+                          }
+                          className="cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Image
+                              src={location.image}
+                              alt={location.name}
+                              width={20}
+                              height={20}
+                              className="object-contain"
+                            />
+                            <span>{location.name}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">
+                        Cities
+                      </div>
+                      {locationsData.city.map((location) => (
+                        <DropdownMenuItem
+                          key={`city-${location.id}`}
+                          onClick={() =>
+                            handleLocationSelect(location.name, "city")
+                          }
+                          className="cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Image
+                              src={location.image}
+                              alt={location.name}
+                              width={20}
+                              height={20}
+                              className="object-contain"
+                            />
+                            <span>{location.name}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 <DropdownMenuItem asChild>
                   <Link
                     href="/shop-by-store"
-                    className={`flex items-center gap-2 ${isActive("/shop-by-store")
-                      ? "bg-kappes text-white font-semibold"
-                      : ""
-                      }`}
+                    className={`flex items-center gap-2 ${
+                      isActive("/shop-by-store")
+                        ? "bg-kappes text-white font-semibold"
+                        : ""
+                    }`}
                   >
                     {provideIcon({ name: "shopByStore" })} Shop By Store
                   </Link>
@@ -418,8 +561,9 @@ function BottomNav() {
 
           <AnimatedLink
             href="/auth/become-seller-login"
-            className={`font-semibold shadow-none border-none rounded-md flex gap-2 items-center transition-all duration-300 ease-in-out ${isActive("/auth/become-seller-login") ? "" : ""
-              }`}
+            className={`font-semibold shadow-none border-none rounded-md flex gap-2 items-center transition-all duration-300 ease-in-out ${
+              isActive("/auth/become-seller-login") ? "" : ""
+            }`}
           >
             Become a Seller
           </AnimatedLink>
