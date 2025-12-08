@@ -1,100 +1,70 @@
 "use client";
 import useVirtualizedList from "../../hooks/VirtualizedList";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
-import { FiFilter } from "react-icons/fi";
-import { Button } from "../../components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectGroup,
-  SelectLabel,
-  SelectValue,
-} from "../../components/ui/select";
+
 import { Card, CardContent } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import Link from "next/link";
 import { getImageUrl } from "../../redux/baseUrl";
-
-// Redux
-import { useDispatch, useSelector } from "react-redux";
-import { addFav, removeFav } from "../../features/productSlice";
+import { GrLocation } from "react-icons/gr";
 
 export default function ProvinceRelatedProducts({
-  habdleFilterVisbile,
-  filterVisible,
-  products = [],
+  shops = [],
   isLoading = false,
   selectedLocation = "",
   selectedTab = "province",
 }) {
   const [sortOption, setSortOption] = useState("featured");
 
-  const dispatch = useDispatch();
-  const favorites = useSelector((state) => state.product);
-
-  const favoritesMap = favorites.reduce((acc, curr) => {
-    acc[curr.id] = true;
-    return acc;
-  }, {});
-
-  // Transform API products to match component structure
-  const transformedProducts = useMemo(() => {
-    return products.map((product) => {
-      // Get the minimum variant price
-      const variantPrices =
-        product.product_variant_Details?.map((v) => v.variantPrice) || [];
-      const minPrice =
-        variantPrices.length > 0
-          ? Math.min(...variantPrices)
-          : product.basePrice;
+  // Transform API shops to match component structure
+  const transformedShops = useMemo(() => {
+    return shops.map((shop) => {
+      // Get address information
+      const address = shop.address
+        ? `${shop.address.detail_address || ""} ${shop.address.city || ""} ${
+            shop.address.province || ""
+          }`.trim()
+        : "";
 
       return {
-        id: product._id,
-        name: product.name,
-        originalPrice: product.basePrice,
-        price: minPrice,
-        productImage: product.images || [],
-        rating: Math.round(product.avg_rating || 0),
-        reviews: product.totalReviews || 0,
-        promoteBadge: product.isFeatured ? ["featured"] : [],
-        discountPrice: [false], // API doesn't provide discount info in this structure
-        categoryId: product.categoryId?._id,
-        shopId: product.shopId?._id,
-        brandId: product.brandId?._id,
+        id: shop._id || shop.id,
+        name: shop.name,
+        logo: shop.logo,
+        coverPhoto: shop.coverPhoto,
+        banner: shop.banner || [],
+        rating: Math.round(shop.rating || 0),
+        totalReviews: shop.totalReviews || 0,
+        totalFollowers: shop.totalFollowers || 0,
+        address: address,
+        isAdvertised: shop.isAdvertised || false,
+        isActive: shop.isActive || false,
+        description: shop.description || "",
       };
     });
-  }, [products]);
+  }, [shops]);
 
-  // Sort products based on sort option
-  const sortedProducts = useMemo(() => {
-    const sorted = [...transformedProducts];
+  // Sort shops based on sort option
+  const sortedShops = useMemo(() => {
+    const sorted = [...transformedShops];
     switch (sortOption) {
-      case "price-low":
-        return sorted.sort((a, b) => a.price - b.price);
-      case "price-high":
-        return sorted.sort((a, b) => b.price - a.price);
       case "rating":
         return sorted.sort((a, b) => b.rating - a.rating);
+      case "followers":
+        return sorted.sort((a, b) => b.totalFollowers - a.totalFollowers);
       case "newest":
         return sorted; // API doesn't provide createdAt in this response
       default:
         return sorted;
     }
-  }, [transformedProducts, sortOption]);
+  }, [transformedShops, sortOption]);
 
-  const getDiscountedPrice = (item) => {
-    return item.price;
-  };
-
-  const ITEM_HEIGHT = 300;
+  const ITEM_HEIGHT = 350;
   const COLUMN_COUNT = 4;
   const OVERSCAN = 5;
 
   const { containerRef, visibleItems, totalHeight, offsetY } =
-    useVirtualizedList(sortedProducts, ITEM_HEIGHT, OVERSCAN, COLUMN_COUNT);
+    useVirtualizedList(sortedShops, ITEM_HEIGHT, OVERSCAN, COLUMN_COUNT);
 
   const StarRating = ({ rating }) => (
     <div className="flex text-yellow-400">
@@ -113,54 +83,14 @@ export default function ProvinceRelatedProducts({
     </div>
   );
 
-  const toggleFavorite = (productItem, e) => {
-    e.stopPropagation();
-    e.preventDefault();
-
-    if (favoritesMap[productItem.id]) {
-      dispatch(removeFav(productItem.id));
-    } else {
-      dispatch(addFav({ ...productItem, favourite: true }));
-    }
-  };
-
   return (
     <div className="flex flex-col w-full">
       <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-4 border-b flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={habdleFilterVisbile}
-            className={`relative ${filterVisible ? "ring-2 ring-red-400" : ""}`}
-          >
-            <FiFilter
-              className={`${filterVisible ? "text-red-400" : "text-green-400"}`}
-            />
-            {filterVisible && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full"></span>
-            )}
-          </Button>
           <span className="text-sm text-gray-500 hidden sm:inline">
-            Filter Products ({sortedProducts.length} items)
+            Shops ({sortedShops.length} shops)
           </span>
         </div>
-
-        <Select value={sortOption} onValueChange={setSortOption}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Sort Options</SelectLabel>
-              <SelectItem value="featured">Featured</SelectItem>
-              <SelectItem value="price-low">Price: Low to High</SelectItem>
-              <SelectItem value="price-high">Price: High to Low</SelectItem>
-              <SelectItem value="rating">Highest Rated</SelectItem>
-              <SelectItem value="newest">Newest First</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
       </div>
 
       <div
@@ -172,22 +102,22 @@ export default function ProvinceRelatedProducts({
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading products...</p>
+              <p className="text-gray-600">Loading shops...</p>
             </div>
           </div>
         ) : !selectedLocation ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <p className="text-gray-600 text-lg">
-                Please select a {selectedTab} to view products
+                Please select a {selectedTab} to view shops
               </p>
             </div>
           </div>
-        ) : sortedProducts.length === 0 ? (
+        ) : sortedShops.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <p className="text-gray-600 text-lg">
-                No products found for this {selectedTab}
+                No shops found for this {selectedTab}
               </p>
             </div>
           </div>
@@ -198,111 +128,71 @@ export default function ProvinceRelatedProducts({
               style={{ transform: `translateY(${offsetY}px)` }}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-4">
-                {visibleItems.map((productItem) => {
-                  const discountedPrice = getDiscountedPrice(productItem);
-                  const hasDiscount = productItem.discountPrice?.[0];
-
-                  // Construct image URL
-                  const imagePath = productItem.productImage?.[0] || "";
-                  const imageUrl = imagePath
-                    ? imagePath.startsWith("http")
-                      ? imagePath
+                {visibleItems.map((shopItem) => {
+                  // Construct cover photo URL
+                  const coverPath =
+                    shopItem.coverPhoto || shopItem.banner?.[0] || "";
+                  const coverUrl = coverPath
+                    ? coverPath.startsWith("http")
+                      ? coverPath
                       : `${getImageUrl}${
-                          imagePath.startsWith("/")
-                            ? imagePath.slice(1)
-                            : imagePath
+                          coverPath.startsWith("/")
+                            ? coverPath.slice(1)
+                            : coverPath
                         }`
-                    : "/assets/bag.png";
+                    : "/assets/default-shop-cover.jpg";
+
+                  // Construct logo URL
+                  const logoPath = shopItem.logo || "";
+                  const logoUrl = logoPath
+                    ? logoPath.startsWith("http")
+                      ? logoPath
+                      : `${getImageUrl}${
+                          logoPath.startsWith("/")
+                            ? logoPath.slice(1)
+                            : logoPath
+                        }`
+                    : "/assets/default-store-logo.png";
 
                   return (
-                    <div key={productItem.id} className="relative">
-                      <Card className="border-2 p-0 w-full max-w-xs sm:max-w-sm md:max-w-md border-transparent rounded-lg overflow-hidden transition-all duration-200 hover:border-red-700">
-                        <Link href={`/product-page/${productItem.id}`}>
-                          <div
-                            className="cursor-pointer"
-                            onClick={() =>
-                              console.log("Clicked product:", productItem)
-                            }
-                          >
-                            <div className="relative">
-                              <div className="h-48 overflow-hidden relative">
-                                <Image
-                                  src={imageUrl}
-                                  alt={productItem.name}
-                                  fill
-                                  className="object-cover"
-                                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                                />
-                              </div>
-
-                              <div className="absolute top-2 left-2 flex flex-col gap-1">
-                                {productItem.promoteBadge?.includes("new") && (
-                                  <Badge className="bg-blue-500 hover:bg-blue-600">
-                                    New
-                                  </Badge>
-                                )}
-                                {productItem.promoteBadge?.includes("sale") && (
-                                  <Badge className="bg-red-500 hover:bg-red-600">
-                                    Sale
-                                  </Badge>
-                                )}
-                                {productItem.promoteBadge?.includes(
-                                  "featured"
-                                ) && (
-                                  <Badge className="bg-green-500 hover:bg-green-600">
-                                    Featured
-                                  </Badge>
-                                )}
-                              </div>
-
-                              <button
-                                className="absolute top-2 right-2 p-1 bg-white/80 rounded-full hover:bg-white transition-colors"
-                                onClick={(e) => toggleFavorite(productItem, e)}
-                                aria-label={
-                                  favoritesMap[productItem.id]
-                                    ? "Remove from favorites"
-                                    : "Add to favorites"
-                                }
-                              >
-                                <svg
-                                  className={`w-6 h-6 ${
-                                    favoritesMap[productItem.id]
-                                      ? "text-red-500 fill-red-500"
-                                      : "text-gray-100"
-                                  }`}
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                                  />
-                                </svg>
-                              </button>
+                    <Link key={shopItem.id} href={`/store/${shopItem.id}`}>
+                      <div
+                        style={{
+                          boxShadow:
+                            "rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px",
+                        }}
+                        className="group flex items-center justify-center relative h-60 w-60 rounded-full border-2 border-transparent overflow-hidden transition-all duration-200 hover:border-red-700 cursor-pointer shadow-xl/10 inset-shadow-orange-100"
+                      >
+                        {/* Background Image - Absolute */}
+                        <Image
+                          src={logoUrl}
+                          alt={shopItem.name}
+                          width={240}
+                          height={240}
+                          className="object-cover rounded-full"
+                        />
+                        {/* White background overlay that slides up from bottom on hover */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-white/95 h-[55%] flex flex-col items-center justify-center px-4 py-4 rounded-b-full translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out z-10">
+                          <h3 className="font-medium text-base truncate w-full text-center mb-1">
+                            {shopItem.name}
+                          </h3>
+                          {shopItem.address && (
+                            <div className="flex items-center justify-center text-xs text-gray-600 mb-1">
+                              <GrLocation className="w-3 h-3 mr-1 flex-shrink-0" />
+                              <span className="truncate text-center max-w-[150px]">
+                                {shopItem.address}
+                              </span>
                             </div>
-
-                            <CardContent>
-                              <h3 className="font-medium text-lg truncate">
-                                {productItem.name}
-                              </h3>
-                              <div className="flex items-center mt-0">
-                                <StarRating rating={productItem.rating} />
-                                <span className="text-gray-600 text-sm ml-1">
-                                  ({productItem.reviews})
-                                </span>
-                              </div>
-                              <div className="mt-0 mb-2.5">
-                                <p className="text-red-600 font-bold">
-                                  ${discountedPrice.toFixed(2)}
-                                </p>
-                              </div>
-                            </CardContent>
+                          )}
+                          <div className="flex items-center justify-center">
+                            <StarRating rating={shopItem.rating} />
+                            <span className="text-gray-600 text-xs ml-1">
+                              ({shopItem.totalReviews})
+                            </span>
                           </div>
-                        </Link>
-                      </Card>
-                    </div>
+                        </div>
+                      </div>
+                    </Link>
                   );
                 })}
               </div>

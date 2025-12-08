@@ -1,237 +1,215 @@
 "use client"; // Ensure this is a Client Component
 
-import React, { useState, useEffect, useMemo } from "react";
-import { useSelector } from "react-redux";
-import ProvinceList from "./Province/provinceList";
-
+import React, { useState, useMemo } from "react";
+import Image from "next/image";
 import ProvinceRelatedProducts from "./provinceRelatedProducts";
-import Filter from "../Shop/filter";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
-import CityList from "./City/city";
-import TerritoryList from "./Territory/terriToryList";
 import {
-  useGetProductByProvinceQuery,
-  useGetProductByTerritoryQuery,
-  useGetProductByCityQuery,
-} from "../../redux/productApi/productApi";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { useGetShopListProvinceQuery } from "../../redux/shopApi/shopApi";
+
+// All locations data with flags
+const locationsData = {
+  province: [
+    {
+      id: 1,
+      name: "British Columbia",
+      image: "/assets/province/britshColumbia.png",
+    },
+    { id: 2, name: "Alberta", image: "/assets/province/alberta.png" },
+    { id: 3, name: "Manitoba", image: "/assets/province/manitoba.png" },
+    { id: 4, name: "Saskatchewan", image: "/assets/province/saskatchewan.png" },
+    { id: 5, name: "Ontario", image: "/assets/province/ontario.png" },
+    { id: 6, name: "Quebec", image: "/assets/province/quebec.png" },
+    {
+      id: 7,
+      name: "New Brunswick",
+      image: "/assets/province/newBrunswick.png",
+    },
+    { id: 8, name: "Nova Scotia", image: "/assets/province/novaScotia.png" },
+    {
+      id: 9,
+      name: "Prince Edward Island",
+      image: "/assets/province/princeEdwardIsland.png",
+    },
+    {
+      id: 10,
+      name: "Newfoundland",
+      image: "/assets/province/newFoundland.png",
+    },
+  ],
+  territory: [
+    { id: 1, name: "Yukon", image: "/assets/city/Yukon.png" },
+    {
+      id: 2,
+      name: "Northwest Territories",
+      image: "/assets/city/Northwest Territories.png",
+    },
+    { id: 3, name: "Nunavut", image: "/assets/city/Nunavut.png" },
+  ],
+  city: [
+    { id: 1, name: "Toronto", image: "/assets/province/ontario.png" },
+    { id: 2, name: "Vancouver", image: "/assets/province/britshColumbia.png" },
+    { id: 3, name: "Montreal", image: "/assets/province/quebec.png" },
+    { id: 4, name: "Calgary", image: "/assets/province/alberta.png" },
+    { id: 5, name: "Edmonton", image: "/assets/province/alberta.png" },
+    { id: 6, name: "Ottawa", image: "/assets/province/ontario.png" },
+    { id: 7, name: "Winnipeg", image: "/assets/province/manitoba.png" },
+    { id: 8, name: "Halifax", image: "/assets/province/novaScotia.png" },
+  ],
+};
 
 function ShopByProvinceLayout() {
-  const [selectedTab, setSelectedTab] = useState("province");
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [filterVisible, setFilterVisible] = useState(false);
+  const [selectedType, setSelectedType] = useState("province");
+  const [selectedLocation, setSelectedLocation] = useState("Manitoba");
 
-  // Get filter state from Redux
-  const filterState = useSelector((state) => state.filter);
+  // Get current locations based on selected type
+  const currentLocations = useMemo(() => {
+    return locationsData[selectedType] || [];
+  }, [selectedType]);
 
-  // Build filters object for API queries
-  const filters = useMemo(() => {
-    const filterObj = {
-      categoryIds: filterState.selectedCategory || [],
-      priceMin: filterState.priceRangeLow || 0,
-      priceMax: filterState.priceRangeHigh || 500,
-    };
+  // Get selected location image
+  const selectedLocationData = useMemo(() => {
+    return currentLocations.find((loc) => loc.name === selectedLocation);
+  }, [currentLocations, selectedLocation]);
 
-    // Add location filters if they exist
-    if (
-      filterState.location?.city &&
-      Array.isArray(filterState.location.city) &&
-      filterState.location.city.length > 0
-    ) {
-      // If multiple cities, take the first one (or you can handle multiple)
-      filterObj.city = filterState.location.city[0];
-    }
+  // Handle type change
+  const handleTypeChange = (value) => {
+    setSelectedType(value);
+    setSelectedLocation(""); // Reset location when type changes
+  };
 
-    if (
-      filterState.location?.province &&
-      Array.isArray(filterState.location.province) &&
-      filterState.location.province.length > 0
-    ) {
-      filterObj.province = filterState.location.province[0];
-    }
+  // Handle location change
+  const handleLocationChange = (value) => {
+    setSelectedLocation(value);
+  };
 
-    return filterObj;
-  }, [
-    filterState.selectedCategory,
-    filterState.priceRangeLow,
-    filterState.priceRangeHigh,
-    filterState.location,
-  ]);
-
-  // Reset selected location when tab changes
-  useEffect(() => {
-    setSelectedLocation("");
-  }, [selectedTab]);
-
-  // Track the location for which we're currently displaying data
-  const [dataLocation, setDataLocation] = useState("");
-
-  // Reset data location when location changes
-  useEffect(() => {
-    if (selectedLocation !== dataLocation) {
-      setDataLocation(""); // Clear data location when selection changes
-    }
-  }, [selectedLocation, dataLocation]);
-
-  // Conditionally fetch products based on selected tab and location
+  // Fetch shops based on selected location
   const {
-    data: provinceData,
-    isLoading: isLoadingProvince,
-    isFetching: isFetchingProvince,
-    error: provinceError,
-  } = useGetProductByProvinceQuery(selectedLocation, {
-    skip: selectedTab !== "province" || !selectedLocation,
-    refetchOnMountOrArgChange: true,
-  });
-
-  const {
-    data: territoryData,
-    isLoading: isLoadingTerritory,
-    isFetching: isFetchingTerritory,
-    error: territoryError,
-  } = useGetProductByTerritoryQuery(selectedLocation, {
-    skip: selectedTab !== "territory" || !selectedLocation,
-    refetchOnMountOrArgChange: true,
-  });
-
-  const {
-    data: cityData,
-    isLoading: isLoadingCity,
-    isFetching: isFetchingCity,
-    error: cityError,
-  } = useGetProductByCityQuery(selectedLocation, {
-    skip: selectedTab !== "city" || !selectedLocation,
-    refetchOnMountOrArgChange: true,
-  });
-
-  // Get the appropriate products data based on selected tab
-  const productsData =
-    selectedTab === "province"
-      ? provinceData
-      : selectedTab === "territory"
-      ? territoryData
-      : cityData;
-
-  const isLoading =
-    selectedTab === "province"
-      ? isLoadingProvince
-      : selectedTab === "territory"
-      ? isLoadingTerritory
-      : isLoadingCity;
-
-  const isFetching =
-    selectedTab === "province"
-      ? isFetchingProvince
-      : selectedTab === "territory"
-      ? isFetchingTerritory
-      : isFetchingCity;
-
-  const error =
-    selectedTab === "province"
-      ? provinceError
-      : selectedTab === "territory"
-      ? territoryError
-      : cityError;
-
-  // Update data location when fetch completes (success or error)
-  useEffect(() => {
-    if (
-      selectedLocation &&
-      !isFetching &&
-      !isLoading &&
-      dataLocation !== selectedLocation
-    ) {
-      // Fetch completed for current location - update data location
-      // This happens whether we got data or an error
-      setDataLocation(selectedLocation);
+    data: shopsData,
+    isLoading,
+    isFetching,
+    error,
+  } = useGetShopListProvinceQuery(
+    {
+      location: selectedLocation,
+      locationType: selectedType,
+    },
+    {
+      skip: !selectedLocation,
+      refetchOnMountOrArgChange: true,
     }
-  }, [selectedLocation, isFetching, isLoading, dataLocation]);
+  );
 
-  // Get products - only show if:
-  // 1. We have a location selected
-  // 2. Fetch is complete (not fetching/loading)
-  // 3. Data location matches selected location (data is for current location)
-  // 4. No error occurred
-  // 5. We have valid products data
-  const products = (() => {
-    // If no location selected, return empty
-    if (!selectedLocation) {
-      return [];
+  // Extract shops from API response
+  const shops = (() => {
+    if (!selectedLocation) return [];
+    if (isFetching || isLoading) return [];
+    if (error) return [];
+    if (shopsData?.data?.result && Array.isArray(shopsData.data.result)) {
+      return shopsData.data.result;
     }
-
-    // If still fetching/loading, return empty
-    if (isFetching || isLoading) {
-      return [];
-    }
-
-    // If data location doesn't match selected location, return empty
-    // This ensures we don't show stale data from previous location
-    if (dataLocation !== selectedLocation) {
-      return [];
-    }
-
-    // If there's an error, return empty (no products found)
-    if (error) {
-      return [];
-    }
-
-    // If we have valid products data, return it
-    if (
-      productsData?.data?.products &&
-      Array.isArray(productsData.data.products)
-    ) {
-      return productsData.data.products;
-    }
-
-    // No valid data, return empty
     return [];
   })();
+
   return (
     <div className="px-4 lg:px-32">
-      <div className="w-2/3  mx-auto mt-4">
-        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid grid-cols-3 w-full bg-red-700">
-            <TabsTrigger
-              value="province"
-              className="data-[state=active]:text-black data-[state=inactive]:text-white"
-            >
-              Province
-            </TabsTrigger>
-            <TabsTrigger
-              value="territory"
-              className="data-[state=active]:text-black data-[state=inactive]:text-white"
-            >
-              Territory
-            </TabsTrigger>
-            <TabsTrigger
-              value="city"
-              className="data-[state=active]:text-black data-[state=inactive]:text-white"
-            >
-              City
-            </TabsTrigger>
-          </TabsList>
+      {/* Selection Area */}
+      <div className="w-full max-w-4xl mx-auto mt-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+          {/* Type Select (Province/Territory/City) */}
+          <div className="w-full ">
+            <Select value={selectedType} onValueChange={handleTypeChange}>
+              <SelectTrigger className="w-full h-12 bg-red-700 text-white border-red-700">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="province">
+                  <span className="font-medium">Province</span>
+                </SelectItem>
+                <SelectItem value="territory">
+                  <span className="font-medium">Territory</span>
+                </SelectItem>
+                <SelectItem value="city">
+                  <span className="font-medium">City</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <TabsContent value="province">
-            <ProvinceList onSelect={setSelectedLocation} />
-          </TabsContent>
-          <TabsContent value="territory">
-            <TerritoryList onSelect={setSelectedLocation} />
-          </TabsContent>
-          <TabsContent value="city">
-            <CityList onSelect={setSelectedLocation} />
-          </TabsContent>
-        </Tabs>
+          {/* Location Select with Flag */}
+          <div className="w-full ">
+            <Select
+              value={selectedLocation}
+              onValueChange={handleLocationChange}
+            >
+              <SelectTrigger className="w-full h-12">
+                {selectedLocationData ? (
+                  <div className="flex items-center gap-2">
+                    <Image
+                      src={selectedLocationData.image}
+                      alt={selectedLocationData.name}
+                      width={24}
+                      height={24}
+                      className="object-contain"
+                    />
+                    <span>{selectedLocationData.name}</span>
+                  </div>
+                ) : (
+                  <SelectValue placeholder={`Select a ${selectedType}`} />
+                )}
+              </SelectTrigger>
+              <SelectContent>
+                {currentLocations.map((location) => (
+                  <SelectItem key={location.id} value={location.name}>
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={location.image}
+                        alt={location.name}
+                        width={24}
+                        height={24}
+                        className="object-contain"
+                      />
+                      <span>{location.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Selected Location Flag Display */}
+        {selectedLocationData && (
+          <div className="flex justify-center mt-6">
+            <div className="flex flex-col items-center">
+              <Image
+                src={selectedLocationData.image}
+                alt={selectedLocationData.name}
+                width={120}
+                height={120}
+                className="object-contain"
+              />
+              <span className="mt-2 text-lg font-medium text-gray-700">
+                {selectedLocationData.name}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Shops Display */}
       <div className="flex gap-5 py-5 px-5 md:px-24 w-full">
-        <Filter />
         <ProvinceRelatedProducts
-          key={`${selectedTab}-${selectedLocation}`}
-          products={products}
+          key={`${selectedType}-${selectedLocation}`}
+          shops={shops}
           isLoading={isLoading}
           selectedLocation={selectedLocation}
-          selectedTab={selectedTab}
-          habdleFilterVisbile={() => setFilterVisible(!filterVisible)}
-          filterVisible={filterVisible}
+          selectedTab={selectedType}
         />
       </div>
     </div>
