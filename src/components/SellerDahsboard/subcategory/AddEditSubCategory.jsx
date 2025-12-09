@@ -97,7 +97,6 @@ export default function AddEditSubCategory() {
       { key: "resolution", label: "Resolution" },
       { key: "lens_kit", label: "Lens Kit" },
       { key: "material", label: "Material" },
-      { key: "dimension", label: "Dimension" },
       { key: "flavour", label: "Flavour" },
       { key: "size", label: "Size" },
       { key: "fabric", label: "Fabric" },

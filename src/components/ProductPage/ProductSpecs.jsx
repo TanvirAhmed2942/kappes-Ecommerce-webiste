@@ -20,7 +20,6 @@ const ALLOWED_VARIANT_FIELDS = [
   "resolution",
   "lens_kit",
   "material",
-  "dimension",
   "flavour",
   "size",
   "fabric",

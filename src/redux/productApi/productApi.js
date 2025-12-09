@@ -117,13 +117,14 @@ const productApi = api.injectEndpoints({
       },
     }),
     updateProduct: builder.mutation({
-      query: ({ data }) => {
+      query: ({ data, productId }) => {
         return {
-          url: "/product",
+          url: `/product/${productId}`,
           method: "PATCH",
           body: data,
         };
       },
+      invalidatesTags: ["Product"],
     }),
     getReviewByProductId: builder.query({
       query: (productId) => {

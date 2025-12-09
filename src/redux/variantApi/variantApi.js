@@ -19,7 +19,7 @@ const variantApi = api.injectEndpoints({
         const queryString = params.toString();
         return {
           url: `/variant${queryString ? `?${queryString}` : ""}`,
-          method: "GET",
+        method: "GET",
         };
       },
       providesTags: ["Variant"],
