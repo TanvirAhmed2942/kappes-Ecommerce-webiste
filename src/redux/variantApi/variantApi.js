@@ -19,13 +19,47 @@ const variantApi = api.injectEndpoints({
         const queryString = params.toString();
         return {
           url: `/variant${queryString ? `?${queryString}` : ""}`,
-        method: "GET",
+          method: "GET",
         };
       },
       providesTags: ["Variant"],
+    }),
+    getVariantById: builder.query({
+      query: (id) => {
+        return {
+          url: `/variant/single/${id}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["Variant"],
+    }),
+    updateVariant: builder.mutation({
+      query: ({ id, data }) => {
+        return {
+          url: `/variant/${id}`,
+          method: "PATCH",
+          body: data,
+        };
+      },
+      invalidatesTags: ["Variant"],
+    }),
+    deleteVariant: builder.mutation({
+      query: (id) => {
+        return {
+          url: `/variant/${id}`,
+          method: "DELETE",
+        };
+      },
+      invalidatesTags: ["Variant"],
     }),
   }),
   overrideExisting: true,
 });
 
-export const { useCreateVariantMutation, useGetallVariantQuery } = variantApi;
+export const {
+  useCreateVariantMutation,
+  useGetallVariantQuery,
+  useGetVariantByIdQuery,
+  useUpdateVariantMutation,
+  useDeleteVariantMutation,
+} = variantApi;

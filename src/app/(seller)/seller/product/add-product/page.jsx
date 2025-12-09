@@ -23,6 +23,10 @@ import { useCreateProductMutation } from "../../../../../redux/sellerApi/product
 import { useGetSubCategoryReletedToCategoryQuery } from "../../../../../redux/sellerApi/subCategory/subCategoryApi";
 import { useGetAllVariantQuery } from "../../../../../redux/sellerApi/variant/variantApi";
 import CreateVariantSheet from "../../../../../components/SellerDahsboard/Product/CreateVariantSheet";
+import EditVariantModal from "../../../../../components/SellerDahsboard/Product/EditVariantModal";
+import { BiSolidEdit } from "react-icons/bi";
+import { RiDeleteBin6Line } from "react-icons/ri";
+import { useDeleteVariantMutation } from "../../../../../redux/variantApi/variantApi";
 
 const AddProductForm = () => {
   const router = useRouter();
@@ -33,6 +37,14 @@ const AddProductForm = () => {
   const [basePrice, setBasePrice] = useState("");
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
+
+  // Edit Variant Modal State
+  const [editVariantModalOpen, setEditVariantModalOpen] = useState(false);
+  const [editingVariantId, setEditingVariantId] = useState(null);
+
+  // Delete variant mutation
+  const [deleteVariant, { isLoading: isDeletingVariant }] =
+    useDeleteVariantMutation();
 
   // Category & Brand States
   const [categoryId, setCategoryId] = useState("");
@@ -246,6 +258,35 @@ const AddProductForm = () => {
   };
 
   const [showVariantSheet, setShowVariantSheet] = useState(false);
+
+  // Handle edit variant
+  const handleEditVariant = (variantId) => {
+    setEditingVariantId(variantId);
+    setEditVariantModalOpen(true);
+  };
+
+  // Handle delete variant
+  const handleDeleteVariant = async (variantId) => {
+    if (!confirm("Are you sure you want to delete this variant?")) {
+      return;
+    }
+
+    try {
+      const response = await deleteVariant(variantId).unwrap();
+      if (response?.success) {
+        alert("Variant deleted successfully!");
+        // Remove from selected variants if it was selected
+        setSelectedVariants((prev) =>
+          prev.filter((v) => v.variantId !== variantId)
+        );
+      } else {
+        alert(response?.message || "Failed to delete variant");
+      }
+    } catch (error) {
+      console.error("Error deleting variant:", error);
+      alert(error?.data?.message || "Failed to delete variant");
+    }
+  };
 
   const handleCancel = () => {
     router.push("/seller/product");
@@ -519,6 +560,7 @@ const AddProductForm = () => {
                         const selection = getVariantSelection(variant._id);
                         const isSelected = Boolean(selection);
                         const title =
+                          variant.identifier ||
                           variant.flavour ||
                           variant.color?.name ||
                           variant.slug ||
@@ -534,29 +576,51 @@ const AddProductForm = () => {
                             key={variant._id}
                             className="border border-gray-200 rounded-lg p-3 flex flex-col gap-3"
                           >
-                            <label className="flex items-start gap-3 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onChange={() => toggleVariant(variant)}
-                                className="mt-1 h-4 w-4 accent-red-600"
-                              />
-                              <div className="flex-1">
-                                <p className="font-medium text-gray-900">
-                                  {title}
-                                </p>
-                                {subLabel && (
-                                  <p className="text-xs text-gray-500">
-                                    {subLabel}
+                            <div className="flex items-center justify-between">
+                              <label className="flex items-start gap-3 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => toggleVariant(variant)}
+                                  className="mt-1 h-4 w-4 accent-red-600"
+                                />
+                                <div className="flex-1">
+                                  <p className="font-medium text-gray-900">
+                                    {title}
                                   </p>
-                                )}
-                                <p className="text-xs text-gray-500">
-                                  {variant.categoryId?.name} •{" "}
-                                  {variant.subCategoryId?.name}
-                                </p>
+                                  {subLabel && (
+                                    <p className="text-xs text-gray-500">
+                                      {subLabel}
+                                    </p>
+                                  )}
+                                  <p className="text-xs text-gray-500">
+                                    {variant.categoryId?.name} •{" "}
+                                    {variant.subCategoryId?.name}
+                                  </p>
+                                </div>
+                              </label>
+                              <div className="flex items-center gap-2 justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEditVariant(variant._id)}
+                                  className="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+                                  title="Edit variant"
+                                >
+                                  <BiSolidEdit />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleDeleteVariant(variant._id)
+                                  }
+                                  disabled={isDeletingVariant}
+                                  className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 disabled:opacity-50"
+                                  title="Delete variant"
+                                >
+                                  <RiDeleteBin6Line />
+                                </button>
                               </div>
-                            </label>
-
+                            </div>
                             {isSelected && (
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
@@ -634,6 +698,13 @@ const AddProductForm = () => {
         onCategoryChange={setCategoryId}
         selectedSubcategory={subcategoryId}
         onSubcategoryChange={setSubcategoryId}
+      />
+
+      {/* Edit Variant Modal */}
+      <EditVariantModal
+        open={editVariantModalOpen}
+        onOpenChange={setEditVariantModalOpen}
+        variantId={editingVariantId}
       />
     </div>
   );

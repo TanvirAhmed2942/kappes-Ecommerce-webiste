@@ -111,7 +111,7 @@ export default function CreateVariantSheet({
   // Reset subcategory and fields when category changes
   useEffect(() => {
     if (!onCategoryChange) {
-    setSelectedSubcategory("");
+      setSelectedSubcategory("");
     }
     setSelectedFields([]);
     setFieldValues({});
