@@ -320,13 +320,13 @@ const ProductList = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold text-gray-700 mb-2">Images</h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className=" h-full transition-all duration-300 flex items-center justify-center">
                   {selectedProduct.images?.map((img, idx) => (
                     <img
                       key={idx}
                       src={getImageUrl + img}
                       alt={`Product ${idx}`}
-                      className="w-full h-32 object-cover rounded"
+                      className="w-full h-full object-contain rounded"
                     />
                   ))}
                 </div>

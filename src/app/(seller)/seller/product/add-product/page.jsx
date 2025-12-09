@@ -27,6 +27,14 @@ import EditVariantModal from "../../../../../components/SellerDahsboard/Product/
 import { BiSolidEdit } from "react-icons/bi";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { useDeleteVariantMutation } from "../../../../../redux/variantApi/variantApi";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../../../../../components/ui/dialog";
 
 const AddProductForm = () => {
   const router = useRouter();
@@ -41,6 +49,11 @@ const AddProductForm = () => {
   // Edit Variant Modal State
   const [editVariantModalOpen, setEditVariantModalOpen] = useState(false);
   const [editingVariantId, setEditingVariantId] = useState(null);
+
+  // Delete Confirmation Modal State
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingVariantId, setDeletingVariantId] = useState(null);
+  const [deletingVariantName, setDeletingVariantName] = useState("");
 
   // Delete variant mutation
   const [deleteVariant, { isLoading: isDeletingVariant }] =
@@ -265,19 +278,24 @@ const AddProductForm = () => {
     setEditVariantModalOpen(true);
   };
 
-  // Handle delete variant
-  const handleDeleteVariant = async (variantId) => {
-    if (!confirm("Are you sure you want to delete this variant?")) {
-      return;
-    }
+  // Handle delete variant - open confirmation modal
+  const handleDeleteVariant = (variantId, variantName) => {
+    setDeletingVariantId(variantId);
+    setDeletingVariantName(variantName || "this variant");
+    setDeleteModalOpen(true);
+  };
+
+  // Confirm delete variant
+  const confirmDeleteVariant = async () => {
+    if (!deletingVariantId) return;
 
     try {
-      const response = await deleteVariant(variantId).unwrap();
+      const response = await deleteVariant(deletingVariantId).unwrap();
       if (response?.success) {
         alert("Variant deleted successfully!");
         // Remove from selected variants if it was selected
         setSelectedVariants((prev) =>
-          prev.filter((v) => v.variantId !== variantId)
+          prev.filter((v) => v.variantId !== deletingVariantId)
         );
       } else {
         alert(response?.message || "Failed to delete variant");
@@ -285,7 +303,18 @@ const AddProductForm = () => {
     } catch (error) {
       console.error("Error deleting variant:", error);
       alert(error?.data?.message || "Failed to delete variant");
+    } finally {
+      setDeleteModalOpen(false);
+      setDeletingVariantId(null);
+      setDeletingVariantName("");
     }
+  };
+
+  // Cancel delete
+  const cancelDeleteVariant = () => {
+    setDeleteModalOpen(false);
+    setDeletingVariantId(null);
+    setDeletingVariantName("");
   };
 
   const handleCancel = () => {
@@ -611,7 +640,7 @@ const AddProductForm = () => {
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    handleDeleteVariant(variant._id)
+                                    handleDeleteVariant(variant._id, title)
                                   }
                                   disabled={isDeletingVariant}
                                   className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 disabled:opacity-50"
@@ -706,6 +735,38 @@ const AddProductForm = () => {
         onOpenChange={setEditVariantModalOpen}
         variantId={editingVariantId}
       />
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Delete Variant</DialogTitle>
+            <DialogDescription className="pt-2">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-gray-900">
+                "{deletingVariantName}"
+              </span>
+              ? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex gap-3 sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={cancelDeleteVariant}
+              disabled={isDeletingVariant}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteVariant}
+              disabled={isDeletingVariant}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeletingVariant ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

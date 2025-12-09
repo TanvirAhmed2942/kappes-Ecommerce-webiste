@@ -8,7 +8,7 @@ const variantApi = api.injectEndpoints({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["Variant"],
+      invalidatesTags: ["variant"],
     }),
     getallVariant: builder.query({
       query: (subCategoryId) => {
@@ -22,7 +22,7 @@ const variantApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ["Variant"],
+      providesTags: ["variant"],
     }),
     getVariantById: builder.query({
       query: (id) => {
@@ -31,7 +31,7 @@ const variantApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ["Variant"],
+      providesTags: ["variant"],
     }),
     updateVariant: builder.mutation({
       query: ({ id, data }) => {
@@ -41,7 +41,7 @@ const variantApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ["Variant"],
+      invalidatesTags: ["variant"],
     }),
     deleteVariant: builder.mutation({
       query: (id) => {
@@ -50,7 +50,7 @@ const variantApi = api.injectEndpoints({
           method: "DELETE",
         };
       },
-      invalidatesTags: ["Variant"],
+      invalidatesTags: ["variant"],
     }),
   }),
   overrideExisting: true,
