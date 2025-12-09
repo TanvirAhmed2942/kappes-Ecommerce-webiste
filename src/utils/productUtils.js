@@ -76,11 +76,11 @@ export const getAllProductImages = (product, selectedVariant = null) => {
   const images = [];
 
   // Add variant-specific images first (if available)
-  if (
-    selectedVariant?.variantId?.images &&
-    selectedVariant.variantId.images.length > 0
-  ) {
-    images.push(...selectedVariant.variantId.images);
+  // Check both 'image' (from API) and 'images' (fallback)
+  const variantImages =
+    selectedVariant?.variantId?.image || selectedVariant?.variantId?.images;
+  if (variantImages && variantImages.length > 0) {
+    images.push(...variantImages);
   }
 
   // Add product images if variant images are empty

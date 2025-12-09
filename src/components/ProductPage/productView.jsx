@@ -336,7 +336,7 @@ function ProductView() {
                 className="w-full h-[20rem] md:h-[30rem] lg:h-[40rem] object-contain transition-transform duration-300 hover:scale-110"
                 priority
               />
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="icon"
                 className="absolute top-4 right-4 bg-white"
@@ -345,7 +345,7 @@ function ProductView() {
                   fill={productDetails.isFeatured ? "red" : "none"}
                   size={25}
                 />
-              </Button>
+              </Button> */}
             </div>
 
             <div className="flex justify-between overflow-x-auto border-2 rounded-2xl p-3 h-30">
@@ -412,6 +412,29 @@ function ProductView() {
             {/* Stock Status */}
             <div className="mb-6">
               <p className="text-sm text-gray-600">{stockStatus}</p>
+              {selectedVariant && (
+                <div className="mt-2 flex items-center gap-4 text-sm">
+                  {selectedVariant.variantId?.identifier && (
+                    <span className="bg-gray-100 px-2 py-1 rounded">
+                      <span className="text-gray-500">Variant:</span>{" "}
+                      <span className="font-medium">
+                        {selectedVariant.variantId.identifier}
+                      </span>
+                    </span>
+                  )}
+                  <span
+                    className={`${
+                      selectedVariant.variantQuantity > 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {selectedVariant.variantQuantity > 0
+                      ? `${selectedVariant.variantQuantity} in stock`
+                      : "Out of stock"}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* {/* Variant Availability Warning */}
