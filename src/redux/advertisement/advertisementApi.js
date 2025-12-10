@@ -15,8 +15,20 @@ const advertisementApi = api.injectEndpoints({
       },
       invalidatesTags: ["Advertisement"],
     }),
+    getAdvertisementBanners: builder.query({
+      query: () => {
+        return {
+          url: `/shop?isAdvertised=true&fields=advertisement_banner,logo,name`,
+          method: "GET",
+        };
+      },
+      providesTags: ["Advertisement"],
+    }),
   }),
   overrideExisting: true,
 });
 
-export const { useToggleAdvertisementMutation } = advertisementApi;
+export const {
+  useToggleAdvertisementMutation,
+  useGetAdvertisementBannersQuery,
+} = advertisementApi;
