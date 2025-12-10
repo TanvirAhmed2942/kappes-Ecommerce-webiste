@@ -103,7 +103,7 @@ function AdvertisementBanner() {
                   }`}
                   alt={`${banner.shopName} Advertisement`}
                   fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
                   sizes="100vw"
                 />
                 {/* Overlay on hover */}

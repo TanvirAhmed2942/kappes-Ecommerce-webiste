@@ -13,7 +13,6 @@ function Home() {
       <PopularCategories />
       <AdvertisementBanner />
       <ProductRecomendation />
-      <AdvertisementBanner />
       <TrendingProduct />
     </div>
   );
