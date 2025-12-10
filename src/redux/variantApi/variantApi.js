@@ -28,7 +28,7 @@ const variantApi = api.injectEndpoints({
       query: (id) => {
         return {
           url: `/variant/single/${id}`,
-          method: "GET",
+        method: "GET",
         };
       },
       providesTags: ["variant"],

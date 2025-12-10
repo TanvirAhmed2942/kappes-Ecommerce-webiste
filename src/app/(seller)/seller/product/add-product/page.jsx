@@ -607,12 +607,12 @@ const AddProductForm = () => {
                           >
                             <div className="flex items-center justify-between">
                               <label className="flex items-start gap-3 cursor-pointer">
-                                <input
+                      <input
                                   type="checkbox"
                                   checked={isSelected}
                                   onChange={() => toggleVariant(variant)}
                                   className="mt-1 h-4 w-4 accent-red-600"
-                                />
+                      />
                                 <div className="flex-1">
                                   <p className="font-medium text-gray-900">
                                     {title}
@@ -626,8 +626,8 @@ const AddProductForm = () => {
                                     {variant.categoryId?.name} •{" "}
                                     {variant.subCategoryId?.name}
                                   </p>
-                                </div>
-                              </label>
+                      </div>
+                    </label>
                               <div className="flex items-center gap-2 justify-end">
                                 <button
                                   type="button"
@@ -648,16 +648,16 @@ const AddProductForm = () => {
                                 >
                                   <RiDeleteBin6Line />
                                 </button>
-                              </div>
-                            </div>
+                  </div>
+                </div>
                             {isSelected && (
                               <div className="grid grid-cols-2 gap-3">
-                                <div>
+                <div>
                                   <Label className="text-xs text-gray-600">
-                                    Variant Price
-                                  </Label>
-                                  <Input
-                                    type="number"
+                    Variant Price
+                  </Label>
+                  <Input
+                    type="number"
                                     min="0"
                                     value={
                                       selection.variantPrice ?? basePrice ?? ""
@@ -669,25 +669,25 @@ const AddProductForm = () => {
                                         e.target.value
                                       )
                                     }
-                                  />
-                                </div>
-                                <div>
+                  />
+                </div>
+                <div>
                                   <Label className="text-xs text-gray-600">
-                                    Variant Quantity
-                                  </Label>
+                    Variant Quantity
+                  </Label>
                                   <Input
-                                    type="number"
+                      type="number"
                                     min="1"
                                     value={selection.variantQuantity ?? 1}
-                                    onChange={(e) =>
+                      onChange={(e) =>
                                       updateVariantQuantity(
                                         variant._id,
                                         e.target.value
                                       )
-                                    }
+                        }
                                   />
-                                </div>
-                              </div>
+                    </div>
+                  </div>
                             )}
                           </div>
                         );

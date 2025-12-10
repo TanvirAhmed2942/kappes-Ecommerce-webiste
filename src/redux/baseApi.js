@@ -56,6 +56,7 @@ export const api = createApi({
     "TermsAndConditions",
     "StripeConnectedAccount",
     "Variant",
+    "Advertisement",
   ],
 });
 

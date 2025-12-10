@@ -23,9 +23,11 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { getImageUrl } from "../../redux/baseUrl";
 import { VscTag } from "react-icons/vsc";
-import { TbPackages } from "react-icons/tb";
+import { TbBoomFilled, TbPackages } from "react-icons/tb";
 import { BsBoxSeam } from "react-icons/bs";
+import { MdAdsClick } from "react-icons/md";
 import { useGetStoreInfoQuery } from "../../redux/sellerApi/storeInfoApi/storeInfoApi";
+
 const AppSidebar = () => {
   const [activeItem, setActiveItem] = useState("Overview");
   const pathname = usePathname();
@@ -54,6 +56,7 @@ const AppSidebar = () => {
     { icon: Store, label: "Store info", path: "/seller/store" },
     { icon: Heart, label: "Owner info", path: "/seller/owner" },
     { icon: Star, label: "Reviews", path: "/seller/review" },
+    { icon: MdAdsClick, label: "Advertisement", path: "/seller/advertise" },
     { icon: UserCog, label: "Admin Role", path: "/seller/admin" },
     { icon: Lock, label: "Change Password", path: "/seller/change-password" },
     { icon: LogOut, label: "Logout" },
@@ -70,6 +73,10 @@ const AppSidebar = () => {
         setStoreInfo({
           storeName: storeInfoData.data.name,
           storeLogo: storeInfoData.data.logo,
+          isAdvertised: storeInfoData.data.isAdvertised || false,
+          advertisedAt: storeInfoData.data.advertisedAt || null,
+          advertisedExpiresAt: storeInfoData.data.advertisedExpiresAt || null,
+          advertisementBanner: storeInfoData.data.advertisement_banner || [],
         })
       );
     }
@@ -138,7 +145,12 @@ const AppSidebar = () => {
               }`}
             >
               <Icon className="w-5 h-5" />
-              <span className="font-medium">{item.label}</span>
+              <span className="font-medium flex items-center justify-between w-full">
+                {item.label}
+                {item.label === "Advertisement" && storeInfo?.isAdvertised ? (
+                  <TbBoomFilled className="w-5 h-5 text-red-500 animate-pulse" />
+                ) : null}
+              </span>
             </button>
           );
         })}
