@@ -220,7 +220,7 @@ export default function ShopProductList({
                                 )}
                               </div>
 
-                              <button
+                              {/* <button
                                 className="absolute top-2 right-2 p-1 bg-white/80 rounded-full hover:bg-white transition-colors"
                                 onClick={(e) => toggleFavorite(product, e)}
                                 aria-label={
@@ -245,7 +245,7 @@ export default function ShopProductList({
                                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                                   />
                                 </svg>
-                              </button>
+                              </button> */}
                             </div>
 
                             <CardContent>

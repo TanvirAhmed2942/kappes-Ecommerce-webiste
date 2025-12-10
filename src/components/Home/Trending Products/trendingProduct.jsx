@@ -140,7 +140,7 @@ const TrendingProduct = () => {
                 className="relative bg-white rounded-xl shadow-sm p-0 overflow-hidden h-80 cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => router.push(`/product-page/${product._id}`)}
               >
-                {/* Heart Icon */}
+                {/* Heart Icon
                 <div
                   className="absolute top-3 right-3 text-red-500 text-xl cursor-pointer hover:scale-110 transition-transform z-10"
                   onClick={(e) => {
@@ -149,7 +149,7 @@ const TrendingProduct = () => {
                   }}
                 >
                   ♥
-                </div>
+                </div> */}
 
                 {/* Product Image */}
                 <div className="w-full h-52 flex justify-center items-center">
