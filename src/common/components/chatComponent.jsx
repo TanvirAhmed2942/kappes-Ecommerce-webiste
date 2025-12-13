@@ -21,7 +21,6 @@ import {
   openChat,
   pinChat,
   receiveMessage,
-  sendMessage,
 } from "../../features/chatSlice";
 import {
   useCreateMessageMutation,
@@ -38,7 +37,6 @@ function Chat() {
   const {
     isChatOpen,
     isMinimized,
-    messages: reduxMessages,
     unreadCount,
     currentSeller,
     isTyping,
@@ -60,13 +58,22 @@ function Chat() {
   );
 
   // Fetch messages from API when chat is open
+  // Use pagination parameters - page 1, limit 10
   const {
     data: messagesData,
     isLoading: isLoadingMessages,
     refetch,
-  } = useGetMessagesQuery(chatId, {
-    skip: !chatId || !isChatOpen, // Skip query if no chatId or chat is closed
-  });
+  } = useGetMessagesQuery(
+    {
+      chatId,
+      page: 1,
+      limit: 10,
+    },
+    {
+      skip: !chatId || !isChatOpen, // Skip query if no chatId or chat is closed
+      refetchOnMountOrArgChange: true,
+    }
+  );
 
   const [createMessage, { isLoading: isSendingMessage }] =
     useCreateMessageMutation();
@@ -108,25 +115,42 @@ function Chat() {
         );
       }
 
-      // Update RTK Query cache with the new message
+      // Update RTK Query cache with the new message (for page 1)
       dispatch(
-        api.util.updateQueryData("getMessages", chatId, (draft) => {
-          // Check if message already exists (avoid duplicates)
-          const messageExists = draft?.data?.messages?.some(
-            (msg) => msg._id === socketMessage._id
-          );
+        api.util.updateQueryData(
+          "getMessages",
+          { chatId, page: 1, limit: 10 },
+          (draft) => {
+            // Check if message already exists (avoid duplicates)
+            const messageExists = draft?.data?.messages?.some(
+              (msg) => msg._id === socketMessage._id
+            );
 
-          if (!messageExists) {
-            // Add new message to the messages array
-            if (draft?.data?.messages) {
-              draft.data.messages.push(socketMessage);
-            } else if (draft?.data) {
-              draft.data.messages = [socketMessage];
-            } else {
-              draft.data = { messages: [socketMessage] };
+            if (!messageExists) {
+              // Add new message to the messages array
+              if (draft?.data?.messages) {
+                draft.data.messages.push(socketMessage);
+                // Update meta total count
+                if (draft.data.meta) {
+                  draft.data.meta.total += 1;
+                }
+              } else if (draft?.data) {
+                draft.data.messages = [socketMessage];
+                draft.data.meta = {
+                  total: 1,
+                  page: 1,
+                  limit: 10,
+                  totalPage: 1,
+                };
+              } else {
+                draft.data = {
+                  messages: [socketMessage],
+                  meta: { total: 1, page: 1, limit: 10, totalPage: 1 },
+                };
+              }
             }
           }
-        })
+        )
       );
 
       // Scroll to bottom when new message arrives
@@ -145,9 +169,9 @@ function Chat() {
 
   useSocket(socketEventName, handleSocketMessage);
 
-  // Transform API messages to UI format or use Redux messages as fallback
+  // Transform API messages to UI format - ONLY use API messages, no Redux fallback
   const messages = useMemo(() => {
-    // If we have API messages, use them; otherwise fall back to Redux messages
+    // Only use API messages - no dummy/generated messages from Redux
     if (messagesData?.data?.messages && userId) {
       // Sort messages chronologically (oldest first)
       const sortedMessages = [...messagesData.data.messages].sort((a, b) => {
@@ -211,9 +235,9 @@ function Chat() {
       });
     }
 
-    // Fallback to Redux messages (for backward compatibility)
-    return reduxMessages || [];
-  }, [messagesData, userId, reduxMessages]);
+    // Return empty array if no API messages - no Redux fallback
+    return [];
+  }, [messagesData, userId]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -266,8 +290,8 @@ function Chat() {
         setSelectedImage(null);
         setImagePreview(null);
 
-        // Also dispatch to Redux for immediate UI update (fallback)
-        dispatch(sendMessage(newMessage));
+        // Messages will automatically refetch due to cache invalidation
+        // No need to dispatch to Redux - we only use API messages
       } else {
         toast.showError(response?.message || "Failed to send message");
       }
