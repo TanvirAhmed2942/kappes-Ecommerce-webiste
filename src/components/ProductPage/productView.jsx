@@ -25,7 +25,7 @@ import { useCart } from "../../hooks/useCart";
 import { useCreateChatMutation } from "../../redux/shopuserChatApi/shopuserChatApi";
 import useAuth from "../../hooks/useAuth";
 
-function ProductView() {
+export default React.memo(function ProductView() {
   const dispatch = useDispatch();
   const router = useRouter();
   const toast = useToast();
@@ -92,13 +92,7 @@ function ProductView() {
   // Update selected variant when specifications change
   useEffect(() => {
     updateSelectedVariant();
-  }, [
-    selectedColor,
-    selectedStorage,
-    selectedRam,
-    selectedSize,
-    updateSelectedVariant,
-  ]);
+  }, [selectedColor, selectedStorage, selectedRam, selectedSize, updateSelectedVariant]);
 
   // Update size when color changes
   useEffect(() => {
@@ -691,6 +685,4 @@ function ProductView() {
       </div>
     </>
   );
-}
-
-export default ProductView;
+});

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setSelectedCategory,
@@ -132,52 +132,64 @@ function FilterContent() {
     );
   };
 
-  const handleMinPriceChange = (e) => {
-    const value = e.target.value;
-    // Only allow numbers
-    if (value === "" || /^\d+$/.test(value)) {
-      const numValue = value === "" ? 0 : parseInt(value, 10);
-      const clampedValue = Math.max(
-        0,
-        Math.min(numValue, priceRange[1], 10000)
-      );
+  const handleMinPriceChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      // Only allow numbers
+      if (value === "" || /^\d+$/.test(value)) {
+        const numValue = value === "" ? 0 : parseInt(value, 10);
+        const clampedValue = Math.max(
+          0,
+          Math.min(numValue, priceRange[1], 10000)
+        );
+        setPriceRangeState([clampedValue, priceRange[1]]);
+      }
+    },
+    [priceRange]
+  );
+
+  const handleMaxPriceChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      // Only allow numbers
+      if (value === "" || /^\d+$/.test(value)) {
+        const numValue = value === "" ? 10000 : parseInt(value, 10);
+        const clampedValue = Math.min(
+          10000,
+          Math.max(numValue, priceRange[0], 0)
+        );
+        setPriceRangeState([priceRange[0], clampedValue]);
+      }
+    },
+    [priceRange]
+  );
+
+  const handleMinPriceBlur = useCallback(
+    (e) => {
+      const value = parseInt(e.target.value, 10) || 0;
+      const clampedValue = Math.max(0, Math.min(value, priceRange[1], 10000));
       setPriceRangeState([clampedValue, priceRange[1]]);
-    }
-  };
+    },
+    [priceRange]
+  );
 
-  const handleMaxPriceChange = (e) => {
-    const value = e.target.value;
-    // Only allow numbers
-    if (value === "" || /^\d+$/.test(value)) {
-      const numValue = value === "" ? 10000 : parseInt(value, 10);
-      const clampedValue = Math.min(
-        10000,
-        Math.max(numValue, priceRange[0], 0)
-      );
+  const handleMaxPriceBlur = useCallback(
+    (e) => {
+      const value = parseInt(e.target.value, 10) || 10000;
+      const clampedValue = Math.min(10000, Math.max(value, priceRange[0], 0));
       setPriceRangeState([priceRange[0], clampedValue]);
-    }
-  };
+    },
+    [priceRange]
+  );
 
-  const handleMinPriceBlur = (e) => {
-    const value = parseInt(e.target.value, 10) || 0;
-    const clampedValue = Math.max(0, Math.min(value, priceRange[1], 10000));
-    setPriceRangeState([clampedValue, priceRange[1]]);
-  };
-
-  const handleMaxPriceBlur = (e) => {
-    const value = parseInt(e.target.value, 10) || 10000;
-    const clampedValue = Math.min(10000, Math.max(value, priceRange[0], 0));
-    setPriceRangeState([priceRange[0], clampedValue]);
-  };
-
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setCheckedCategories([]);
     setPriceRangeState([0, 10000]);
     setTerritory([]);
     setProvince([]);
     setCity([]);
     dispatch(resetFilters());
-  };
+  }, [dispatch]);
 
   return (
     <div className="w-full max-w-md space-y-4 ">
@@ -333,7 +345,7 @@ function FilterContent() {
   );
 }
 
-function Filter({ filterVisible = true }) {
+export default React.memo(function Filter({ filterVisible = true }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
@@ -371,6 +383,4 @@ function Filter({ filterVisible = true }) {
       </div>
     </>
   );
-}
-
-export default Filter;
+});

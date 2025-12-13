@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Card, CardContent } from "../../components/ui/card";
 import { Progress } from "../../components/ui/progress";
 import { Star } from "lucide-react";
@@ -9,56 +9,62 @@ import { getImageUrl } from "../../redux/baseUrl";
 import ReviewModal from "./ReviewModal";
 import { useParams } from "next/navigation";
 
-function ReviewAndFeedback() {
+export default React.memo(function ReviewAndFeedback() {
   const { reviews, isLoading, error } = useProductReviews();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const params = useParams();
   const productId = params?.id;
 
   // Calculate review summary from actual reviews
-  const reviewSummary = useMemo(() => {
-    if (!reviews || reviews.length === 0) {
-      return {
-        average: 0,
-        total: 0,
-        distribution: [
-          { stars: 5, count: 0 },
-          { stars: 4, count: 0 },
-          { stars: 3, count: 0 },
-          { stars: 2, count: 0 },
-          { stars: 1, count: 0 },
-        ],
-      };
-    }
-
-    // Calculate average rating
-    const total = reviews.length;
-    const sumRatings = reviews.reduce((sum, review) => sum + review.rating, 0);
-    const average = total > 0 ? sumRatings / total : 0;
-
-    // Calculate distribution
-    const distribution = [
-      { stars: 5, count: 0 },
-      { stars: 4, count: 0 },
-      { stars: 3, count: 0 },
-      { stars: 2, count: 0 },
-      { stars: 1, count: 0 },
-    ];
-
-    reviews.forEach((review) => {
-      const rating = Math.round(review.rating);
-      const index = 5 - rating;
-      if (index >= 0 && index < 5) {
-        distribution[index].count++;
+  const reviewSummary = useCallback(
+    (reviews) => {
+      if (!reviews || reviews.length === 0) {
+        return {
+          average: 0,
+          total: 0,
+          distribution: [
+            { stars: 5, count: 0 },
+            { stars: 4, count: 0 },
+            { stars: 3, count: 0 },
+            { stars: 2, count: 0 },
+            { stars: 1, count: 0 },
+          ],
+        };
       }
-    });
 
-    return {
-      average: parseFloat(average.toFixed(1)),
-      total,
-      distribution,
-    };
-  }, [reviews]);
+      // Calculate average rating
+      const total = reviews.length;
+      const sumRatings = reviews.reduce(
+        (sum, review) => sum + review.rating,
+        0
+      );
+      const average = total > 0 ? sumRatings / total : 0;
+
+      // Calculate distribution
+      const distribution = [
+        { stars: 5, count: 0 },
+        { stars: 4, count: 0 },
+        { stars: 3, count: 0 },
+        { stars: 2, count: 0 },
+        { stars: 1, count: 0 },
+      ];
+
+      reviews.forEach((review) => {
+        const rating = Math.round(review.rating);
+        const index = 5 - rating;
+        if (index >= 0 && index < 5) {
+          distribution[index].count++;
+        }
+      });
+
+      return {
+        average: parseFloat(average.toFixed(1)),
+        total,
+        distribution,
+      };
+    },
+    [reviews]
+  );
 
   // Format date function
   const formatDate = (dateString) => {
@@ -162,27 +168,29 @@ function ReviewAndFeedback() {
           <div className="flex flex-col items-start">
             <div className="flex items-baseline">
               <span className="text-5xl font-bold">
-                {reviewSummary.average}
+                {reviewSummary(reviews).average}
               </span>
               <span className="text-xl text-gray-500 ml-1">/5</span>
             </div>
 
             <div className="flex text-yellow-400 my-2">
-              <StarRating rating={Math.round(reviewSummary.average)} />
+              <StarRating rating={Math.round(reviewSummary(reviews).average)} />
             </div>
 
             <div className="text-sm text-gray-500 mb-4">
-              {reviewSummary.total} Reviews
+              {reviewSummary(reviews).total} Reviews
             </div>
 
             {/* Rating Distribution */}
             <div className="w-full space-y-2">
-              {reviewSummary.distribution.map((item) => (
+              {reviewSummary(reviews).distribution.map((item) => (
                 <div key={item.stars} className="flex items-center gap-2">
                   <span className="w-3">{item.stars}</span>
                   <Star size={16} className="text-yellow-400 fill-yellow-400" />
                   <Progress
-                    value={(item.count / (reviewSummary.total || 1)) * 100}
+                    value={
+                      (item.count / (reviewSummary(reviews).total || 1)) * 100
+                    }
                     className="h-2 flex-1 inset-shadow-sm inset-shadow-white"
                   />
                   <span className="text-sm text-gray-500 w-8">
@@ -247,6 +255,4 @@ function ReviewAndFeedback() {
       />
     </div>
   );
-}
-
-export default ReviewAndFeedback;
+});

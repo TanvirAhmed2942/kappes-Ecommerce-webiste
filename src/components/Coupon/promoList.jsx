@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Calendar } from "lucide-react";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -44,46 +44,48 @@ const PromoCodeList = () => {
   };
 
   // Map API response to UI structure
-  const promos =
-    couponsData?.success && couponsData?.data?.result
-      ? couponsData.data.result.map((coupon) => {
-          // Extract shop information if available
-          const shop = coupon.shop || coupon.shopId;
-          const shopLogo =
-            shop?.logo || shop?.image || coupon.logo || coupon.image || null;
-          const shopName =
-            shop?.name ||
-            shop?.storeName ||
-            coupon.shopName ||
-            "The Canuck Mall";
+  const promos = useMemo(() => {
+    if (couponsData?.success && couponsData?.data?.result) {
+      return couponsData.data.result.map((coupon) => {
+        // Extract shop information if available
+        const shop = coupon.shop || coupon.shopId;
+        const shopLogo =
+          shop?.logo || shop?.image || coupon.logo || coupon.image || null;
+        const shopName =
+          shop?.name || shop?.storeName || coupon.shopName || "The Canuck Mall";
 
-          return {
-            id: coupon._id || "N/A",
-            title: shopName,
-            image: shopLogo || "/assets/logo.png", // Use shop logo if available, otherwise default logo
-            expiry: formatDate(coupon.endDate),
-            discount: formatDiscount(
-              coupon.discountType,
-              coupon.discountValue,
-              coupon.maxDiscountAmount
-            ),
-            description: coupon.description || "N/A",
-            code: coupon.code || "N/A",
-            minOrderAmount: coupon.minOrderAmount || 0,
-            maxDiscountAmount: coupon.maxDiscountAmount || 0,
-            discountType: coupon.discountType || "N/A",
-            discountValue: coupon.discountValue || 0,
-            startDate: coupon.startDate || "N/A",
-            endDate: coupon.endDate || "N/A",
-            isActive: coupon.isActive ?? true,
-          };
-        })
-      : [];
+        return {
+          id: coupon._id || "N/A",
+          title: shopName,
+          image: shopLogo || "/assets/logo.png", // Use shop logo if available, otherwise default logo
+          expiry: formatDate(coupon.endDate),
+          discount: formatDiscount(
+            coupon.discountType,
+            coupon.discountValue,
+            coupon.maxDiscountAmount
+          ),
+          description: coupon.description || "N/A",
+          code: coupon.code || "N/A",
+          minOrderAmount: coupon.minOrderAmount || 0,
+          maxDiscountAmount: coupon.maxDiscountAmount || 0,
+          discountType: coupon.discountType || "N/A",
+          discountValue: coupon.discountValue || 0,
+          startDate: coupon.startDate || "N/A",
+          endDate: coupon.endDate || "N/A",
+          isActive: coupon.isActive ?? true,
+        };
+      });
+    }
+    return [];
+  }, [couponsData]);
 
-  const handleShowPromoCode = (promo) => {
-    setSelectedPromo(promo);
-    setIsModalOpen(true);
-  };
+  const handleShowPromoCode = useCallback(
+    (promo) => {
+      setSelectedPromo(promo);
+      setIsModalOpen(true);
+    },
+    [setSelectedPromo, setIsModalOpen]
+  );
 
   if (isLoading) {
     return (
@@ -105,7 +107,7 @@ const PromoCodeList = () => {
     );
   }
 
-  if (promos.length === 0) {
+  if (!promos || promos?.length === 0) {
     return (
       <div className="container mx-auto p-4 w-full">
         <div className="flex justify-center items-center min-h-[200px] text-gray-500">
@@ -117,7 +119,7 @@ const PromoCodeList = () => {
 
   return (
     <div className="container mx-auto p-4 w-full">
-      {promos.map((promo) => (
+      {promos?.map((promo) => (
         <PromoCodeCard
           key={promo.id}
           promo={promo}

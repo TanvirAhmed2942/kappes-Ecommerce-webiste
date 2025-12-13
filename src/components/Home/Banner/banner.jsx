@@ -9,7 +9,7 @@ import Image from "next/image";
 import { useGetBannerLogoQuery } from "../../../redux/bannerlogoApi/bannerlogoApi";
 import { getImageUrl } from "../../../redux/baseUrl";
 
-export default function Banner() {
+export default React.memo(function Banner() {
   const { data: bannerLogo, isLoading } = useGetBannerLogoQuery();
 
   // Get banners from API response
@@ -89,4 +89,4 @@ export default function Banner() {
       `}</style>
     </div>
   );
-}
+});

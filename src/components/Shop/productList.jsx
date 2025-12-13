@@ -2,32 +2,20 @@
 import useVirtualizedList from "../../hooks/VirtualizedList";
 import Image from "next/image";
 import { FiFilter } from "react-icons/fi";
-import { Button } from "../../components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectGroup,
-  SelectLabel,
-  SelectValue,
-} from "../../components/ui/select";
+
 import { Card, CardContent } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import { Skeleton } from "../../components/ui/skeleton";
 import Link from "next/link";
 import { getImageUrl } from "../../redux/baseUrl";
+import React from "react";
 
-export default function ShopProductList({
+export default React.memo(function ShopProductList({
   products = [], // Default to empty array
   isLoading = false,
   error = null,
   filterVisible = false,
   handleFilterVisible = () => {},
-  sortOption = "featured",
-  setSortOption = () => {},
-  toggleFavorite = () => {},
-  favoritesMap = {},
   getProductPrice = () => 0,
   hasDiscountedPrice = () => false,
 }) {
@@ -303,4 +291,4 @@ export default function ShopProductList({
       )}
     </div>
   );
-}
+});
