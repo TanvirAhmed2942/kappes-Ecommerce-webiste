@@ -231,9 +231,12 @@ const productApi = api.injectEndpoints({
       },
     }),
     getFavProducts: builder.query({
-      query: () => {
+      query: ({ page = 1, limit = 10 } = {}) => {
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("limit", limit.toString());
         return {
-          url: `/wishlist`,
+          url: `/wishlist?${params.toString()}`,
           method: "GET",
         };
       },

@@ -11,7 +11,7 @@ import {
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import { Eye } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   useCancelOrderMutation,
   useGetMyOrdersQuery,
@@ -23,9 +23,26 @@ import useToast from "../../../hooks/useShowToast";
 
 export default function OrderHistory({ selectedMenu }) {
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data: ordersResponse, isLoading, error } = useGetMyOrdersQuery();
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  // Fetch orders with pagination and search from API
+  const {
+    data: ordersResponse,
+    isLoading,
+    error,
+  } = useGetMyOrdersQuery({
+    page: currentPage,
+    limit: 10,
+    searchTerm: search,
+  });
+
   const [cancelOrder, { isLoading: cancelOrderLoading }] =
     useCancelOrderMutation();
   const { showSuccess, showError } = useToast();
@@ -78,6 +95,16 @@ export default function OrderHistory({ selectedMenu }) {
       fullOrderData: order,
     }));
   }, [ordersResponse]);
+
+  // Extract pagination meta from API response
+  const paginationMeta = ordersResponse?.data?.meta || {
+    total: 0,
+    limit: 10,
+    page: 1,
+    totalPage: 1,
+  };
+
+  const totalPages = paginationMeta.totalPage || 1;
 
   // Handle view order details
   const handleViewOrder = (order) => {
@@ -197,8 +224,8 @@ export default function OrderHistory({ selectedMenu }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredOrders.length > 0 ? (
-              filteredOrders.map((order) => (
+            {orders.length > 0 ? (
+              orders.map((order) => (
                 <TableRow key={order._id}>
                   <TableCell className="font-medium">{order.orderNo}</TableCell>
                   <TableCell>{order.date}</TableCell>
@@ -250,45 +277,72 @@ export default function OrderHistory({ selectedMenu }) {
         </Table>
       </div>
 
-      {ordersResponse?.data?.meta && ordersResponse.data.meta.totalPage > 1 && (
-        <div className="flex flex-wrap justify-end items-center gap-2 mt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={ordersResponse.data.meta.page === 1}
-          >
-            Prev
-          </Button>
-          {Array.from({ length: ordersResponse.data.meta.totalPage }).map(
-            (_, idx) => (
+      {orders.length > 0 && paginationMeta && (
+        <div className="flex flex-wrap justify-between items-center gap-2 mt-4">
+          <div className="text-sm text-gray-600">
+            Showing {orders.length} of {paginationMeta.total || orders.length}{" "}
+            orders
+            {search && ` (filtered by "${search}")`}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex flex-wrap justify-end items-center gap-2">
               <Button
-                key={idx + 1}
+                variant="outline"
                 size="sm"
-                variant={
-                  ordersResponse.data.meta.page === idx + 1
-                    ? "default"
-                    : "outline"
-                }
-                className={
-                  ordersResponse.data.meta.page === idx + 1
-                    ? "bg-[#AF1500] text-white hover:bg-[#8c1100]"
-                    : ""
-                }
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1 || isLoading}
               >
-                {idx + 1}
+                Prev
               </Button>
-            )
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                const pageNum = i + 1;
+                return (
+                  <Button
+                    key={pageNum}
+                    size="sm"
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    onClick={() => setCurrentPage(pageNum)}
+                    disabled={isLoading}
+                    className={
+                      currentPage === pageNum
+                        ? "bg-[#AF1500] text-white hover:bg-[#8c1100]"
+                        : ""
+                    }
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+              {totalPages > 5 && (
+                <>
+                  <span className="px-2">...</span>
+                  <Button
+                    size="sm"
+                    variant={currentPage === totalPages ? "default" : "outline"}
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={isLoading}
+                    className={
+                      currentPage === totalPages
+                        ? "bg-[#AF1500] text-white hover:bg-[#8c1100]"
+                        : ""
+                    }
+                  >
+                    {totalPages}
+                  </Button>
+                </>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                }
+                disabled={currentPage === totalPages || isLoading}
+              >
+                Next
+              </Button>
+            </div>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={
-              ordersResponse.data.meta.page ===
-              ordersResponse.data.meta.totalPage
-            }
-          >
-            Next
-          </Button>
         </div>
       )}
 

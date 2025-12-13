@@ -1,105 +1,58 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import WishListCard from "./wishListCard";
-import useFavProducts from "../../../hooks/useFavProducts";
 import { useGetFavProductsQuery } from "../../../redux/productApi/productApi";
+import { Button } from "../../../components/ui/button";
 
 function WishList({ selectedMenu }) {
-  // All hooks must be called before any conditional returns
-  const { favProducts, isLoading, error, refetch } = useFavProducts();
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Also get the raw API data as fallback
-  const { data: rawApiData } = useGetFavProductsQuery();
+  // Fetch wishlist with pagination from API
+  const {
+    data: rawApiData,
+    isLoading,
+    error,
+  } = useGetFavProductsQuery({
+    page: currentPage,
+    limit: 10,
+  });
 
-  // Debug: Log the data to see what we're getting
-  React.useEffect(() => {
-    // console.log("=== WishList Debug ===");
-    // console.log("favProducts from hook:", favProducts);
-    // console.log("favProducts type:", typeof favProducts);
-    // console.log("favProducts isArray:", Array.isArray(favProducts));
-    // console.log("favProducts length:", favProducts?.length);
-    // console.log("rawApiData:", rawApiData);
-    // console.log("isLoading:", isLoading);
-    // console.log("error:", error);
-  }, [favProducts, isLoading, error, rawApiData]);
-
-  // Extract products from wishlist items (handle different API response structures)
+  // Extract products from wishlist items - response structure: data.result.items
   const products = React.useMemo(() => {
-    // First try to use favProducts from Redux
-    let sourceData = favProducts;
-
-    // If favProducts is empty but we have raw API data, use that as fallback
-    if ((!sourceData || sourceData.length === 0) && rawApiData) {
-      console.log("Using rawApiData as fallback");
-      // Extract from raw API response - handle the structure: data.result
-      sourceData =
-        rawApiData?.data?.result ||
-        rawApiData?.data?.wishlist ||
-        rawApiData?.wishlist ||
-        rawApiData?.data ||
-        (Array.isArray(rawApiData) ? rawApiData : []);
-
-      // If result is an object, it might have an array property
-      if (
-        sourceData &&
-        typeof sourceData === "object" &&
-        !Array.isArray(sourceData)
-      ) {
-        // Try common array property names
-        sourceData =
-          sourceData.wishlist ||
-          sourceData.items ||
-          sourceData.products ||
-          sourceData.data ||
-          [];
-      }
-    }
-
-    if (!sourceData || !Array.isArray(sourceData)) {
-      console.log("No valid source data found. sourceData:", sourceData);
+    if (!rawApiData?.success || !rawApiData?.data?.result?.items) {
       return [];
     }
 
-    console.log("Processing sourceData:", sourceData);
-    console.log("SourceData length:", sourceData.length);
+    const items = rawApiData.data.result.items;
+    if (!Array.isArray(items)) {
+      return [];
+    }
 
-    const extracted = sourceData
-      .map((item, index) => {
-        // Handle different response structures:
-        // 1. item.productId (if wishlist item has productId field with product object)
-        // 2. item.product (if wishlist item has product field)
-        // 3. item itself (if it's already a product object)
-        let product = item;
-
-        // Check if item has nested product
-        if (item.productId && typeof item.productId === "object") {
-          product = item.productId;
-        } else if (item.product && typeof item.product === "object") {
-          product = item.product;
-        }
-
-        // If product is an object with _id or id, it's valid
+    return items
+      .map((item) => {
+        // Extract product from item.product
+        const product = item?.product;
         if (
           product &&
           typeof product === "object" &&
           (product._id || product.id)
         ) {
-          console.log(
-            `Product ${index} extracted:`,
-            product._id || product.id,
-            product.name || "No name"
-          );
           return product;
         }
-
-        console.log(`Product ${index} invalid:`, item);
         return null;
       })
       .filter(Boolean); // Remove null/undefined entries
+  }, [rawApiData]);
 
-    console.log("Final extracted products:", extracted.length);
-    return extracted;
-  }, [favProducts, rawApiData]);
+  // Extract pagination meta from API response
+  const paginationMeta = rawApiData?.data?.meta || {
+    total: 0,
+    limit: 10,
+    page: 1,
+    totalPage: 1,
+  };
+
+  const totalPages = paginationMeta.totalPage || 1;
 
   // Early return if not the right menu (after all hooks)
   if (selectedMenu !== 3) {
@@ -144,8 +97,8 @@ function WishList({ selectedMenu }) {
       <div className="mb-4">
         <h2 className="text-2xl font-bold text-gray-800">My Wishlist</h2>
         <p className="text-gray-600">
-          {products.length} {products.length === 1 ? "item" : "items"} in your
-          wishlist
+          {paginationMeta.total || products.length}{" "}
+          {paginationMeta.total === 1 ? "item" : "items"} in your wishlist
         </p>
       </div>
 
@@ -186,6 +139,73 @@ function WishList({ selectedMenu }) {
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {products.length > 0 && paginationMeta && totalPages > 1 && (
+        <div className="flex flex-wrap justify-between items-center gap-2 mt-6">
+          <div className="text-sm text-gray-600">
+            Showing {products.length} of{" "}
+            {paginationMeta.total || products.length} items
+          </div>
+          <div className="flex flex-wrap justify-end items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1 || isLoading}
+            >
+              Prev
+            </Button>
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+              const pageNum = i + 1;
+              return (
+                <Button
+                  key={pageNum}
+                  size="sm"
+                  variant={currentPage === pageNum ? "default" : "outline"}
+                  onClick={() => setCurrentPage(pageNum)}
+                  disabled={isLoading}
+                  className={
+                    currentPage === pageNum
+                      ? "bg-[#AF1500] text-white hover:bg-[#8c1100]"
+                      : ""
+                  }
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+            {totalPages > 5 && (
+              <>
+                <span className="px-2">...</span>
+                <Button
+                  size="sm"
+                  variant={currentPage === totalPages ? "default" : "outline"}
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={isLoading}
+                  className={
+                    currentPage === totalPages
+                      ? "bg-[#AF1500] text-white hover:bg-[#8c1100]"
+                      : ""
+                  }
+                >
+                  {totalPages}
+                </Button>
+              </>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setCurrentPage(Math.min(totalPages, currentPage + 1))
+              }
+              disabled={currentPage === totalPages || isLoading}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
