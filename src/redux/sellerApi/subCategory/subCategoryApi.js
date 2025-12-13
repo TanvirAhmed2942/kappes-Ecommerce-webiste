@@ -1,15 +1,21 @@
-import { api } from '../../baseApi';
+import { api } from "../../baseApi";
 
 const subCategoryApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getAllSubCategory: builder.query({
-      query: () => {
+      query: ({ page = 1, limit = 10, searchTerm = "" } = {}) => {
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("limit", limit.toString());
+        if (searchTerm && searchTerm.trim()) {
+          params.append("searchTerm", searchTerm.trim());
+        }
         return {
-          url: `/subcategory`,
+          url: `/subcategory?${params.toString()}`,
           method: "GET",
         };
       },
-      providesTags: ['subcategory'],
+      providesTags: ["subcategory"],
     }),
 
     getSubCategoryById: builder.query({
@@ -19,7 +25,7 @@ const subCategoryApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['subcategory'],
+      providesTags: ["subcategory"],
     }),
 
     getSubCategoryReletedToCategory: builder.query({
@@ -29,7 +35,7 @@ const subCategoryApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['subcategory'],
+      providesTags: ["subcategory"],
     }),
 
     createSubcategory: builder.mutation({
@@ -40,7 +46,7 @@ const subCategoryApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ['subcategory'],
+      invalidatesTags: ["subcategory"],
     }),
 
     updateSubcategory: builder.mutation({
@@ -51,7 +57,7 @@ const subCategoryApi = api.injectEndpoints({
           body: data,
         };
       },
-      invalidatesTags: ['subcategory'],
+      invalidatesTags: ["subcategory"],
     }),
 
     deleteSubcategory: builder.mutation({
@@ -61,7 +67,7 @@ const subCategoryApi = api.injectEndpoints({
           method: "DELETE",
         };
       },
-      invalidatesTags: ['subcategory'],
+      invalidatesTags: ["subcategory"],
     }),
   }),
   overrideExisting: true,

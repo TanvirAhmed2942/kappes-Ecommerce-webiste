@@ -3,13 +3,18 @@ import { api } from "../../baseApi";
 const productApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getAllProduct: builder.query({
-      query: (id, searchTerm) => {
-        const url = searchTerm
-          ? `/product/shop/${id}?searchTerm=${searchTerm}`
-          : `/product/shop/${id}`;
-
+      query: ({ shopId, page = 1, limit = 10, searchTerm = "" } = {}) => {
+        if (!shopId) {
+          throw new Error("Shop ID is required");
+        }
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("limit", limit.toString());
+        if (searchTerm && searchTerm.trim()) {
+          params.append("searchTerm", searchTerm.trim());
+        }
         return {
-          url,
+          url: `/product/shop/${shopId}?${params.toString()}`,
           method: "GET",
         };
       },

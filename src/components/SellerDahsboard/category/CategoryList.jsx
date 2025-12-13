@@ -13,7 +13,7 @@ import {
 } from "../../../components/ui/table";
 import { Edit, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   useGetAllCategoryQuery,
   useDeleteCategoryMutation,
@@ -29,12 +29,24 @@ const CategoryList = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const router = useRouter();
   const toast = useToast();
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Fetch categories with pagination and search from API
   const {
     data: categoriesData,
     isLoading,
     error,
     refetch,
-  } = useGetAllCategoryQuery();
+  } = useGetAllCategoryQuery({
+    page: currentPage,
+    limit: 10,
+    searchTerm: searchTerm,
+  });
+
   const [deleteCategory, { isLoading: isDeleting }] =
     useDeleteCategoryMutation();
 
@@ -42,36 +54,17 @@ const CategoryList = () => {
   // Response structure: { success: true, data: { categorys: [...], meta: {...} } }
   const categories = Array.isArray(categoriesData?.data?.categorys)
     ? categoriesData.data.categorys
-    : Array.isArray(categoriesData?.data)
-    ? categoriesData.data
-    : Array.isArray(categoriesData)
-    ? categoriesData
     : [];
 
-  const filteredCategories = useMemo(() => {
-    // Ensure categories is an array before filtering
-    if (!Array.isArray(categories)) {
-      return [];
-    }
+  // Extract pagination meta from API response
+  const paginationMeta = categoriesData?.data?.meta || {
+    total: 0,
+    limit: 10,
+    page: 1,
+    totalPage: 1,
+  };
 
-    if (!searchTerm.trim()) {
-      return categories;
-    }
-
-    const searchLower = searchTerm.toLowerCase();
-    return categories.filter(
-      (category) =>
-        category?.name?.toLowerCase().includes(searchLower) ||
-        category?.description?.toLowerCase().includes(searchLower)
-    );
-  }, [categories, searchTerm]);
-
-  // Pagination logic
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedCategories = filteredCategories.slice(startIndex, endIndex);
+  const totalPages = paginationMeta.totalPage || 1;
 
   const getImageSrc = (imagePath) => {
     if (!imagePath) return "/placeholder-image.png";
@@ -160,14 +153,14 @@ const CategoryList = () => {
                     Please check your connection and try again.
                   </div>
                 </div>
-              ) : !Array.isArray(filteredCategories) ? (
+              ) : !Array.isArray(categories) ? (
                 <div className="text-center py-8 text-red-600">
                   Invalid data format received from server.
                   <div className="text-xs mt-2 text-gray-500">
-                    Expected array but got: {typeof filteredCategories}
+                    Expected array but got: {typeof categories}
                   </div>
                 </div>
-              ) : filteredCategories.length === 0 ? (
+              ) : categories.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   {searchTerm
                     ? "No categories found matching your search"
@@ -198,8 +191,8 @@ const CategoryList = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Array.isArray(paginatedCategories) &&
-                      paginatedCategories.map((category) => (
+                    {Array.isArray(categories) &&
+                      categories.map((category) => (
                         <TableRow key={category?._id || Math.random()}>
                           <TableCell className="text-gray-900 font-medium">
                             {category?.name || "N/A"}
@@ -279,59 +272,70 @@ const CategoryList = () => {
             </div>
 
             {/* Pagination */}
-            {filteredCategories.length > 0 && (
-              <div className="p-6 border-t border-gray-200 flex justify-end items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Prev
-                </Button>
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  const pageNum = i + 1;
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={
-                        currentPage === pageNum
-                          ? "bg-red-700 hover:bg-red-800"
-                          : ""
-                      }
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-                {totalPages > 5 && (
-                  <>
-                    <span className="px-2">...</span>
-                    <Button
-                      variant={
-                        currentPage === totalPages ? "default" : "outline"
-                      }
-                      onClick={() => setCurrentPage(totalPages)}
-                      className={
-                        currentPage === totalPages
-                          ? "bg-red-700 hover:bg-red-800"
-                          : ""
-                      }
-                    >
-                      {totalPages}
-                    </Button>
-                  </>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
+            {categories.length > 0 && paginationMeta.total > 0 && (
+              <div className="p-6 border-t border-gray-200 flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  Showing {categories.length} of {paginationMeta.total}{" "}
+                  categories
+                  {searchTerm && ` (filtered by "${searchTerm}")`}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1 || isLoading}
+                  >
+                    Prev
+                  </Button>
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={
+                          currentPage === pageNum ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(pageNum)}
+                        disabled={isLoading}
+                        className={
+                          currentPage === pageNum
+                            ? "bg-red-700 hover:bg-red-800"
+                            : ""
+                        }
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  {totalPages > 5 && (
+                    <>
+                      <span className="px-2">...</span>
+                      <Button
+                        variant={
+                          currentPage === totalPages ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={isLoading}
+                        className={
+                          currentPage === totalPages
+                            ? "bg-red-700 hover:bg-red-800"
+                            : ""
+                        }
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
+                    disabled={currentPage === totalPages || isLoading}
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

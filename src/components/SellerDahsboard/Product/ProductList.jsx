@@ -2,7 +2,7 @@
 
 import { Edit, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../../../components/ui/button";
 import { Card, CardContent } from "../../../components/ui/card";
 import {
@@ -38,18 +38,33 @@ const ProductList = () => {
   const router = useRouter();
   const shopId = localStorage.getItem("shop");
 
-  const { data, isLoading, error } = useGetAllProductQuery(shopId, searchTerm);
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Fetch products with pagination and search from API
+  const { data, isLoading, error, refetch } = useGetAllProductQuery({
+    shopId,
+    page: currentPage,
+    limit: 10,
+    searchTerm: searchTerm,
+  });
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
 
-  // Handle different response structures
-  const products =
-    data?.data?.result || data?.data?.products || data?.result || [];
-  const meta = data?.data?.meta || {
+  // Extract products from API response
+  // Response structure: { success: true, data: { result: [...], meta: {...} } }
+  const products = Array.isArray(data?.data?.result) ? data.data.result : [];
+
+  // Extract pagination meta from API response
+  const paginationMeta = data?.data?.meta || {
     total: 0,
+    limit: 10,
     page: 1,
     totalPage: 1,
-    limit: 10,
   };
+
+  const totalPages = paginationMeta.totalPage || 1;
 
   const handleView = (product) => {
     setSelectedProduct(product);
@@ -70,6 +85,8 @@ const ProductList = () => {
       await deleteProduct(productIdToDelete).unwrap();
       setShowDeleteModal(false);
       setProductIdToDelete(null);
+      // Refetch products after deletion
+      refetch();
       alert("Product deleted successfully!");
     } catch (error) {
       alert(
@@ -231,10 +248,11 @@ const ProductList = () => {
               )}
             </div>
 
-            {meta.totalPage > 1 && (
+            {products.length > 0 && paginationMeta.total > 0 && (
               <div className="p-6 border-t border-gray-200 flex justify-between items-center">
                 <div className="text-sm text-gray-600">
-                  Showing {products.length} of {meta.total} products
+                  Showing {products.length} of {paginationMeta.total} products
+                  {searchTerm && ` (filtered by "${searchTerm}")`}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -244,32 +262,51 @@ const ProductList = () => {
                   >
                     Prev
                   </Button>
-                  {[...Array(Math.min(meta.totalPage, 10))].map((_, i) => {
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                     const pageNum = i + 1;
                     return (
                       <Button
-                        key={i}
+                        key={pageNum}
                         variant={
                           currentPage === pageNum ? "default" : "outline"
                         }
                         onClick={() => setCurrentPage(pageNum)}
+                        disabled={isLoading}
                         className={
                           currentPage === pageNum
-                            ? "bg-red-700 hover:bg-red-800 text-white"
+                            ? "bg-red-700 hover:bg-red-800"
                             : ""
                         }
-                        disabled={isLoading}
                       >
                         {pageNum}
                       </Button>
                     );
                   })}
+                  {totalPages > 5 && (
+                    <>
+                      <span className="px-2">...</span>
+                      <Button
+                        variant={
+                          currentPage === totalPages ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={isLoading}
+                        className={
+                          currentPage === totalPages
+                            ? "bg-red-700 hover:bg-red-800"
+                            : ""
+                        }
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
                   <Button
                     variant="outline"
                     onClick={() =>
-                      setCurrentPage(Math.min(meta.totalPage, currentPage + 1))
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
                     }
-                    disabled={currentPage === meta.totalPage || isLoading}
+                    disabled={currentPage === totalPages || isLoading}
                   >
                     Next
                   </Button>

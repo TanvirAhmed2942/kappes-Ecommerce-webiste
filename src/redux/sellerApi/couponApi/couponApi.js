@@ -3,13 +3,27 @@ import { api } from "../../baseApi";
 const couponApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getCoupons: builder.query({
-      query: () => {
-        const shopId = localStorage.getItem("shop");
+      query: ({ shopId, page = 1, limit = 10, searchTerm = "" } = {}) => {
+        if (!shopId) {
+          const shopIdFromStorage =
+            typeof window !== "undefined" ? localStorage.getItem("shop") : null;
+          if (!shopIdFromStorage) {
+            throw new Error("Shop ID is required");
+          }
+          shopId = shopIdFromStorage;
+        }
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("limit", limit.toString());
+        if (searchTerm && searchTerm.trim()) {
+          params.append("searchTerm", searchTerm.trim());
+        }
         return {
-          url: `/coupon/shop/${shopId}`,
+          url: `/coupon/shop/${shopId}?${params.toString()}`,
           method: "GET",
         };
       },
+      providesTags: ["Coupon"],
     }),
     createCoupon: builder.mutation({
       query: ({ data }) => {
@@ -42,6 +56,7 @@ const couponApi = api.injectEndpoints({
           method: "DELETE",
         };
       },
+      invalidatesTags: ["Coupon"],
     }),
   }),
   overrideExisting: true,

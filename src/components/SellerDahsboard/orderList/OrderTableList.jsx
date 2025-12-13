@@ -2,7 +2,7 @@
 
 import { Eye, Filter, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import { Button } from "../../../components/ui/button";
 import { Card, CardContent } from "../../../components/ui/card";
@@ -39,11 +39,27 @@ const OrderTableList = () => {
   const shopId =
     typeof window !== "undefined" ? localStorage.getItem("shop") : null;
 
+  // Reset to page 1 when search term or filter status changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
+
+  // Fetch orders with pagination, search, and status filter from API
   const {
     data: orderData,
     isLoading,
     error,
-  } = useGetAllOrderQuery({ status: "", id: shopId }, { skip: !shopId });
+    refetch,
+  } = useGetAllOrderQuery(
+    {
+      shopId,
+      page: currentPage,
+      limit: 10,
+      searchTerm: searchTerm,
+      status: filterStatus !== "default" ? filterStatus : "",
+    },
+    { skip: !shopId }
+  );
 
   const [deleteOrder, { isLoading: deleteOrderLoading }] =
     useDeleteOrderMutation();
@@ -68,36 +84,19 @@ const OrderTableList = () => {
   };
 
   // Get orders from API response
-  const apiOrders = useMemo(() => {
+  const orders = useMemo(() => {
     return orderData?.data?.orders ? formatOrders(orderData.data.orders) : [];
   }, [orderData]);
 
-  // Filter and search functionality
-  const filteredOrders = useMemo(() => {
-    if (!apiOrders.length) return [];
+  // Extract pagination meta from API response
+  const paginationMeta = orderData?.data?.meta || {
+    total: 0,
+    limit: 10,
+    page: 1,
+    totalPage: 1,
+  };
 
-    return apiOrders.filter((order) => {
-      const matchesSearch =
-        order.shortId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.date.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.id.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesFilter =
-        filterStatus === "default" ||
-        order.status.toLowerCase() === filterStatus.toLowerCase();
-
-      return matchesSearch && matchesFilter;
-    });
-  }, [apiOrders, searchTerm, filterStatus]);
-
-  // Pagination
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const paginatedOrders = filteredOrders.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const totalPages = paginationMeta.totalPage || 1;
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -139,7 +138,8 @@ const OrderTableList = () => {
       console.log(response);
       alert(response.message);
       console.log("Order deleted successfully:", orderToDelete.id);
-      // The order list will automatically refresh due to the invalidatesTags in the API
+      // Refetch orders after deletion
+      refetch();
     } catch (error) {
       console.error("Failed to delete order:", error.data);
       // You can add toast notification here if needed
@@ -152,32 +152,6 @@ const OrderTableList = () => {
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
     setOrderToDelete(null);
-  };
-
-  // Handle page change
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  // Generate page numbers for pagination
-  const generatePageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 3;
-
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      const start = Math.max(1, currentPage - 1);
-      const end = Math.min(totalPages, start + maxVisiblePages - 1);
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-    }
-
-    return pages;
   };
 
   if (isLoading) {
@@ -263,8 +237,8 @@ const OrderTableList = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
-                  {paginatedOrders.length > 0 ? (
-                    paginatedOrders.map((order, index) => (
+                  {orders.length > 0 ? (
+                    orders.map((order, index) => (
                       <tr
                         key={order.id}
                         className="hover:bg-gray-50 transition-colors"
@@ -327,9 +301,9 @@ const OrderTableList = () => {
                         colSpan="6"
                         className="px-6 py-8 text-center text-gray-500"
                       >
-                        {apiOrders.length === 0
-                          ? "No orders found"
-                          : "No orders match your search criteria"}
+                        {searchTerm || filterStatus !== "default"
+                          ? "No orders match your search criteria"
+                          : "No orders found"}
                       </td>
                     </tr>
                   )}
@@ -338,43 +312,66 @@ const OrderTableList = () => {
             </div>
 
             {/* Pagination */}
-            {filteredOrders.length > 0 && (
+            {orders.length > 0 && paginationMeta.total > 0 && (
               <div className="p-6 border-t border-gray-200 flex justify-between items-center">
                 <div className="text-sm text-gray-600">
-                  Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                  {Math.min(currentPage * itemsPerPage, filteredOrders.length)}{" "}
-                  of {filteredOrders.length} orders
+                  Showing {orders.length} of {paginationMeta.total} orders
+                  {searchTerm && ` (filtered by "${searchTerm}")`}
+                  {filterStatus !== "default" && ` (status: ${filterStatus})`}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
-                    onClick={() =>
-                      handlePageChange(Math.max(1, currentPage - 1))
-                    }
-                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1 || isLoading}
                   >
                     Prev
                   </Button>
-                  {generatePageNumbers().map((page) => (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? "default" : "outline"}
-                      onClick={() => handlePageChange(page)}
-                      className={
-                        currentPage === page
-                          ? "bg-red-700 hover:bg-red-800"
-                          : ""
-                      }
-                    >
-                      {page}
-                    </Button>
-                  ))}
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={
+                          currentPage === pageNum ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(pageNum)}
+                        disabled={isLoading}
+                        className={
+                          currentPage === pageNum
+                            ? "bg-red-700 hover:bg-red-800"
+                            : ""
+                        }
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  {totalPages > 5 && (
+                    <>
+                      <span className="px-2">...</span>
+                      <Button
+                        variant={
+                          currentPage === totalPages ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={isLoading}
+                        className={
+                          currentPage === totalPages
+                            ? "bg-red-700 hover:bg-red-800"
+                            : ""
+                        }
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
                   <Button
                     variant="outline"
                     onClick={() =>
-                      handlePageChange(Math.min(totalPages, currentPage + 1))
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
                     }
-                    disabled={currentPage === totalPages}
+                    disabled={currentPage === totalPages || isLoading}
                   >
                     Next
                   </Button>

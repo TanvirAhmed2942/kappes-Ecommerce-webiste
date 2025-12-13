@@ -13,7 +13,7 @@ import {
 } from "../../../components/ui/table";
 import { Edit, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   useGetAllBrandQuery,
   useDeleteCategoryMutation,
@@ -29,41 +29,41 @@ const BrandList = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const router = useRouter();
   const toast = useToast();
-  const { data: brandsData, isLoading, error, refetch } = useGetAllBrandQuery();
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Fetch brands with pagination and search from API
+  const {
+    data: brandsData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetAllBrandQuery({
+    page: currentPage,
+    limit: 10,
+    searchTerm: searchTerm,
+  });
+
   const [deleteBrand, { isLoading: isDeleting }] = useDeleteCategoryMutation();
 
   // Extract brands from API response
   // Response structure: { success: true, data: { result: [...], meta: {...} } }
   const brands = Array.isArray(brandsData?.data?.result)
     ? brandsData.data.result
-    : Array.isArray(brandsData?.data)
-    ? brandsData.data
-    : Array.isArray(brandsData)
-    ? brandsData
     : [];
 
-  const filteredBrands = useMemo(() => {
-    // Ensure brands is an array before filtering
-    if (!Array.isArray(brands)) {
-      return [];
-    }
+  // Extract pagination meta from API response
+  const paginationMeta = brandsData?.data?.meta || {
+    total: 0,
+    limit: 10,
+    page: 1,
+    totalPage: 1,
+  };
 
-    if (!searchTerm.trim()) {
-      return brands;
-    }
-
-    const searchLower = searchTerm.toLowerCase();
-    return brands.filter((brand) =>
-      brand?.name?.toLowerCase().includes(searchLower)
-    );
-  }, [brands, searchTerm]);
-
-  // Pagination logic
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredBrands.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedBrands = filteredBrands.slice(startIndex, endIndex);
+  const totalPages = paginationMeta.totalPage || 1;
 
   const getImageSrc = (imagePath) => {
     if (!imagePath) return "/placeholder-image.png";
@@ -148,14 +148,14 @@ const BrandList = () => {
                     Please check your connection and try again.
                   </div>
                 </div>
-              ) : !Array.isArray(filteredBrands) ? (
+              ) : !Array.isArray(brands) ? (
                 <div className="text-center py-8 text-red-600">
                   Invalid data format received from server.
                   <div className="text-xs mt-2 text-gray-500">
-                    Expected array but got: {typeof filteredBrands}
+                    Expected array but got: {typeof brands}
                   </div>
                 </div>
-              ) : filteredBrands.length === 0 ? (
+              ) : brands.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   {searchTerm
                     ? "No brands found matching your search"
@@ -180,8 +180,8 @@ const BrandList = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Array.isArray(paginatedBrands) &&
-                      paginatedBrands.map((brand) => (
+                    {Array.isArray(brands) &&
+                      brands.map((brand) => (
                         <TableRow key={brand?._id || Math.random()}>
                           <TableCell className="text-gray-900 font-medium">
                             {brand?.name || "N/A"}
@@ -245,59 +245,69 @@ const BrandList = () => {
             </div>
 
             {/* Pagination */}
-            {filteredBrands.length > 0 && (
-              <div className="p-6 border-t border-gray-200 flex justify-end items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Prev
-                </Button>
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  const pageNum = i + 1;
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={
-                        currentPage === pageNum
-                          ? "bg-red-700 hover:bg-red-800"
-                          : ""
-                      }
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-                {totalPages > 5 && (
-                  <>
-                    <span className="px-2">...</span>
-                    <Button
-                      variant={
-                        currentPage === totalPages ? "default" : "outline"
-                      }
-                      onClick={() => setCurrentPage(totalPages)}
-                      className={
-                        currentPage === totalPages
-                          ? "bg-red-700 hover:bg-red-800"
-                          : ""
-                      }
-                    >
-                      {totalPages}
-                    </Button>
-                  </>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
+            {brands.length > 0 && paginationMeta.total > 0 && (
+              <div className="p-6 border-t border-gray-200 flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  Showing {brands.length} of {paginationMeta.total} brands
+                  {searchTerm && ` (filtered by "${searchTerm}")`}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1 || isLoading}
+                  >
+                    Prev
+                  </Button>
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={
+                          currentPage === pageNum ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(pageNum)}
+                        disabled={isLoading}
+                        className={
+                          currentPage === pageNum
+                            ? "bg-red-700 hover:bg-red-800"
+                            : ""
+                        }
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  {totalPages > 5 && (
+                    <>
+                      <span className="px-2">...</span>
+                      <Button
+                        variant={
+                          currentPage === totalPages ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={isLoading}
+                        className={
+                          currentPage === totalPages
+                            ? "bg-red-700 hover:bg-red-800"
+                            : ""
+                        }
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
+                    disabled={currentPage === totalPages || isLoading}
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

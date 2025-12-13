@@ -57,6 +57,7 @@ export const api = createApi({
     "StripeConnectedAccount",
     "Variant",
     "Advertisement",
+    "Coupon",
   ],
 });
 

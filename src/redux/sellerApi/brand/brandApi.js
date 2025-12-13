@@ -3,9 +3,15 @@ import { api } from "../../baseApi";
 const brandApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getAllBrand: builder.query({
-      query: () => {
+      query: ({ page = 1, limit = 10, searchTerm = "" } = {}) => {
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("limit", limit.toString());
+        if (searchTerm && searchTerm.trim()) {
+          params.append("searchTerm", searchTerm.trim());
+        }
         return {
-          url: `/brand`,
+          url: `/brand?${params.toString()}`,
           method: "GET",
         };
       },

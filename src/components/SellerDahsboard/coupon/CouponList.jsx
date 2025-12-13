@@ -13,7 +13,7 @@ import {
 } from "../../../components/ui/table";
 import { Edit, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   useGetCouponsQuery,
   useDeleteCouponMutation,
@@ -28,39 +28,61 @@ const CouponList = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const router = useRouter();
   const toast = useToast();
-  const { data: couponsData, isLoading, error, refetch } = useGetCouponsQuery();
+  const shopId =
+    typeof window !== "undefined" ? localStorage.getItem("shop") : null;
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Fetch coupons with pagination and search from API
+  const {
+    data: couponsData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetCouponsQuery(
+    {
+      shopId,
+      page: currentPage,
+      limit: 10,
+      searchTerm: searchTerm,
+    },
+    { skip: !shopId }
+  );
+
   const [deleteCoupon, { isLoading: isDeleting }] = useDeleteCouponMutation();
 
-  // Ensure coupons is always an array
-  const coupons = Array.isArray(couponsData?.data)
-    ? couponsData.data
-    : Array.isArray(couponsData)
-    ? couponsData
-    : [];
+  // Extract coupons from API response - handle both old format (array) and new format (object with coupons/meta)
+  const coupons = useMemo(() => {
+    if (!couponsData?.data) return [];
 
-  // Debug logging
-  console.log("Coupons API Response:", couponsData);
-  console.log("Processed coupons array:", coupons);
-
-  const filteredCoupons = useMemo(() => {
-    // Ensure coupons is an array before filtering
-    if (!Array.isArray(coupons)) {
-      console.warn("Coupons is not an array:", coupons);
-      return [];
+    // New format with pagination: data.coupons or data.result
+    if (couponsData.data.coupons && Array.isArray(couponsData.data.coupons)) {
+      return couponsData.data.coupons;
+    }
+    if (couponsData.data.result && Array.isArray(couponsData.data.result)) {
+      return couponsData.data.result;
     }
 
-    if (!searchTerm.trim()) {
-      return coupons;
+    // Old format: data is directly an array
+    if (Array.isArray(couponsData.data)) {
+      return couponsData.data;
     }
 
-    const searchLower = searchTerm.toLowerCase();
-    return coupons.filter(
-      (coupon) =>
-        coupon?.code?.toLowerCase().includes(searchLower) ||
-        coupon?.discountType?.toLowerCase().includes(searchLower) ||
-        coupon?.discountValue?.toString().includes(searchLower)
-    );
-  }, [coupons, searchTerm]);
+    return [];
+  }, [couponsData]);
+
+  // Extract pagination meta from API response
+  const paginationMeta = couponsData?.data?.meta || {
+    total: coupons.length,
+    limit: 10,
+    page: 1,
+    totalPage: 1,
+  };
+
+  const totalPages = paginationMeta.totalPage || 1;
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -161,14 +183,14 @@ const CouponList = () => {
                     Please check your connection and try again.
                   </div>
                 </div>
-              ) : !Array.isArray(filteredCoupons) ? (
+              ) : !Array.isArray(coupons) ? (
                 <div className="text-center py-8 text-red-600">
                   Invalid data format received from server.
                   <div className="text-xs mt-2 text-gray-500">
-                    Expected array but got: {typeof filteredCoupons}
+                    Expected array but got: {typeof coupons}
                   </div>
                 </div>
-              ) : filteredCoupons.length === 0 ? (
+              ) : coupons.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   {searchTerm
                     ? "No coupons found matching your search"
@@ -208,8 +230,8 @@ const CouponList = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Array.isArray(filteredCoupons) &&
-                      filteredCoupons.map((coupon) => (
+                    {Array.isArray(coupons) &&
+                      coupons.map((coupon) => (
                         <TableRow key={coupon?._id || Math.random()}>
                           <TableCell className="text-gray-900 font-medium">
                             {coupon?.code || "N/A"}
@@ -288,49 +310,71 @@ const CouponList = () => {
             </div>
 
             {/* Pagination */}
-            <div className="p-6 border-t border-gray-200 flex justify-end items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-              >
-                Prev
-              </Button>
-              <Button
-                variant={currentPage === 1 ? "default" : "outline"}
-                onClick={() => setCurrentPage(1)}
-                className={
-                  currentPage === 1 ? "bg-red-700 hover:bg-red-800" : ""
-                }
-              >
-                1
-              </Button>
-              <Button
-                variant={currentPage === 2 ? "default" : "outline"}
-                onClick={() => setCurrentPage(2)}
-                className={
-                  currentPage === 2 ? "bg-red-700 hover:bg-red-800" : ""
-                }
-              >
-                2
-              </Button>
-              <Button
-                variant={currentPage === 3 ? "default" : "outline"}
-                onClick={() => setCurrentPage(3)}
-                className={
-                  currentPage === 3 ? "bg-red-700 hover:bg-red-800" : ""
-                }
-              >
-                3
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(Math.min(3, currentPage + 1))}
-                disabled={currentPage === 3}
-              >
-                Next
-              </Button>
-            </div>
+            {coupons.length > 0 && paginationMeta.total > 0 && (
+              <div className="p-6 border-t border-gray-200 flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  Showing {coupons.length} of {paginationMeta.total} coupons
+                  {searchTerm && ` (filtered by "${searchTerm}")`}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1 || isLoading}
+                  >
+                    Prev
+                  </Button>
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={
+                          currentPage === pageNum ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(pageNum)}
+                        disabled={isLoading}
+                        className={
+                          currentPage === pageNum
+                            ? "bg-red-700 hover:bg-red-800"
+                            : ""
+                        }
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  {totalPages > 5 && (
+                    <>
+                      <span className="px-2">...</span>
+                      <Button
+                        variant={
+                          currentPage === totalPages ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={isLoading}
+                        className={
+                          currentPage === totalPages
+                            ? "bg-red-700 hover:bg-red-800"
+                            : ""
+                        }
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
+                    disabled={currentPage === totalPages || isLoading}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

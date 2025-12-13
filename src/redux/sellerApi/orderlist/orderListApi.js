@@ -1,19 +1,33 @@
-import { api } from '../../baseApi';
+import { api } from "../../baseApi";
 
 const OrderListApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getAllOrder: builder.query({
-      query: ({ status, id }) => {
-        const url = status
-          ? `/order/shop/${id}?status=${status}`
-          : `/order/shop/${id}`;
-
+      query: ({
+        shopId,
+        page = 1,
+        limit = 10,
+        searchTerm = "",
+        status = "",
+      } = {}) => {
+        if (!shopId) {
+          throw new Error("Shop ID is required");
+        }
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("limit", limit.toString());
+        if (searchTerm && searchTerm.trim()) {
+          params.append("searchTerm", searchTerm.trim());
+        }
+        if (status && status !== "default" && status.trim()) {
+          params.append("status", status.trim());
+        }
         return {
-          url,
+          url: `/order/shop/${shopId}?${params.toString()}`,
           method: "GET",
         };
       },
-      providesTags: ['order'],
+      providesTags: ["order"],
     }),
     getOrderById: builder.query({
       query: (id) => {
@@ -22,7 +36,7 @@ const OrderListApi = api.injectEndpoints({
           method: "GET",
         };
       },
-      providesTags: ['order'],
+      providesTags: ["order"],
     }),
 
     deleteOrder: builder.mutation({
@@ -32,7 +46,7 @@ const OrderListApi = api.injectEndpoints({
           method: "DELETE",
         };
       },
-      invalidatesTags: ['order'],
+      invalidatesTags: ["order"],
     }),
   }),
   overrideExisting: true,

@@ -13,7 +13,7 @@ import {
 } from "../../../components/ui/table";
 import { Edit, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   useGetAllSubCategoryQuery,
   useDeleteSubcategoryMutation,
@@ -29,12 +29,24 @@ const SubCategoryList = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const router = useRouter();
   const toast = useToast();
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Fetch subcategories with pagination and search from API
   const {
     data: subCategoriesData,
     isLoading,
     error,
     refetch,
-  } = useGetAllSubCategoryQuery();
+  } = useGetAllSubCategoryQuery({
+    page: currentPage,
+    limit: 10,
+    searchTerm: searchTerm,
+  });
+
   const [deleteSubCategory, { isLoading: isDeleting }] =
     useDeleteSubcategoryMutation();
 
@@ -42,40 +54,17 @@ const SubCategoryList = () => {
   // Response structure: { success: true, data: { subCategorys: [...], meta: {...} } }
   const subCategories = Array.isArray(subCategoriesData?.data?.subCategorys)
     ? subCategoriesData.data.subCategorys
-    : Array.isArray(subCategoriesData?.data)
-    ? subCategoriesData.data
-    : Array.isArray(subCategoriesData)
-    ? subCategoriesData
     : [];
 
-  const filteredSubCategories = useMemo(() => {
-    // Ensure subcategories is an array before filtering
-    if (!Array.isArray(subCategories)) {
-      return [];
-    }
+  // Extract pagination meta from API response
+  const paginationMeta = subCategoriesData?.data?.meta || {
+    total: 0,
+    limit: 10,
+    page: 1,
+    totalPage: 1,
+  };
 
-    if (!searchTerm.trim()) {
-      return subCategories;
-    }
-
-    const searchLower = searchTerm.toLowerCase();
-    return subCategories.filter(
-      (subCategory) =>
-        subCategory?.name?.toLowerCase().includes(searchLower) ||
-        subCategory?.description?.toLowerCase().includes(searchLower) ||
-        subCategory?.categoryId?.name?.toLowerCase().includes(searchLower)
-    );
-  }, [subCategories, searchTerm]);
-
-  // Pagination logic
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredSubCategories.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedSubCategories = filteredSubCategories.slice(
-    startIndex,
-    endIndex
-  );
+  const totalPages = paginationMeta.totalPage || 1;
 
   const getImageSrc = (imagePath) => {
     if (!imagePath) return "/placeholder-image.png";
@@ -172,14 +161,14 @@ const SubCategoryList = () => {
                     Please check your connection and try again.
                   </div>
                 </div>
-              ) : !Array.isArray(filteredSubCategories) ? (
+              ) : !Array.isArray(subCategories) ? (
                 <div className="text-center py-8 text-red-600">
                   Invalid data format received from server.
                   <div className="text-xs mt-2 text-gray-500">
-                    Expected array but got: {typeof filteredSubCategories}
+                    Expected array but got: {typeof subCategories}
                   </div>
                 </div>
-              ) : filteredSubCategories.length === 0 ? (
+              ) : subCategories.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   {searchTerm
                     ? "No subcategories found matching your search"
@@ -210,8 +199,8 @@ const SubCategoryList = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Array.isArray(paginatedSubCategories) &&
-                      paginatedSubCategories.map((subCategory) => (
+                    {Array.isArray(subCategories) &&
+                      subCategories.map((subCategory) => (
                         <TableRow key={subCategory?._id || Math.random()}>
                           <TableCell className="text-gray-900 font-medium">
                             {subCategory?.name || "N/A"}
@@ -285,59 +274,70 @@ const SubCategoryList = () => {
             </div>
 
             {/* Pagination */}
-            {filteredSubCategories.length > 0 && (
-              <div className="p-6 border-t border-gray-200 flex justify-end items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Prev
-                </Button>
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  const pageNum = i + 1;
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={
-                        currentPage === pageNum
-                          ? "bg-red-700 hover:bg-red-800"
-                          : ""
-                      }
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-                {totalPages > 5 && (
-                  <>
-                    <span className="px-2">...</span>
-                    <Button
-                      variant={
-                        currentPage === totalPages ? "default" : "outline"
-                      }
-                      onClick={() => setCurrentPage(totalPages)}
-                      className={
-                        currentPage === totalPages
-                          ? "bg-red-700 hover:bg-red-800"
-                          : ""
-                      }
-                    >
-                      {totalPages}
-                    </Button>
-                  </>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
+            {subCategories.length > 0 && paginationMeta.total > 0 && (
+              <div className="p-6 border-t border-gray-200 flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  Showing {subCategories.length} of {paginationMeta.total}{" "}
+                  subcategories
+                  {searchTerm && ` (filtered by "${searchTerm}")`}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1 || isLoading}
+                  >
+                    Prev
+                  </Button>
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={
+                          currentPage === pageNum ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(pageNum)}
+                        disabled={isLoading}
+                        className={
+                          currentPage === pageNum
+                            ? "bg-red-700 hover:bg-red-800"
+                            : ""
+                        }
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  {totalPages > 5 && (
+                    <>
+                      <span className="px-2">...</span>
+                      <Button
+                        variant={
+                          currentPage === totalPages ? "default" : "outline"
+                        }
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={isLoading}
+                        className={
+                          currentPage === totalPages
+                            ? "bg-red-700 hover:bg-red-800"
+                            : ""
+                        }
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
+                    disabled={currentPage === totalPages || isLoading}
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
