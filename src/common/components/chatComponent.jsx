@@ -20,6 +20,7 @@ import {
   minimizeChat,
   openChat,
   pinChat,
+  receiveMessage,
   sendMessage,
 } from "../../features/chatSlice";
 import {
@@ -78,6 +79,35 @@ function Chat() {
         return;
       }
 
+      // Determine if message is from current user
+      let senderId = null;
+      if (typeof socketMessage.sender === "string") {
+        senderId = socketMessage.sender;
+      } else if (socketMessage.sender?.participantId) {
+        senderId =
+          typeof socketMessage.sender.participantId === "object"
+            ? socketMessage.sender.participantId._id
+            : socketMessage.sender.participantId;
+      } else if (socketMessage.senderId) {
+        senderId = socketMessage.senderId;
+      } else if (socketMessage.sender?._id) {
+        senderId = socketMessage.sender._id;
+      }
+
+      const isFromUser = senderId && String(senderId) === String(userId);
+
+      // If message is from seller (not user), dispatch receiveMessage to increment unread count
+      // This will automatically open chat if it's closed
+      if (!isFromUser && currentSeller) {
+        dispatch(
+          receiveMessage({
+            text: socketMessage.text || socketMessage.content || "",
+            sellerId: currentSeller.id,
+            chatId: socketMessage.chatId,
+          })
+        );
+      }
+
       // Update RTK Query cache with the new message
       dispatch(
         api.util.updateQueryData("getMessages", chatId, (draft) => {
@@ -104,7 +134,7 @@ function Chat() {
         scrollToBottom();
       }, 100);
     },
-    [chatId, dispatch]
+    [chatId, dispatch, userId, currentSeller]
   );
 
   // Set up socket listener for real-time messages
@@ -199,6 +229,14 @@ function Chat() {
       dispatch(markAllAsRead());
     }
   }, [isChatOpen, isMinimized, unreadCount, dispatch]);
+
+  // Automatically open and maximize chat when unreadCount increases from 0
+  useEffect(() => {
+    if (unreadCount > 0 && currentSeller && !isChatOpen) {
+      dispatch(openChat(currentSeller));
+      dispatch(maximizeChat());
+    }
+  }, [unreadCount, currentSeller, isChatOpen, dispatch]);
 
   const handleSendMessage = useCallback(async () => {
     if ((newMessage.trim() === "" && !selectedImage) || !currentSeller) return;
@@ -298,19 +336,11 @@ function Chat() {
   );
 
   const handleOpenChat = () => {
-    // Use the existing currentSeller info if available, otherwise use default
+    // Only open chat if there's a current seller
     if (currentSeller) {
       dispatch(openChat(currentSeller));
-    } else {
-      // Fallback - this should rarely be used since currentSeller should exist
-      const sellerInfo = {
-        name: "Customer Support",
-        location: "Canada",
-        id: "default-chat",
-        chatId: "default-chat",
-      };
-      dispatch(openChat(sellerInfo));
     }
+    // Don't open Customer Support chat - do nothing if no current seller
   };
 
   const handleMinimize = () => {

@@ -168,6 +168,15 @@ const chatSlice = createSlice({
       // Only increment unread count if chat is closed or minimized
       if (!state.isChatOpen || state.isMinimized) {
         state.unreadCount += 1;
+
+        // Automatically open chat when a new message arrives if chat is closed
+        if (!state.isChatOpen && state.currentSeller) {
+          state.isChatOpen = true;
+          state.isMinimized = false;
+          // Mark the new message as read since we're opening the chat
+          sellerMessage.isRead = true;
+          state.unreadCount = 0;
+        }
       }
 
       // Save state to localStorage

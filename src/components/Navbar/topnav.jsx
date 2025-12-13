@@ -4,6 +4,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { ChevronRight, HandCoins, MapPin, Store, Tag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AiOutlineMessage } from "react-icons/ai";
 import { BiMessageSquareDots } from "react-icons/bi";
@@ -28,10 +29,13 @@ import { getImageUrl } from "../../redux/baseUrl";
 import useUser from "../../hooks/useUser";
 import useAuth from "../../hooks/useAuth";
 import { openChat } from "../../features/chatSlice";
+import useToast from "../../hooks/useShowToast";
 function TopNav() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const dispatch = useDispatch();
+  const router = useRouter();
   const { role, isLoggedIn, logout: handleLogout } = useAuth();
+  const { showError } = useToast();
   console.log("isLoggedIn", isLoggedIn);
   const { userImage, userName, profileData } = useUser();
   console.log("userImage", userImage);
@@ -58,20 +62,15 @@ function TopNav() {
     (state) => state.chat
   );
 
-  // Sample seller info - in a real app, this would come from your user/seller data
+  // Handle opening chat
   const handleOpenChat = () => {
-    if (!currentSeller) {
-      // Open chat with a default seller or the last contacted seller
-      dispatch(
-        openChat({
-          id: 1,
-          name: "Customer Support",
-          avatar: "/assets/chat/support-avatar.png",
-          isOnline: true,
-          lastSeen: "Online",
-        })
-      );
+    if (!isLoggedIn) {
+      showError("Please login to access chat");
+      setIsDrawerOpen(false);
+      return;
     }
+    // Only open chat if there's a current seller, otherwise do nothing
+    // Don't open Customer Support chat
     setIsDrawerOpen(false);
   };
 
@@ -103,20 +102,31 @@ function TopNav() {
       {/* Right Section */}
       <div className="flex items-center justify-center gap-4 mt-2 sm:mt-0">
         {/* Messages Icon - Desktop only */}
-        <Link href="/chat/all-chat" className="relative hidden sm:block">
+        <div className="relative hidden sm:block">
           <Button
-            onClick={handleOpenChat}
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isLoggedIn) {
+                showError("Please login to access chat");
+                return;
+              }
+              handleOpenChat();
+              // Only navigate if there's a current seller
+              if (currentSeller) {
+                router.push("/chat/all-chat");
+              }
+            }}
             className="relative flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none bg-white shadow-none w-12 h-12 rounded-full hover:bg-gray-300 cursor-pointer"
           >
             <AiOutlineMessage className="!w-7 !h-7" />
 
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full animate-pulse">
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full animate-pulse z-10 border-2 border-white">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
           </Button>
-        </Link>
+        </div>
 
         {/* Cart Icon - Desktop only */}
         <Link href="/check-out" className="relative hidden sm:block">
@@ -217,20 +227,31 @@ function TopNav() {
 
               {/* Messages - Mobile and Desktop */}
               <div className="mt-6 px-4 block">
-                <Link href="/chat/all-chat" className="w-full">
                   <Button
                     className="w-full justify-start gap-3 hover:bg-kappes"
-                    onClick={handleOpenChat}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (!isLoggedIn) {
+                      showError("Please login to access chat");
+                      setIsDrawerOpen(false);
+                      return;
+                    }
+                    handleOpenChat();
+                    // Only navigate if there's a current seller
+                    if (currentSeller) {
+                      router.push("/chat/all-chat");
+                    }
+                    setIsDrawerOpen(false);
+                  }}
                   >
                     <BiMessageSquareDots size={20} />
                     <span>Messages</span>
                     {unreadCount > 0 && (
-                      <span className="ml-auto bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full animate-pulse">
+                    <span className="ml-auto bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full animate-pulse border-2 border-white">
                         {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
                     )}
                   </Button>
-                </Link>
               </div>
 
               {/* Navigation Buttons */}

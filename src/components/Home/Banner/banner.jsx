@@ -6,21 +6,36 @@ import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import Image from "next/image";
+import { useGetBannerLogoQuery } from "../../../redux/bannerlogoApi/bannerlogoApi";
+import { getImageUrl } from "../../../redux/baseUrl";
 
 export default function Banner() {
-  const bannerImages = [
-    "/assets/cover.jpg",
-    "/assets/cover2.jpg",
-    "/assets/cover3.jpg",
-    "/assets/cover4.jpg",
-  ];
+  const { data: bannerLogo, isLoading } = useGetBannerLogoQuery();
+
+  // Get banners from API response
+  const bannerImages = React.useMemo(() => {
+    if (!bannerLogo?.data?.banner) return [];
+
+    return Array.isArray(bannerLogo.data.banner) ? bannerLogo.data.banner : [];
+  }, [bannerLogo]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-[220px] sm:h-[320px] md:h-[420px] lg:h-[520px] xl:h-[600px] 2xl:h-[800px] bg-gray-200 animate-pulse" />
+    );
+  }
+
+  if (!bannerImages || bannerImages.length === 0) {
+    return null; // Don't show anything if no banners
+  }
+
   return (
     <div className="w-full relative">
       <Swiper
         modules={[Autoplay, Pagination]}
         autoplay={{ delay: 3000, disableOnInteraction: false }}
         pagination={{ clickable: true }}
-        loop={true}
+        loop={bannerImages.length > 1}
         className="w-full h-full"
       >
         {bannerImages.map((image, index) => (
@@ -29,10 +44,12 @@ export default function Banner() {
               <Image
                 width={1920}
                 height={1080}
-                src={image}
-                alt="Slide"
+                src={`${getImageUrl}${
+                  image.startsWith("/") ? image.slice(1) : image
+                }`}
+                alt={`Banner ${index + 1}`}
                 className="w-full h-[220px] sm:h-[320px] md:h-[420px] lg:h-[520px] xl:h-[600px] 2xl:h-[800px] object-cover"
-                priority
+                priority={index === 0}
               />
             </div>
           </SwiperSlide>

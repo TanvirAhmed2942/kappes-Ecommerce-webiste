@@ -41,15 +41,25 @@ const chatApi = api.injectEndpoints({
       },
     }),
     getMessages: builder.query({
-      query: (chatId) => {
+      query: ({ chatId, page = 1, limit = 10 }) => {
         return {
-          url: `/message/chat/${chatId}`,
+          url: `/message/chat/${chatId}?page=${page}&limit=${limit}`,
           method: "GET",
         };
       },
-      providesTags: (result, error, chatId) => [
+      providesTags: (result, error, { chatId }) => [
         { type: "Messages", id: chatId },
       ],
+      // Keep cache time very short - 0 seconds
+      keepUnusedDataFor: 0,
+      // Transform response to include chatId for verification
+      transformResponse: (response, meta, arg) => {
+        return {
+          ...response,
+          _chatId: arg.chatId,
+          _page: arg.page, // Also include page number
+        };
+      },
     }),
     getShopId: builder.query({
       query: () => {

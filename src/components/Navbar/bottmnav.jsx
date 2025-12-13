@@ -4,6 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import provideIcon from "../../common/components/provideIcon";
+import { RiShoppingBag2Line } from "react-icons/ri";
+import { IoEarthOutline } from "react-icons/io5";
+import { PiStorefrontBold } from "react-icons/pi";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -309,18 +312,20 @@ function BottomNav() {
                     href="/shop"
                     className={getDrawerSubLinkClasses(
                       "/shop",
-                      "block py-1 pl-4"
+                      "py-1 pl-4 flex items-center gap-2 group"
                     )}
                   >
+                    <RiShoppingBag2Line className="w-5 h-5 group-hover:text-red-700 transition-colors" />
                     All Products
                   </Link>
                   <Link
                     href="/shop-by-province"
                     className={getDrawerSubLinkClasses(
                       "/shop-by-province",
-                      "block py-1 pl-4"
+                      "py-1 pl-4 flex items-center gap-2 group"
                     )}
                   >
+                    <IoEarthOutline className="w-5 h-5 group-hover:text-red-700 transition-colors" />
                     Shop By Province, Territory, City
                   </Link>
 
@@ -328,9 +333,10 @@ function BottomNav() {
                     href="/shop-by-store"
                     className={getDrawerSubLinkClasses(
                       "/shop-by-store",
-                      "block py-1 pl-4"
+                      "py-1 pl-4 flex items-center gap-2 group"
                     )}
                   >
+                    <PiStorefrontBold className="w-5 h-5 group-hover:text-red-700 transition-colors" />
                     Shop By Store
                   </Link>
                 </div>
@@ -439,7 +445,8 @@ function BottomNav() {
                         : ""
                     }`}
                   >
-                    {provideIcon({ name: "shop" })} All Products
+                    <RiShoppingBag2Line className="w-5 h-5 text-current transition-colors" />{" "}
+                    All Products
                   </Link>
                 </DropdownMenuItem>
 
@@ -447,13 +454,13 @@ function BottomNav() {
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <button
-                      className={`w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-red-700 hover:text-white ${
+                      className={`w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-red-700 hover:text-white group ${
                         isActive("/shop-by-province")
                           ? "bg-kappes text-white font-semibold"
                           : ""
                       }`}
                     >
-                      {provideIcon({ name: "searchByProvince" })}
+                      <IoEarthOutline className="w-5 h-5 group-hover:text-white transition-colors" />
                       <span>Shop By Province, Territory, City</span>
                     </button>
                   </DropdownMenuTrigger>
@@ -545,7 +552,8 @@ function BottomNav() {
                         : ""
                     }`}
                   >
-                    {provideIcon({ name: "shopByStore" })} Shop By Store
+                    <PiStorefrontBold className="w-5 h-5 text-current transition-colors" />{" "}
+                    Shop By Store
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
@@ -572,6 +580,15 @@ function BottomNav() {
         {/* Empty div for layout balance */}
         <div className="w-6 md:w-0"></div>
       </div>
+
+      {/* Global style to ensure icons turn white on hover in dropdown */}
+      <style jsx global>{`
+        [data-slot="dropdown-menu-item"][data-highlighted] svg,
+        [data-slot="dropdown-menu-item"][data-highlighted]
+          [class*="react-icons"] {
+          color: white !important;
+        }
+      `}</style>
     </div>
   );
 }

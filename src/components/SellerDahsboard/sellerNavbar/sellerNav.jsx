@@ -158,20 +158,31 @@ const SellerNav = () => {
       {/* Right Section */}
       <div className="flex items-center gap-2 sm:gap-4">
         {/* Messages Icon - Responsive */}
-        <Link href="/chat/all-chat" className="relative">
+        <div className="relative">
           <Button
-            onClick={handleOpenChat}
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isLoggedIn) {
+                showError("Please login to access chat");
+                return;
+              }
+              handleOpenChat();
+              // Only navigate if there's a current seller
+              if (currentSeller) {
+                router.push("/chat/all-chat");
+              }
+            }}
             className="relative flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none bg-white shadow-none w-10 h-10  rounded-full hover:bg-gray-100 sm:hover:bg-gray-300 cursor-pointer p-0"
           >
             <AiOutlineMessage className="!w-7 !h-7" />
 
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full animate-pulse">
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full animate-pulse z-10 border-2 border-white">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
           </Button>
-        </Link>
+        </div>
 
         {/* Conditional: Sign In or User Name */}
         {!isLoggedIn ? (

@@ -34,14 +34,147 @@ const ChatBox = ({ selectedChat }) => {
     [selectedChat]
   );
 
-  // Fetch messages from API
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [allMessages, setAllMessages] = useState([]);
+  const [paginationMeta, setPaginationMeta] = useState(null);
+
+  // Fetch messages from API with pagination
   const {
     data: messagesData,
     isLoading: isLoadingMessages,
+    isFetching: isFetchingMessages,
     refetch,
-  } = useGetMessagesQuery(chatId, {
-    skip: !chatId, // Skip query if no chatId
-  });
+  } = useGetMessagesQuery(
+    {
+      chatId,
+      page: currentPage,
+      limit: 10,
+    },
+    {
+      skip: !chatId, // Skip query if no chatId
+      // Disable caching completely - always fetch fresh data
+      refetchOnMountOrArgChange: true,
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+    }
+  );
+
+  // Debug: Log when page changes
+  useEffect(() => {
+    if (chatId) {
+      console.log(
+        "Fetching messages for chatId:",
+        chatId,
+        "page:",
+        currentPage
+      );
+    }
+  }, [chatId, currentPage]);
+
+  // Accumulate messages from all pages
+  useEffect(() => {
+    if (!chatId) {
+      setAllMessages([]);
+      setPaginationMeta(null);
+      return;
+    }
+
+    // CRITICAL: Only process messages if they match BOTH the current chatId AND page
+    // This prevents stale cache from previous chat or page being displayed
+    if (
+      messagesData?._chatId !== chatId ||
+      messagesData?._page !== currentPage
+    ) {
+      console.log(
+        "⚠️ Skipping stale data - Expected chatId:",
+        chatId,
+        "page:",
+        currentPage,
+        "| Got chatId:",
+        messagesData?._chatId,
+        "page:",
+        messagesData?._page
+      );
+      return;
+    }
+
+    // Only process if we have valid message data
+    if (messagesData?.data?.messages) {
+      console.log(
+        "✅ Processing messages:",
+        messagesData.data.messages.length,
+        "for page:",
+        messagesData._page,
+        "chatId:",
+        messagesData._chatId
+      );
+
+      // Check if this is for page 1 (either initial load or chat switch)
+      if (currentPage === 1) {
+        // First page - replace all messages and sort chronologically
+        const sorted = [...messagesData.data.messages].sort((a, b) => {
+          const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return timeA - timeB;
+        });
+        console.log(
+          "📝 Setting allMessages to:",
+          sorted.length,
+          "messages for page 1"
+        );
+        setAllMessages(sorted);
+      } else {
+        // Subsequent pages - prepend older messages
+        setAllMessages((prev) => {
+          const reversedNewMessages = [...messagesData.data.messages].reverse();
+          const combined = [...reversedNewMessages, ...prev];
+          // Remove duplicates
+          const unique = Array.from(
+            new Map(combined.map((msg) => [msg._id, msg])).values()
+          );
+          // Sort chronologically (oldest first)
+          const sorted = unique.sort((a, b) => {
+            const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return timeA - timeB;
+          });
+          console.log(
+            "📝 Added",
+            reversedNewMessages.length,
+            "older messages. Total:",
+            sorted.length
+          );
+          return sorted;
+        });
+      }
+      setPaginationMeta(messagesData.data.meta);
+    } else if (messagesData?.data && !messagesData.data.messages) {
+      // Empty chat - no messages
+      console.log("💬 Empty chat - no messages");
+      setAllMessages([]);
+      if (messagesData.data?.meta) {
+        setPaginationMeta(messagesData.data.meta);
+      }
+    }
+  }, [messagesData, chatId, currentPage]);
+
+  // Reset when chat changes
+  useEffect(() => {
+    if (chatId) {
+      console.log("Chat changed to:", chatId, "- Resetting state");
+      setCurrentPage(1);
+      setAllMessages([]);
+      setPaginationMeta(null);
+      isLoadingMoreRef.current = false;
+      oldScrollHeightRef.current = 0;
+      previousMessageCountRef.current = 0;
+    }
+  }, [chatId]);
+
+  const hasMorePages = paginationMeta
+    ? paginationMeta.page < paginationMeta.totalPage
+    : false;
 
   const [createMessage, { isLoading: isSendingMessage }] =
     useCreateMessageMutation();
@@ -67,26 +200,47 @@ const ChatBox = ({ selectedChat }) => {
         return;
       }
 
-      // Update RTK Query cache with the new message
+      // Update RTK Query cache with the new message (update page 1 cache)
       dispatch(
-        api.util.updateQueryData("getMessages", chatId, (draft) => {
-          // Check if message already exists (avoid duplicates)
-          const messageExists = draft?.data?.messages?.some(
-            (msg) => msg._id === socketMessage._id
-          );
+        api.util.updateQueryData(
+          "getMessages",
+          { chatId, page: 1, limit: 10 },
+          (draft) => {
+            // Check if message already exists (avoid duplicates)
+            const messageExists = draft?.data?.messages?.some(
+              (msg) => msg._id === socketMessage._id
+            );
 
-          if (!messageExists) {
-            // Add new message to the messages array
-            if (draft?.data?.messages) {
-              draft.data.messages.push(socketMessage);
-            } else if (draft?.data) {
-              draft.data.messages = [socketMessage];
-            } else {
-              draft.data = { messages: [socketMessage] };
+            if (!messageExists) {
+              // Add new message to the messages array (newest messages are at the end)
+              if (draft?.data?.messages) {
+                draft.data.messages.push(socketMessage);
+                // Update meta total count
+                if (draft.data.meta) {
+                  draft.data.meta.total += 1;
+                }
+              } else if (draft?.data) {
+                draft.data.messages = [socketMessage];
+              } else {
+                draft.data = { messages: [socketMessage] };
+              }
             }
           }
-        })
+        )
       );
+
+      // Also add to local state if it's not already there
+      setAllMessages((prev) => {
+        const exists = prev.some((msg) => msg._id === socketMessage._id);
+        if (!exists) {
+          return [...prev, socketMessage].sort((a, b) => {
+            const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return timeA - timeB;
+          });
+        }
+        return prev;
+      });
 
       // Also invalidate chat list to update last message
       dispatch(api.util.invalidateTags(["ChatList"]));
@@ -117,26 +271,12 @@ const ChatBox = ({ selectedChat }) => {
 
   // Transform API messages to UI format
   const messages = useMemo(() => {
-    if (!messagesData?.data?.messages || !userId) {
+    if (!allMessages.length || !userId) {
       return [];
     }
 
-    // Ensure messages are shown chronologically (oldest at the top, newest at the bottom)
-    const sortedMessages = [...messagesData.data.messages].sort((a, b) => {
-      const timeA = a.createdAt
-        ? new Date(a.createdAt).getTime()
-        : a.updatedAt
-        ? new Date(a.updatedAt).getTime()
-        : 0;
-      const timeB = b.createdAt
-        ? new Date(b.createdAt).getTime()
-        : b.updatedAt
-        ? new Date(b.updatedAt).getTime()
-        : 0;
-      return timeA - timeB;
-    });
-
-    return sortedMessages.map((msg) => {
+    // Messages are already sorted chronologically
+    return allMessages.map((msg) => {
       // Determine if message is from current user
       // Check multiple possible structures for sender ID
       let senderId = null;
@@ -188,10 +328,14 @@ const ChatBox = ({ selectedChat }) => {
         images: msg.image ? [getImageUrlFull(msg.image)] : null,
       };
     });
-  }, [messagesData, userId]);
+  }, [allMessages, userId]);
 
+  // Auto-scroll to bottom only when not loading more messages
   useEffect(() => {
-    scrollToBottom();
+    if (!isLoadingMoreRef.current && messages.length > 0) {
+      // Only scroll to bottom if we're not in the middle of loading more
+      scrollToBottom();
+    }
   }, [messages, scrollToBottom]);
 
   useEffect(() => {
@@ -300,6 +444,86 @@ const ChatBox = ({ selectedChat }) => {
     dispatch(minimizeChat());
   }, [dispatch]);
 
+  // Handle loading more messages
+  const handleLoadMore = useCallback(() => {
+    if (hasMorePages && !isFetchingMessages) {
+      console.log(
+        "Load More clicked. Current page:",
+        currentPage,
+        "Loading page:",
+        currentPage + 1
+      );
+      setCurrentPage((prev) => {
+        const nextPage = prev + 1;
+        console.log("Setting page to:", nextPage);
+        return nextPage;
+      });
+    } else {
+      console.log(
+        "Load More blocked. hasMorePages:",
+        hasMorePages,
+        "isFetching:",
+        isFetchingMessages
+      );
+    }
+  }, [hasMorePages, isFetchingMessages, currentPage]);
+
+  // Track when loading more messages
+  const isLoadingMoreRef = useRef(false);
+  const previousMessageCountRef = useRef(0);
+  const oldScrollHeightRef = useRef(0);
+
+  const handleLoadMoreWithScroll = useCallback(() => {
+    if (messagesContainerRef.current && hasMorePages && !isFetchingMessages) {
+      // Store current scroll height and message count
+      oldScrollHeightRef.current = messagesContainerRef.current.scrollHeight;
+      previousMessageCountRef.current = allMessages.length;
+      isLoadingMoreRef.current = true;
+
+      console.log(
+        "Before loading more - scrollHeight:",
+        oldScrollHeightRef.current,
+        "messageCount:",
+        previousMessageCountRef.current
+      );
+
+      handleLoadMore();
+    }
+  }, [handleLoadMore, hasMorePages, isFetchingMessages, allMessages.length]);
+
+  // Maintain scroll position after loading more messages
+  useEffect(() => {
+    if (
+      isLoadingMoreRef.current &&
+      messagesContainerRef.current &&
+      oldScrollHeightRef.current > 0 &&
+      allMessages.length > previousMessageCountRef.current
+    ) {
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        if (messagesContainerRef.current) {
+          const newScrollHeight = messagesContainerRef.current.scrollHeight;
+          const heightDifference = newScrollHeight - oldScrollHeightRef.current;
+
+          console.log(
+            "After loading more - newScrollHeight:",
+            newScrollHeight,
+            "heightDiff:",
+            heightDifference
+          );
+
+          // Maintain visual position by adjusting scroll
+          messagesContainerRef.current.scrollTop = heightDifference;
+
+          // Reset refs
+          oldScrollHeightRef.current = 0;
+          previousMessageCountRef.current = 0;
+          isLoadingMoreRef.current = false;
+        }
+      });
+    }
+  }, [allMessages]);
+
   if (!selectedChat) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50">
@@ -347,7 +571,7 @@ const ChatBox = ({ selectedChat }) => {
 
       {/* Chat Messages */}
       <div className="flex-1 p-4 overflow-y-auto" ref={messagesContainerRef}>
-        {isLoadingMessages ? (
+        {isLoadingMessages || (isFetchingMessages && messages.length === 0) ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500 mx-auto mb-2"></div>
@@ -365,6 +589,26 @@ const ChatBox = ({ selectedChat }) => {
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Load More Button */}
+            {hasMorePages && (
+              <div className="flex justify-center py-4">
+                <button
+                  onClick={handleLoadMoreWithScroll}
+                  disabled={isFetchingMessages}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                >
+                  {isFetchingMessages ? (
+                    <>
+                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Loading...</span>
+                    </>
+                  ) : (
+                    <span>Load More Messages</span>
+                  )}
+                </button>
+              </div>
+            )}
+
             {messages.map((msg) => (
               <div key={msg.id} className="space-y-2">
                 <div
