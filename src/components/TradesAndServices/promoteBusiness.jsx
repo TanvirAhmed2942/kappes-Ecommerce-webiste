@@ -11,15 +11,19 @@ const PromoteBusiness = () => {
         {/* Text Content */}
         <div>
           <h2 className="text-3xl font-comfortaa md:text-4xl font-bold text-gray-900 mb-4">
-            Promote your business to <br className="hidden md:block" /> local
-            customers.
+            List your Trades & Services
+            <br className="hidden md:block" /> inside The Canuck Mall.
           </h2>
           <p className="text-base text-gray-700 mb-6">
-            Boost your chances of being found by local shoppers by advertising
-            with The Canuck. Get your business noticed in your community and
-            connect with potential customers nearby. With The Canuck, it's
-            easier than ever to increase your visibility and grow your business
-            in Canada. Let us help you stand out and attract more customers!
+            With The Canuck Mall, your services are showcased to Canadian
+            actively searching for trusted local providers — not buried under
+            big-box ads or foreign platforms.
+          </p>
+          <p className="text-base text-gray-700 mb-6">
+            We help you get discovered in your own community, build credibility,
+            and connect with customers who value Canadian businesses. From
+            increased visibility to meaningful local exposure, The Canuck Mall
+            makes it easier to stand out, earn trust, and grow!!
           </p>
           <Link href="/business-listing">
             <Button className="bg-red-600 hover:bg-red-700 font-comfortaa text-lg text-white">

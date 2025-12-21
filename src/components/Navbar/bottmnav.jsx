@@ -287,17 +287,6 @@ function BottomNav() {
                 >
                   Home
                 </Link>
-
-                <Link
-                  href="/trades-&-services"
-                  className={getDrawerLinkClasses(
-                    "/trades-&-services",
-                    "block py-2"
-                  )}
-                >
-                  Trades & Services
-                </Link>
-
                 {/* Shop Section with Sub-items */}
                 <div className="space-y-2">
                   <p
@@ -349,6 +338,16 @@ function BottomNav() {
                   )}
                 >
                   Deals & Offers
+                </Link>
+
+                <Link
+                  href="/trades-&-services"
+                  className={getDrawerLinkClasses(
+                    "/trades-&-services",
+                    "block py-2"
+                  )}
+                >
+                  Trades & Services
                 </Link>
 
                 <Link
@@ -421,12 +420,6 @@ function BottomNav() {
         <div className="hidden md:flex items-center flex-1 justify-center space-x-8">
           <AnimatedLink href="/" className={getLinkClasses("/")}>
             Home
-          </AnimatedLink>
-          <AnimatedLink
-            href="/trades-&-services"
-            className={getLinkClasses("/trades-&-services")}
-          >
-            Trades & Services
           </AnimatedLink>
 
           {/* Shop Dropdown moved to middle */}
@@ -565,6 +558,13 @@ function BottomNav() {
             className={getLinkClasses("/deals-&-offers")}
           >
             Deals & Offers
+          </AnimatedLink>
+
+          <AnimatedLink
+            href="/trades-&-services"
+            className={getLinkClasses("/trades-&-services")}
+          >
+            Trades & Services
           </AnimatedLink>
 
           <AnimatedLink

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { PiTiktokLogoBold } from "react-icons/pi";
 
 function Footer() {
   const socialLinks = [
@@ -61,6 +62,16 @@ function Footer() {
         </svg>
       ),
     },
+    {
+      id: 4,
+      name: "Tiktok",
+      url: "https://www.tiktok.com",
+      icon: PiTiktokLogoBold,
+      color: "#FFFFFF",
+      size: 20,
+      className: "text-white   rounded-full ",
+      custom: true,
+    },
   ];
   return (
     <footer className="bg-black  text-white">
@@ -76,8 +87,8 @@ function Footer() {
             className="mb-4"
           />
           <p className="text-sm  text-center md:text-start mb-4">
-            Largest product search engine, maximum categorized online shopping
-            mall and quickest home delivery system.
+            The Canuck Mall: A Homegrown Mall application connecting Canadians &
+            Communities Coast to Coast.
           </p>
 
           <div className="flex items-center justify-center gap-3">
@@ -90,7 +101,11 @@ function Footer() {
                 rel="noopener noreferrer"
                 className=" hover:text-gray-800 transition duration-300 mb-1.5"
               >
-                {link.icon}
+                {link.custom ? (
+                  <link.icon className={link.className} size={link.size} />
+                ) : (
+                  link.icon
+                )}
               </Link>
             ))}
           </div>
@@ -103,7 +118,7 @@ function Footer() {
             House #8, Road # 14,
             <br /> Toronto, Canada
           </p>
-          <p>Email: demo@thecanuckmall.com</p>
+          <p>Email: support@thecanuckmall.com</p>
         </div>
 
         <div className="flex flex-col items-center md:items-start justify-start mx-auto">
@@ -129,7 +144,7 @@ function Footer() {
         </div>
 
         <div className="flex flex-col items-center md:items-start justify-start mx-auto">
-          <h3 className="text-sm font-semibold mb-2">Get Your App</h3>
+          <h3 className="text-sm font-semibold mb-2">Downlaod TCM App</h3>
           <ul className="text-sm flex flex-col items-center justify-center md:items-start md:justify-start  space-y-2">
             <li>
               <Image

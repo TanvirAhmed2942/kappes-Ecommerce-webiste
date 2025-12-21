@@ -375,8 +375,8 @@ export default function SellerRegistrationForm() {
           Create Your Account
         </CardTitle>
         <p className="text-center text-gray-600 text-sm px-6">
-          Join us to explore top Canadian-made products, exclusive deals, and
-          great rewards
+          Join The Canuck Mall today, get noticed, reach new customers, and
+          become part of something truly homegrown.
         </p>
       </CardHeader>
 

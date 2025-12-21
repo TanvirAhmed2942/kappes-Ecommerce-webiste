@@ -1,4 +1,3 @@
-
 import {
   Truck,
   FileText,
@@ -12,21 +11,21 @@ export default function WhySellOnCanuckMall() {
   const benefits = [
     {
       icon: <Users className="h-6 w-6 text-white" />,
-      title: "National Reach",
+      title: "Coast to Coast",
       description:
-        "Expand your business to millions of Canadian shoppers, across cities and provinces, with The Canuck Mall being a trusted and popular marketplace for diverse products.",
+        "Reach shoppers from coast to coast, grow your brand nationwide inside The Canuck Mall.",
     },
     {
       icon: <FileText className="h-6 w-6 text-white" />,
-      title: "Free Registration",
+      title: "Dont break the bank",
       description:
-        "No upfront cost to start! Register your seller account, list your products, and begin selling — all with zero setup fees. Start earning with no financial barriers.",
+        "Gain exposure and traffic without heavy ad costs. The Canuck Mall offers monthly subscription and low sellers fees.",
     },
     {
       icon: <Truck className="h-6 w-6 text-white" />,
-      title: "Reliable Shipping",
+      title: "Simlple set up",
       description:
-        "Enjoy fast, reliable, and hassle-free delivery through The Canuck Mall's trusted logistics network. We handle the shipping, so you can focus on growing your business.",
+        "List products and start selling in minutes—no tech skills needed. Easy onboarding with full support.",
     },
     {
       icon: <CreditCard className="h-6 w-6 text-white" />,
@@ -38,20 +37,20 @@ export default function WhySellOnCanuckMall() {
       icon: <Headphones className="h-6 w-6 text-white" />,
       title: "Seller Support",
       description:
-        "Our dedicated support team is here for you 24/7. Whether you need help with order management, product listings, or troubleshooting, we've got you covered.",
+        "Our dedicated support team is here for you . Whether you need help with order management, product listings, or store set up, we are here.",
     },
     {
       icon: <ShieldCheck className="h-6 w-6 text-white" />,
       title: "Trust & Security",
       description:
-        "Build customer trust with our secure payment gateway and robust buyer protection policies. Your products and customers are always safeguarded, ensuring a smooth transaction.",
+        "Build customer trust with our secure payment gateway. Your products and customers are always safeguarded, ensuring a smooth transaction.",
     },
   ];
 
   return (
     <div className="w-full  mx-auto px-4 py-12 md:py-16 lg:px-32">
       <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-center mb-10 md:mb-16 font-comfortaa ">
-        Why Sell on The Canuck Mall ?
+        Why Join The Canuck Mall ?
       </h2>
 
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">

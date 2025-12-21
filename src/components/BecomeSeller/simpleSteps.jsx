@@ -1,4 +1,4 @@
-  import React from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -39,43 +39,54 @@ function SimpleSteps() {
     {
       id: 1,
       icon,
-      title: "Sign Up for Free",
+      title: "Create Your Retail Account",
       description:
-        "Register easily on our website or mobile app using your phone number to create your seller account.",
+        "Register easily on our website or mobile app, it's fast and easy. we just need the basics, nothing major here.",
     },
     {
       id: 2,
       icon,
-      title: "Complete Profile",
+      title: "Choose a Plan that works for you",
       description:
-        "Add your email, store name, and address to verify your account and get your store live.",
+        "Select the vendor plan that fits your business. Upgrade anytime as you grow — we’re built to scale with you.",
     },
     {
       id: 3,
       icon,
-      title: "Add Payment info",
+      title: "Set Up Your Own Storefront",
       description:
-        "Provide your ID details and bank account information to ensure secure and timely payments.",
+        "Add your products, pricing, photos, and business details. Your Canadian-focused storefront is ready to go.",
     },
     {
       id: 4,
       icon,
-      title: "List Your Products",
+      title: "Connect Stripe & Shipping",
       description:
-        "Upload products to the Seller Center. Once approved, they’ll go live and start selling!",
+        "Secure payments and built-in Canadian shipping integrations make selling easy — you stay in control.",
+    },
+    {
+      id: 5,
+      icon,
+      title: "Go Live & Start Selling",
+      description:
+        "Your store goes live, shoppers discover your brand, and you start receiving orders from customers across Canada.",
     },
   ];
   return (
     <div className="w-full mx-auto ">
       <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-10 md:mb-16 font-comfortaa md:leading-14">
-        5 Simple Steps to Start Selling
-        <br /> on The Canuck Mall
+        Start selling on The Canuck Mall <br /> in 5 simple steps
       </h2>
-      <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mx-auto gap-8 px-6 lg:px-32 ">
+      <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 mx-auto gap-8 px-6 lg:px-32 ">
         {steps.map((item) => (
-          <Card className="max-w-lg h-60 mx-auto border-red-700 " key={item.id}>
+          <Card
+            className="max-w-lg h-64 mx-auto border-2 border-red-700 "
+            key={item.id}
+          >
             <CardContent className="flex flex-col items-start justify-between h-[90%] lg:h-full my-auto">
-              <div className="bg-kappes w-fit p-2 rounded-lg">{item.icon}</div>
+              <div className="bg-kappes w-12 h-12 text-white font-bold font-comfortaa text-xl p-2 rounded-lg flex items-center justify-center">
+                {item.id}
+              </div>
               <Label className="text-2xl font-comfortaa font-bold">
                 {item.title}
               </Label>
