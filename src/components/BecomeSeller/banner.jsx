@@ -17,7 +17,7 @@ function SellerBanner() {
         </div>
         <div className="w-full md:max-w-lg flex justify-end md:block  ">
           <Image
-            src="/assets/becomeSeller/Seller.png"
+            src="/assets/becomeSeller/Seller_1.png"
             width={500}
             height={500}
             alt="Seller illustration"
