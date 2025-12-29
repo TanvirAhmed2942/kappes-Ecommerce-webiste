@@ -11,20 +11,34 @@ function SearchBox({
   handleSearch,
   searchServices = [],
   searchType = "products", // "products" or "services"
+  isLoggedIn = true, // Default to true to maintain backward compatibility
+  showError = null, // Error handler function
 }) {
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [imageErrors, setImageErrors] = useState(new Set());
+  const [hasShownError, setHasShownError] = useState(false);
+
+  // Reset error flag when user logs in
+  useEffect(() => {
+    if (isLoggedIn) {
+      setHasShownError(false);
+    }
+  }, [isLoggedIn]);
 
   // Debounce search term
   useEffect(() => {
+    if (!isLoggedIn) {
+      setDebouncedSearchTerm("");
+      return;
+    }
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(inputValue);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [inputValue]);
+  }, [inputValue, isLoggedIn]);
 
   // Product search API call
   const {
@@ -34,7 +48,7 @@ function SearchBox({
   } = useGetSearchProductsQuery(
     { search: debouncedSearchTerm },
     {
-      skip: !debouncedSearchTerm || searchType !== "products",
+      skip: !debouncedSearchTerm || searchType !== "products" || !isLoggedIn,
     }
   );
 
@@ -46,8 +60,24 @@ function SearchBox({
     if (!value.trim()) {
       setSuggestions([]);
       setDebouncedSearchTerm("");
+      setHasShownError(false); // Reset error flag when input is cleared
       return;
     }
+
+    // Only allow search if logged in
+    if (!isLoggedIn) {
+      setSuggestions([]);
+      setDebouncedSearchTerm("");
+      // Show error when user starts typing while not logged in (only once per typing session)
+      if (showError && !hasShownError) {
+        showError("Please login to see content");
+        setHasShownError(true);
+      }
+      return;
+    }
+
+    // Reset error flag when user is logged in
+    setHasShownError(false);
 
     if (searchType === "services") {
       // Handle service search
@@ -61,6 +91,11 @@ function SearchBox({
 
   // Update suggestions when product search data changes
   useEffect(() => {
+    if (!isLoggedIn) {
+      setSuggestions([]);
+      setImageErrors(new Set());
+      return;
+    }
     if (searchType === "products" && productSearchData?.data?.result) {
       setSuggestions(productSearchData.data.result);
       // Clear image errors when new suggestions load
@@ -69,9 +104,15 @@ function SearchBox({
       setSuggestions([]);
       setImageErrors(new Set());
     }
-  }, [productSearchData, searchType, debouncedSearchTerm]);
+  }, [productSearchData, searchType, debouncedSearchTerm, isLoggedIn]);
 
   const handleSelectSuggestion = (suggestion) => {
+    if (!isLoggedIn) {
+      if (showError) {
+        showError("Please login to see content");
+      }
+      return;
+    }
     if (searchType === "services") {
       setInputValue(suggestion.serviceName);
       setSuggestions([]);
@@ -84,6 +125,12 @@ function SearchBox({
   };
 
   const onSearchClick = () => {
+    if (!isLoggedIn) {
+      if (showError) {
+        showError("Please login to see content");
+      }
+      return;
+    }
     handleSearch?.(inputValue);
     setSuggestions([]);
   };
@@ -91,6 +138,12 @@ function SearchBox({
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
+      if (!isLoggedIn) {
+        if (showError) {
+          showError("Please login to see content");
+        }
+        return;
+      }
       onSearchClick();
     }
   };
@@ -123,7 +176,14 @@ function SearchBox({
                     : `/product-page/${suggestion._id}`
                 }
                 key={suggestion._id || suggestion.id}
-                onClick={() => {
+                onClick={(e) => {
+                  if (!isLoggedIn) {
+                    e.preventDefault();
+                    if (showError) {
+                      showError("Please login to see content");
+                    }
+                    return;
+                  }
                   // Clear everything when navigating
                   setSuggestions([]);
                   setInputValue("");

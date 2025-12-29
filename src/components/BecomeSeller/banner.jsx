@@ -17,11 +17,11 @@ function SellerBanner() {
         </div>
         <div className="w-full md:max-w-lg flex justify-end md:block  ">
           <Image
-            src="/assets/becomeSeller/Seller_1.png"
+            src="/assets/becomeSeller/become_seller.jpeg"
             width={500}
             height={500}
             alt="Seller illustration"
-            className="w-full "
+            className="w-full rounded-lg "
             priority
           />
         </div>

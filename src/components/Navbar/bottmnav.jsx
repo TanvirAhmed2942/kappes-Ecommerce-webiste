@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import provideIcon from "../../common/components/provideIcon";
+import useAuth from "../../hooks/useAuth";
+import useToast from "../../hooks/useShowToast";
 import { RiShoppingBag2Line } from "react-icons/ri";
 import { IoEarthOutline } from "react-icons/io5";
 import { PiStorefrontBold } from "react-icons/pi";
@@ -87,6 +89,18 @@ function BottomNav() {
   const [selectedLocation, setSelectedLocation] = useState("");
   const router = useRouter();
   const currentPath = usePathname();
+  const { isLoggedIn } = useAuth();
+  const { showError } = useToast();
+
+  // Handler to check authentication before navigation
+  const handleNavigation = (e, href) => {
+    if (!isLoggedIn) {
+      e.preventDefault();
+      showError("Please login to see content");
+      return false;
+    }
+    return true;
+  };
 
   // Helper function to check if a path is active
   const isActive = (href) => {
@@ -124,7 +138,11 @@ function BottomNav() {
     const active = isActive(href);
 
     return (
-      <Link href={href} className={`${className} relative group`}>
+      <Link
+        href={href}
+        className={`${className} relative group`}
+        onClick={(e) => handleNavigation(e, href)}
+      >
         {children}
         {/* Active state underline */}
         {active && (
@@ -241,6 +259,10 @@ function BottomNav() {
 
   // Handle location selection from dropdown
   const handleLocationSelect = (locationName, locationType) => {
+    if (!isLoggedIn) {
+      showError("Please login to see content");
+      return;
+    }
     const encodedLocation = encodeURIComponent(locationName);
     router.push(
       `/shop-by-province?type=${locationType}&location=${encodedLocation}`
@@ -284,6 +306,7 @@ function BottomNav() {
                 <Link
                   href="/"
                   className={getDrawerLinkClasses("/", "block py-2")}
+                  onClick={(e) => handleNavigation(e, "/")}
                 >
                   Home
                 </Link>
@@ -303,6 +326,7 @@ function BottomNav() {
                       "/shop",
                       "py-1 pl-4 flex items-center gap-2 group"
                     )}
+                    onClick={(e) => handleNavigation(e, "/shop")}
                   >
                     <RiShoppingBag2Line className="w-5 h-5 group-hover:text-red-700 transition-colors" />
                     All Products
@@ -313,9 +337,10 @@ function BottomNav() {
                       "/shop-by-province",
                       "py-1 pl-4 flex items-center gap-2 group"
                     )}
+                    onClick={(e) => handleNavigation(e, "/shop-by-province")}
                   >
                     <IoEarthOutline className="w-5 h-5 group-hover:text-red-700 transition-colors" />
-                    Shop By Province, Territory, City
+                    Shop By Location
                   </Link>
 
                   <Link
@@ -324,6 +349,7 @@ function BottomNav() {
                       "/shop-by-store",
                       "py-1 pl-4 flex items-center gap-2 group"
                     )}
+                    onClick={(e) => handleNavigation(e, "/shop-by-store")}
                   >
                     <PiStorefrontBold className="w-5 h-5 group-hover:text-red-700 transition-colors" />
                     Shop By Store
@@ -336,6 +362,7 @@ function BottomNav() {
                     "/deals-&-offers",
                     "block py-2"
                   )}
+                  onClick={(e) => handleNavigation(e, "/deals-&-offers")}
                 >
                   Deals & Offers
                 </Link>
@@ -346,6 +373,7 @@ function BottomNav() {
                     "/trades-&-services",
                     "block py-2"
                   )}
+                  onClick={(e) => handleNavigation(e, "/trades-&-services")}
                 >
                   Trades & Services
                 </Link>
@@ -356,6 +384,9 @@ function BottomNav() {
                     "/auth/become-seller-login",
                     "block py-2"
                   )}
+                  onClick={(e) =>
+                    handleNavigation(e, "/auth/become-seller-login")
+                  }
                 >
                   Become a Seller
                 </Link>
@@ -373,6 +404,7 @@ function BottomNav() {
                       "/faq",
                       "block py-1 pl-4"
                     )}
+                    onClick={(e) => handleNavigation(e, "/faq")}
                   >
                     FAQs
                   </Link>
@@ -382,6 +414,7 @@ function BottomNav() {
                       "/terms-&-condition",
                       "block py-1 pl-4"
                     )}
+                    onClick={(e) => handleNavigation(e, "/terms-&-condition")}
                   >
                     T&C
                   </Link>
@@ -391,6 +424,7 @@ function BottomNav() {
                       "/privacy-policy",
                       "block py-1 pl-4"
                     )}
+                    onClick={(e) => handleNavigation(e, "/privacy-policy")}
                   >
                     Privacy Policy
                   </Link>
@@ -400,6 +434,7 @@ function BottomNav() {
                       "/about-us",
                       "block py-1 pl-4"
                     )}
+                    onClick={(e) => handleNavigation(e, "/about-us")}
                   >
                     About Us
                   </Link>
@@ -437,6 +472,7 @@ function BottomNav() {
                         ? "bg-kappes text-white font-semibold"
                         : ""
                     }`}
+                    onClick={(e) => handleNavigation(e, "/shop")}
                   >
                     <RiShoppingBag2Line className="w-5 h-5 text-current transition-colors" />{" "}
                     All Products
@@ -454,7 +490,7 @@ function BottomNav() {
                       }`}
                     >
                       <IoEarthOutline className="w-5 h-5 group-hover:text-white transition-colors" />
-                      <span>Shop By Province, Territory, City</span>
+                      <span>Shop By Location</span>
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -544,6 +580,7 @@ function BottomNav() {
                         ? "bg-kappes text-white font-semibold"
                         : ""
                     }`}
+                    onClick={(e) => handleNavigation(e, "/shop-by-store")}
                   >
                     <PiStorefrontBold className="w-5 h-5 text-current transition-colors" />{" "}
                     Shop By Store

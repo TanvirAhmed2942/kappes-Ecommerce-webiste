@@ -35,11 +35,11 @@ const PromoteBusiness = () => {
         {/* Image */}
         <div className="w-full">
           <Image
-            src="/assets/tradesAndServies/promoteBusiness.png" // Replace with your image path
+            src="/assets/tradesAndServies/promote.jpeg" // Replace with your image path
             alt="Promote your business"
             width={600}
             height={400}
-            className="w-full h-auto rounded-lg shadow-md"
+            className="w-full h-auto rounded-lg shadow-md rotate-y-180 object-cover "
           />
         </div>
       </div>

@@ -5,14 +5,14 @@ import BottomNav from "./bottmnav";
 import SellerNav from "../SellerDahsboard/sellerNavbar/sellerNav";
 import useAuth from "../../hooks/useAuth";
 const NavBar = () => {
-  const { role } = useAuth();
+  const { role, isLoggedIn } = useAuth();
   console.log("role", role);
   return role === "VENDOR" || role === "SHOP ADMIN" ? (
     <SellerNav />
   ) : (
     <>
       <TopNav />
-      <BottomNav />
+      {isLoggedIn && <BottomNav />}
     </>
   );
 };

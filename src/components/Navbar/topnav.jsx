@@ -96,7 +96,11 @@ function TopNav() {
 
       {/* Search box */}
       <div className="md:w-1/2 w-full">
-        <SearchBox searchType="products" />
+        <SearchBox
+          searchType="products"
+          isLoggedIn={isLoggedIn}
+          showError={showError}
+        />
       </div>
 
       {/* Right Section */}
@@ -227,8 +231,8 @@ function TopNav() {
 
               {/* Messages - Mobile and Desktop */}
               <div className="mt-6 px-4 block">
-                  <Button
-                    className="w-full justify-start gap-3 hover:bg-kappes"
+                <Button
+                  className="w-full justify-start gap-3 hover:bg-kappes"
                   onClick={(e) => {
                     e.preventDefault();
                     if (!isLoggedIn) {
@@ -243,15 +247,15 @@ function TopNav() {
                     }
                     setIsDrawerOpen(false);
                   }}
-                  >
-                    <BiMessageSquareDots size={20} />
-                    <span>Messages</span>
-                    {unreadCount > 0 && (
+                >
+                  <BiMessageSquareDots size={20} />
+                  <span>Messages</span>
+                  {unreadCount > 0 && (
                     <span className="ml-auto bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full animate-pulse border-2 border-white">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
-                  </Button>
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </Button>
               </div>
 
               {/* Navigation Buttons */}

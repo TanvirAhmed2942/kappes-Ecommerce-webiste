@@ -5,6 +5,7 @@ import ProductRecomendation from "../components/Home/Recomendation/productRecome
 import TrendingProduct from "../components/Home/Trending Products/trendingProduct";
 import AdvertisementBanner from "../components/Home/AdvertisementBanner/AdvertisementBanner";
 import useAuth from "../hooks/useAuth";
+import Image from "next/image";
 
 function Home() {
   return (
@@ -27,6 +28,13 @@ const Maintenance = () => {
           We are currently down for maintenance. Please check back later.
         </p>
       </div>
+      {/* <Image
+        src="/assets/home/maintenance.png"
+        alt="Maintenance"
+        width={1000}
+        height={1000}
+        className="w-full h-full object-contain scale-"
+      /> */}
     </div>
   );
 };
