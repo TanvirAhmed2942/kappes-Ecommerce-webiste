@@ -1,7 +1,7 @@
 import { Comfortaa, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import Footer from "../components/Footer/footer";
+import ConditionalFooter from "../components/Footer/ConditionalFooter";
 import NavBar from "../components/Navbar";
 import Head from "./Head";
 import Providers from "../Providers/providers";
@@ -34,7 +34,7 @@ export default function RootLayout({ children }) {
         <Providers>
           <NavBar />
           <div className="">{children}</div>
-          <Footer />
+          <ConditionalFooter />
         </Providers>
       </body>
     </html>

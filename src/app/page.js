@@ -4,7 +4,7 @@ import PopularCategories from "../components/Home/Popular Categories/popularCate
 import ProductRecomendation from "../components/Home/Recomendation/productRecomendation";
 import TrendingProduct from "../components/Home/Trending Products/trendingProduct";
 import AdvertisementBanner from "../components/Home/AdvertisementBanner/AdvertisementBanner";
-import { withAuth } from "../Providers/AuthGuard";
+import useAuth from "../hooks/useAuth";
 
 function Home() {
   return (
@@ -18,4 +18,25 @@ function Home() {
   );
 }
 
-export default withAuth(Home, null, ["VENDOR", "SHOP ADMIN"]);
+const Maintenance = () => {
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+      <div className="text-center space-y-4 p-8">
+        <h1 className="text-4xl font-bold text-gray-800">Maintenance</h1>
+        <p className="text-lg text-gray-600">
+          We are currently down for maintenance. Please check back later.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default function Page() {
+  const { isLoggedIn } = useAuth();
+
+  if (!isLoggedIn) {
+    return <Maintenance />;
+  }
+
+  return <Home />;
+}

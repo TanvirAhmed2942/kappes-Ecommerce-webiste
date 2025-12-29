@@ -25,6 +25,11 @@ const nextConfig = {
         hostname: "35.183.138.114",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "api.thecanuckmall.ca",
+        pathname: "/**",
+      },
     ],
   },
 };
