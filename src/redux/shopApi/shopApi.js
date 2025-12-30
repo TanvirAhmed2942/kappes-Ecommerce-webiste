@@ -15,7 +15,7 @@ const shopApi = api.injectEndpoints({
       },
     }),
     getShopListProvince: builder.query({
-      query: ({ location, locationType }) => {
+      query: ({ location }) => {
         const queryParts = [];
         if (location) {
           queryParts.push(`searchTerm=${location}`);

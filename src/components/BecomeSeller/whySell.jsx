@@ -1,11 +1,3 @@
-import {
-  Truck,
-  FileText,
-  Users,
-  CreditCard,
-  Headphones,
-  ShieldCheck,
-} from "lucide-react";
 import Image from "next/image";
 export default function WhySellOnCanuckMall() {
   const benefits = [
@@ -70,8 +62,8 @@ export default function WhySellOnCanuckMall() {
         <Image
           src="/assets/becomeSeller/seller.png"
           alt="Coast to Coast"
-          width={100}
-          height={100}
+          width={90}
+          height={50}
           className="w-30 h-30 object-cover -ml-5"
         />
       ),

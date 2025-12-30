@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useGetFollowedShopsQuery } from "../../../redux/userprofileApi/userprofileApi";
 import { getImageUrl } from "../../../redux/baseUrl";
+import { Card, CardContent } from "../../ui/card";
+import { MapPin } from "lucide-react";
 
 function FollowedShop({ selectedMenu }) {
   const {
@@ -16,23 +18,34 @@ function FollowedShop({ selectedMenu }) {
   const extractShops = () => {
     if (!followedShopsData) return [];
 
-    // Case 1: { success: true, data: [...] }
-    if (followedShopsData?.success && Array.isArray(followedShopsData.data)) {
-      return followedShopsData.data;
+    // Case 1: { success: true, data: { shops: [...] } }
+    if (
+      followedShopsData?.success &&
+      followedShopsData?.data?.shops &&
+      Array.isArray(followedShopsData.data.shops)
+    ) {
+      return followedShopsData.data.shops;
     }
 
-    // Case 2: { data: [...] }
-    if (Array.isArray(followedShopsData?.data)) {
-      return followedShopsData.data;
-    }
-
-    // Case 3: { data: { shops: [...] } } or { data: { result: [...] } }
+    // Case 2: { data: { shops: [...] } }
     if (
       followedShopsData?.data?.shops &&
       Array.isArray(followedShopsData.data.shops)
     ) {
       return followedShopsData.data.shops;
     }
+
+    // Case 3: { success: true, data: [...] }
+    if (followedShopsData?.success && Array.isArray(followedShopsData.data)) {
+      return followedShopsData.data;
+    }
+
+    // Case 4: { data: [...] }
+    if (Array.isArray(followedShopsData?.data)) {
+      return followedShopsData.data;
+    }
+
+    // Case 5: { data: { result: [...] } }
     if (
       followedShopsData?.data?.result &&
       Array.isArray(followedShopsData.data.result)
@@ -40,7 +53,7 @@ function FollowedShop({ selectedMenu }) {
       return followedShopsData.data.result;
     }
 
-    // Case 4: Direct array
+    // Case 6: Direct array
     if (Array.isArray(followedShopsData)) {
       return followedShopsData;
     }
@@ -92,29 +105,64 @@ function FollowedShop({ selectedMenu }) {
         {followedShops.map((shop) => {
           const shopId = shop._id || shop.id;
           const shopName = shop.name || shop.storeName || "Shop";
-          const shopLogo =
-            shop.logo || shop.image || "/assets/default-store-logo.png";
-          const logoUrl = shopLogo.startsWith("http")
-            ? shopLogo
-            : `${getImageUrl}${shopLogo}`;
+
+          // Format location: City, Province/Territory
+          const city = shop.address?.city || "";
+          const province =
+            shop.address?.province || shop.address?.territory || "";
+          const location = [city, province].filter(Boolean).join(", ");
+
+          // Construct cover photo URL (use coverPhoto or first banner image)
+          const coverPath = shop.coverPhoto || shop.banner?.[0] || "";
+          const coverUrl = coverPath
+            ? coverPath.startsWith("http")
+              ? coverPath
+              : `${getImageUrl}${
+                  coverPath.startsWith("/") ? coverPath.slice(1) : coverPath
+                }`
+            : "/assets/default-shop-cover.jpg";
+
+          // Construct logo URL
+          const logoPath = shop.logo || shop.image || "";
+          const logoUrl = logoPath
+            ? logoPath.startsWith("http")
+              ? logoPath
+              : `${getImageUrl}${
+                  logoPath.startsWith("/") ? logoPath.slice(1) : logoPath
+                }`
+            : "/assets/default-store-logo.png";
 
           return (
-            <div key={shopId} className="flex flex-col items-center">
-              <Link href={`/store/${shopId}`} className="cursor-pointer">
-                <div className="relative w-24 h-24 mb-2">
+            <Link key={shopId} href={`/store/${shopId}`}>
+              <Card className="overflow-hidden rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer h-full  flex flex-col bg-white">
+                {/* Background Image Container */}
+                <div className="relative w-full h-32 bg-gray-200 rounded-lg">
                   <Image
-                    src={logoUrl}
+                    src={coverUrl}
                     alt={shopName}
                     fill
-                    quality={100}
-                    className="rounded-full object-cover border-2 border-gray-200 hover:border-red-500 transition-colors duration-300"
+                    className="object-cover rounded-lg"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                   />
+                  {/* Logo Badge - Bottom Left */}
+                  <div className="absolute bottom-2 left-2 bg-white rounded-lg p-1 shadow-lg">
+                    <div className="relative w-10 h-10">
+                      <Image
+                        src={logoUrl}
+                        alt={`${shopName} logo`}
+                        fill
+                        className="object-cover rounded-lg"
+                        sizes="40px"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </Link>
-              <h3 className="text-sm font-medium text-gray-900 text-center line-clamp-2">
-                {shopName}
-              </h3>
-            </div>
+
+                <h3 className="font-semibold text-sm mb-1 line-clamp-1">
+                  {shopName}
+                </h3>
+              </Card>
+            </Link>
           );
         })}
       </div>
