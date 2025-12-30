@@ -42,8 +42,8 @@ export default React.memo(function Banner() {
           <SwiperSlide key={index}>
             <div className="w-full">
               <Image
-                width={1920}
-                height={1080}
+                width={2048}
+                height={2048}
                 src={`${getImageUrl}${
                   image.startsWith("/") ? image.slice(1) : image
                 }`}

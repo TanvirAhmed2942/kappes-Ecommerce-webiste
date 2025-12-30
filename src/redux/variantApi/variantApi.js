@@ -3,11 +3,28 @@ import { api } from "../baseApi";
 const variantApi = api.injectEndpoints({
   endpoints: (builder) => ({
     createVariant: builder.mutation({
-      query: (formData) => ({
-        url: "/variant",
-        method: "POST",
-        body: formData,
-      }),
+      query: (formData) => {
+        // For FormData, don't set Content-Type header - browser will set it automatically
+        // with the correct multipart/form-data boundary. This prevents CORS errors.
+        if (formData instanceof FormData) {
+          return {
+            url: "/variant",
+            method: "POST",
+            body: formData,
+            // RTK Query will not set Content-Type if we don't specify it
+            // The browser will automatically set it with the correct boundary
+          };
+        }
+        // For JSON payloads, set Content-Type
+        return {
+          url: "/variant",
+          method: "POST",
+          body: formData,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
+      },
       invalidatesTags: ["variant"],
     }),
     getallVariant: builder.query({
@@ -28,17 +45,31 @@ const variantApi = api.injectEndpoints({
       query: (id) => {
         return {
           url: `/variant/single/${id}`,
-        method: "GET",
+          method: "GET",
         };
       },
       providesTags: ["variant"],
     }),
     updateVariant: builder.mutation({
       query: ({ id, data }) => {
+        // For FormData, don't set Content-Type header - browser will set it automatically
+        // with the correct multipart/form-data boundary. This prevents CORS errors.
+        if (data instanceof FormData) {
+          return {
+            url: `/variant/${id}`,
+            method: "PATCH",
+            body: data,
+            // Don't set headers - browser will set Content-Type automatically
+          };
+        }
+        // For JSON payloads, set Content-Type
         return {
           url: `/variant/${id}`,
           method: "PATCH",
           body: data,
+          headers: {
+            "Content-Type": "application/json",
+          },
         };
       },
       invalidatesTags: ["variant"],

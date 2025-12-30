@@ -59,10 +59,24 @@ const subCategoryApi = api.injectEndpoints({
 
     createVariant: builder.mutation({
       query: (data) => {
+        // For FormData, don't set Content-Type header - browser will set it automatically
+        // with the correct multipart/form-data boundary. This prevents CORS errors.
+        if (data instanceof FormData) {
+          return {
+            url: `/variant`,
+            method: "POST",
+            body: data,
+            // Don't set headers - browser will set Content-Type automatically
+          };
+        }
+        // For JSON payloads, set Content-Type
         return {
           url: `/variant`,
           method: "POST",
           body: data,
+          headers: {
+            "Content-Type": "application/json",
+          },
         };
       },
       invalidatesTags: ["variant"],
@@ -70,10 +84,24 @@ const subCategoryApi = api.injectEndpoints({
 
     updateSubVariant: builder.mutation({
       query: ({ data, id }) => {
+        // For FormData, don't set Content-Type header - browser will set it automatically
+        // with the correct multipart/form-data boundary. This prevents CORS errors.
+        if (data instanceof FormData) {
+          return {
+            url: `/variant/${id}`,
+            method: "PATCH",
+            body: data,
+            // Don't set headers - browser will set Content-Type automatically
+          };
+        }
+        // For JSON payloads, set Content-Type
         return {
           url: `/variant/${id}`,
           method: "PATCH",
           body: data,
+          headers: {
+            "Content-Type": "application/json",
+          },
         };
       },
       invalidatesTags: ["variant"],

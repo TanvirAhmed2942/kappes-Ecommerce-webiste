@@ -185,8 +185,66 @@ export default function CreateVariantSheet({
     return field.toLowerCase().includes("color");
   };
 
+  // Compress image function
+  const compressImage = (
+    file,
+    maxWidth = 1920,
+    maxHeight = 1920,
+    quality = 0.8
+  ) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions
+          if (width > height) {
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = (width * maxHeight) / height;
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: file.type,
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                reject(new Error("Compression failed"));
+              }
+            },
+            file.type,
+            quality
+          );
+        };
+        img.onerror = reject;
+      };
+      reader.onerror = reject;
+    });
+  };
+
   // Handle variant image upload
-  const handleVariantImageUpload = (e) => {
+  const handleVariantImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     const remainingSlots = 5 - variantImages.length;
 
@@ -197,8 +255,43 @@ export default function CreateVariantSheet({
       return;
     }
 
-    const newImages = [...variantImages, ...files].slice(0, 5);
-    setVariantImages(newImages);
+    // Validate file types
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    if (imageFiles.length !== files.length) {
+      alert("Please select only image files.");
+      e.target.value = "";
+      return;
+    }
+
+    try {
+      // Compress all images
+      const compressedFiles = await Promise.all(
+        imageFiles.map((file) => compressImage(file))
+      );
+
+      // Check total size after compression (max 2MB total to prevent 413 errors)
+      const totalSize = compressedFiles.reduce(
+        (sum, file) => sum + file.size,
+        0
+      );
+      const MAX_TOTAL_SIZE = 2 * 1024 * 1024; // 2MB total
+
+      if (totalSize > MAX_TOTAL_SIZE) {
+        alert(
+          `Total image size is too large (${(totalSize / 1024 / 1024).toFixed(
+            2
+          )}MB). Maximum total size is 2MB. Please reduce the number of images or use smaller images.`
+        );
+        e.target.value = "";
+        return;
+      }
+
+      const newImages = [...variantImages, ...compressedFiles].slice(0, 5);
+      setVariantImages(newImages);
+    } catch (error) {
+      console.error("Error compressing images:", error);
+      alert("Error processing images. Please try again.");
+    }
 
     // Reset input
     e.target.value = "";
@@ -264,6 +357,23 @@ export default function CreateVariantSheet({
       ...normalizedFields,
     };
 
+    // Check total size before creating FormData
+    const totalImageSize = variantImages.reduce(
+      (sum, img) => sum + img.size,
+      0
+    );
+    const MAX_RECOMMENDED_SIZE = 1.5 * 1024 * 1024; // 1.5MB recommended max
+
+    if (totalImageSize > MAX_RECOMMENDED_SIZE) {
+      const sizeInMB = (totalImageSize / 1024 / 1024).toFixed(2);
+      const proceed = confirm(
+        `Warning: Total image size is ${sizeInMB}MB, which might be too large for the server. This may cause a 413 error.\n\nDo you want to continue anyway?`
+      );
+      if (!proceed) {
+        return;
+      }
+    }
+
     const formData = new FormData();
     formData.append("data", JSON.stringify(payload));
     variantImages.forEach((img) => formData.append("image", img));
@@ -282,9 +392,31 @@ export default function CreateVariantSheet({
         onOpenChange(false);
       })
       .catch((err) => {
-        alert(
-          err?.data?.message || "Failed to create variant. Please try again."
-        );
+        let errorMessage = "Failed to create variant. Please try again.";
+
+        // Handle specific error cases
+        const status = err?.status || err?.originalStatus;
+        const errorData = err?.data || err?.error;
+
+        if (
+          status === 413 ||
+          (errorData && errorData.toString().includes("413"))
+        ) {
+          errorMessage =
+            "Request too large (413 Error). The server rejected the request because it's too big. Images have been compressed, but if the error persists, please:\n- Upload fewer images (max 2-3 images)\n- Use smaller image files\n- Contact your server administrator to increase the upload size limit";
+        } else if (
+          err?.error === "FETCH_ERROR" ||
+          (errorData && errorData.toString().includes("CORS"))
+        ) {
+          errorMessage =
+            "Network error. This might be a CORS issue or network problem. Please check your connection and try again.";
+        } else if (err?.data?.message) {
+          errorMessage = err.data.message;
+        } else if (errorData) {
+          errorMessage = errorData.toString();
+        }
+
+        alert(errorMessage);
         console.error("Create variant error:", err);
       });
   };

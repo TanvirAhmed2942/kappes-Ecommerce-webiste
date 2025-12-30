@@ -13,5 +13,3 @@ export const getSocketUrl = () => {
 // export const getImageUrl = "http://10.10.7.103:7001/";
 // export const getImageUrl = "https://asif7001.binarybards.online/";
 export const getImageUrl = "https://api.thecanuckmall.ca/";
-
-//
