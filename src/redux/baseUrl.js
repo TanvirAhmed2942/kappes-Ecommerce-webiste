@@ -1,7 +1,7 @@
 export const getBaseUrl = () => {
   // return "http://10.10.7.103:7001/api/v1";
   // return "https://asif7001.binarybards.online/api/v1";
-  // return "https://api.thecanuckmall.ca/api/v1";
+  return "https://api.thecanuckmall.ca/api/v1";
 };
 
 export const getSocketUrl = () => {
