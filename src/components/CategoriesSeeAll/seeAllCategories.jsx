@@ -8,10 +8,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { setSelectedCategory } from "../../features/filterSlice";
 import ShopLayout from "../Shop/shopLayout";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { getImageUrl } from "../../redux/baseUrl";
+
 function SeeAllCategories() {
   const { data: categoriesResponse, isLoading, error } = useGetCategoryQuery();
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
+  const [selectedImageCategory, setSelectedImageCategory] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Check if a specific category was selected from URL params
   const categoryParam = searchParams.get("category");
@@ -34,6 +39,7 @@ function SeeAllCategories() {
         id: category._id,
         categoryName: category.name,
         thumbnail: category.thumbnail,
+        images: category.image || [], // Array of images for this category
         description: category.description,
         ctgViewCount: category.ctgViewCount,
         subCategory: category.subCategory || [],
@@ -68,6 +74,7 @@ function SeeAllCategories() {
 
       if (categoryParamChanged || !currentCategorySet) {
         dispatch(setSelectedCategory([categoryParam]));
+        setSelectedImageCategory(categoryParam);
         initializedRef.current = true;
       }
     } else if (
@@ -97,6 +104,14 @@ function SeeAllCategories() {
 
     // Update Redux filter state directly
     dispatch(setSelectedCategory(newSelectedCategories));
+
+    // Update image category if this category is being selected
+    if (!selectedCategories.includes(id)) {
+      setSelectedImageCategory(id);
+    } else if (newSelectedCategories.length > 0) {
+      // If deselecting, switch to first remaining selected category
+      setSelectedImageCategory(newSelectedCategories[0]);
+    }
   };
 
   const toggleAll = () => {
@@ -110,7 +125,40 @@ function SeeAllCategories() {
 
     // Update Redux filter state directly
     dispatch(setSelectedCategory(newSelectedCategories));
+
+    // Update image category
+    if (newSelectedCategories.length > 0) {
+      setSelectedImageCategory(newSelectedCategories[0]);
+    } else if (allCategories.length > 0) {
+      setSelectedImageCategory(allCategories[0].id);
+    }
   };
+
+  // Set initial image category when categories load or when selected categories change
+  useEffect(() => {
+    if (allCategories.length > 0) {
+      // If a specific category is selected, use that for the image
+      if (selectedCategories.length === 1) {
+        const selectedCat = allCategories.find(
+          (cat) => cat.id === selectedCategories[0]
+        );
+        if (selectedCat) {
+          setSelectedImageCategory(selectedCat.id);
+        }
+      } else if (selectedCategories.length > 0 && !selectedImageCategory) {
+        // If multiple categories selected, use the first one
+        setSelectedImageCategory(selectedCategories[0]);
+      } else if (selectedCategories.length === 0 && allCategories.length > 0) {
+        // If no categories selected, use the first category
+        setSelectedImageCategory(allCategories[0].id);
+      }
+    }
+  }, [allCategories, selectedCategories, selectedImageCategory]);
+
+  // Reset image index when category changes
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [selectedImageCategory]);
 
   // Check if all categories are selected more accurately
   const allCategoryIds = allCategories.map((cat) => cat.id);
@@ -234,10 +282,146 @@ function SeeAllCategories() {
           </div>
         </>
       )}
+      {/* Category Image with Radio Navigation */}
+      {allCategories.length > 0 && (
+        <div className="w-full flex flex-col items-center mb-6">
+          {/* Responsive Image Container */}
+          <div className="w-full md:w-2/3">
+            {(() => {
+              const selectedCategory = allCategories.find(
+                (cat) => cat.id === selectedImageCategory
+              );
 
+              // Get images from the image array, fallback to thumbnail
+              const categoryImages =
+                selectedCategory?.images && selectedCategory.images.length > 0
+                  ? selectedCategory.images
+                  : selectedCategory?.thumbnail
+                  ? [selectedCategory.thumbnail]
+                  : [];
+
+              // Get current image URL
+              const currentImage =
+                categoryImages[currentImageIndex] ||
+                "/assets/categories/categories.png";
+
+              const imageUrl = currentImage.startsWith("http")
+                ? currentImage
+                : `${getImageUrl}${
+                    currentImage.startsWith("/")
+                      ? currentImage.slice(1)
+                      : currentImage
+                  }`;
+
+              const hasMultipleImages = categoryImages.length > 1;
+
+              return (
+                <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-lg overflow-hidden border-2 border-gray-300">
+                  <Image
+                    src={imageUrl}
+                    alt={selectedCategory?.categoryName || "Category"}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 66vw"
+                  />
+
+                  {/* Navigation arrows for multiple images */}
+                  {hasMultipleImages && (
+                    <>
+                      {/* Previous button */}
+                      {currentImageIndex > 0 && (
+                        <button
+                          onClick={() =>
+                            setCurrentImageIndex((prev) => prev - 1)
+                          }
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all z-10"
+                          aria-label="Previous image"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="m15 18-6-6 6-6" />
+                          </svg>
+                        </button>
+                      )}
+
+                      {/* Next button */}
+                      {currentImageIndex < categoryImages.length - 1 && (
+                        <button
+                          onClick={() =>
+                            setCurrentImageIndex((prev) => prev + 1)
+                          }
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all z-10"
+                          aria-label="Next image"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="m9 18 6-6-6-6" />
+                          </svg>
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Radio Navigation Dots - Always show if there are multiple images */}
+          {(() => {
+            const selectedCategory = allCategories.find(
+              (cat) => cat.id === selectedImageCategory
+            );
+            const categoryImages =
+              selectedCategory?.images && selectedCategory.images.length > 0
+                ? selectedCategory.images
+                : selectedCategory?.thumbnail
+                ? [selectedCategory.thumbnail]
+                : [];
+
+            // Only show dots if there are multiple images
+            if (categoryImages.length <= 1) return null;
+
+            return (
+              <div className="flex gap-2 justify-center mt-4">
+                {categoryImages.map((_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`w-2.5 h-2.5 rounded-full transition-all ${
+                      currentImageIndex === index
+                        ? "bg-gray-700"
+                        : "bg-gray-400 hover:bg-gray-500"
+                    }`}
+                    aria-label={`Go to image ${index + 1}`}
+                  />
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      )}
       {/* Show products when categories are selected or when a specific category is in URL */}
       {(selectedCategories.length > 0 || isSpecificCategorySelected) && (
-        <div className="mt-8">
+        <div className="mt-4">
           <ShopLayout />
         </div>
       )}

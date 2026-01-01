@@ -67,6 +67,12 @@ export const generateSlug = (categoryName, subCategoryName, variantDetails) => {
     getFirstWord(subCategoryName),
   ].filter(Boolean);
 
+  // Return early if variantDetails is null or undefined
+  if (!variantDetails || typeof variantDetails !== "object") {
+    const finalSlug = slugParts.join("-");
+    return finalSlug;
+  }
+
   // Specific order for slug generation based on the backend example
   const slugOrder = [
     "color",
@@ -124,6 +130,9 @@ export const useProductSlug = (productDetails, selectedVariant) => {
     // If multiple variants, generate a representative slug
     const firstVariant = productDetails.product_variant_Details[0];
 
+    // Check if firstVariant and variantId exist
+    if (!firstVariant || !firstVariant.variantId) return "";
+
     const categoryName = productDetails.categoryId?.name || "";
     const subCategoryName = productDetails.subcategoryId?.name || "";
 
@@ -138,7 +147,7 @@ export const useProductSlug = (productDetails, selectedVariant) => {
       subCategoryName,
       firstVariant: firstVariant.variantId,
       generatedSlug,
-      actualSlug: firstVariant.variantId.slug,
+      actualSlug: firstVariant.variantId?.slug || null,
     });
 
     return generatedSlug;
@@ -147,6 +156,9 @@ export const useProductSlug = (productDetails, selectedVariant) => {
   // Validate if the generated slug matches the backend slug
   const isValidVariantSlug = useMemo(() => {
     if (!selectedVariant || !productDetails) return true;
+
+    // Check if variantId exists
+    if (!selectedVariant.variantId) return true;
 
     const categoryName = productDetails.categoryId?.name || "";
     const subCategoryName = productDetails.subcategoryId?.name || "";
@@ -157,25 +169,19 @@ export const useProductSlug = (productDetails, selectedVariant) => {
       selectedVariant.variantId
     );
 
-    const isValid = selectedVariant.variantId.slug === generatedSlug;
+    const isValid = selectedVariant.variantId?.slug === generatedSlug;
 
     console.log("Variant Slug Validation:", {
       categoryName,
       subCategoryName,
       variantDetails: selectedVariant.variantId,
       generatedSlug,
-      actualSlug: selectedVariant.variantId.slug,
+      actualSlug: selectedVariant.variantId?.slug || null,
       isValid,
     });
 
     return isValid;
-  }, [
-    productDetails,
-    selectedVariant?.variantId?.color?.code,
-    selectedVariant?.variantId?.size,
-    selectedVariant?.variantId?.storage,
-    selectedVariant?.variantId?.ram,
-  ]);
+  }, [productDetails, selectedVariant]);
 
   // Check if a specific variant is available
   const isVariantAvailable = useMemo(() => {

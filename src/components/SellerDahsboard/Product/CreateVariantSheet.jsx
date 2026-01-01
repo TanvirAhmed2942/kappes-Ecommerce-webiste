@@ -263,24 +263,38 @@ export default function CreateVariantSheet({
       return;
     }
 
+    // Validate individual file sizes (max 10MB per file)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
+    const oversizedFiles = imageFiles.filter(
+      (file) => file.size > MAX_FILE_SIZE
+    );
+    if (oversizedFiles.length > 0) {
+      alert(
+        `Some images are too large. Maximum size per image is 10MB. Please reduce the size of ${oversizedFiles.length} image(s) and try again.`
+      );
+      e.target.value = "";
+      return;
+    }
+
     try {
       // Compress all images
       const compressedFiles = await Promise.all(
         imageFiles.map((file) => compressImage(file))
       );
 
-      // Check total size after compression (max 2MB total to prevent 413 errors)
+      // Check total size after compression (max 40MB total to prevent 413 errors)
+      // Server can handle 10MB per image, with max 5 images = 50MB, but we'll set 40MB as safe limit
       const totalSize = compressedFiles.reduce(
         (sum, file) => sum + file.size,
         0
       );
-      const MAX_TOTAL_SIZE = 2 * 1024 * 1024; // 2MB total
+      const MAX_TOTAL_SIZE = 40 * 1024 * 1024; // 40MB total
 
       if (totalSize > MAX_TOTAL_SIZE) {
         alert(
           `Total image size is too large (${(totalSize / 1024 / 1024).toFixed(
             2
-          )}MB). Maximum total size is 2MB. Please reduce the number of images or use smaller images.`
+          )}MB). Maximum total size is 40MB. Please reduce the number of images or use smaller images.`
         );
         e.target.value = "";
         return;
@@ -362,12 +376,12 @@ export default function CreateVariantSheet({
       (sum, img) => sum + img.size,
       0
     );
-    const MAX_RECOMMENDED_SIZE = 1.5 * 1024 * 1024; // 1.5MB recommended max
+    const MAX_RECOMMENDED_SIZE = 35 * 1024 * 1024; // 35MB recommended max (warning threshold)
 
     if (totalImageSize > MAX_RECOMMENDED_SIZE) {
       const sizeInMB = (totalImageSize / 1024 / 1024).toFixed(2);
       const proceed = confirm(
-        `Warning: Total image size is ${sizeInMB}MB, which might be too large for the server. This may cause a 413 error.\n\nDo you want to continue anyway?`
+        `Warning: Total image size is ${sizeInMB}MB, which might be too large for the server. Maximum recommended is 35MB (server can handle up to 10MB per image). This may cause a 413 error.\n\nDo you want to continue anyway?`
       );
       if (!proceed) {
         return;
@@ -403,7 +417,7 @@ export default function CreateVariantSheet({
           (errorData && errorData.toString().includes("413"))
         ) {
           errorMessage =
-            "Request too large (413 Error). The server rejected the request because it's too big. Images have been compressed, but if the error persists, please:\n- Upload fewer images (max 2-3 images)\n- Use smaller image files\n- Contact your server administrator to increase the upload size limit";
+            "Request too large (413 Error). The server rejected the request because it's too big. Images have been compressed, but if the error persists, please:\n- Upload fewer images (max 3-4 images)\n- Ensure each image is under 10MB\n- Total size should be under 40MB\n- Contact your server administrator to increase the upload size limit if needed";
         } else if (
           err?.error === "FETCH_ERROR" ||
           (errorData && errorData.toString().includes("CORS"))

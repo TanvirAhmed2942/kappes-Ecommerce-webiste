@@ -161,6 +161,9 @@ export const findBestMatchingVariant = (product, selectedSpecs) => {
   // Prioritize exact match first
   const exactMatch = product.product_variant_Details.find((variant) => {
     const variantId = variant.variantId;
+    // Skip if variantId is null or undefined
+    if (!variantId || typeof variantId !== "object") return false;
+
     return Object.entries(selectedSpecs).every(([key, value]) => {
       // Special handling for color to match hex code
       if (key === "color") {
@@ -176,6 +179,9 @@ export const findBestMatchingVariant = (product, selectedSpecs) => {
   // If no exact match, try partial matching
   const partialMatches = product.product_variant_Details.filter((variant) => {
     const variantId = variant.variantId;
+    // Skip if variantId is null or undefined
+    if (!variantId || typeof variantId !== "object") return false;
+
     return Object.entries(selectedSpecs).some(([key, value]) => {
       // Special handling for color to match hex code
       if (key === "color") {
@@ -203,6 +209,11 @@ export const getAvailableVariantSpecs = (product) => {
   // Collect unique specifications from all variants
   product.product_variant_Details.forEach((variant) => {
     const variantId = variant.variantId;
+
+    // Skip if variantId is null or undefined
+    if (!variantId || typeof variantId !== "object") {
+      return;
+    }
 
     // Dynamically collect specs from variant
     Object.keys(variantId).forEach((key) => {

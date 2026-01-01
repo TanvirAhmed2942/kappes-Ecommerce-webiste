@@ -29,6 +29,11 @@ export const useProductVariantSelection = (productDetails) => {
       // Set initial selections from first variant
       const variantId = firstVariant.variantId;
 
+      // Skip if variantId is null or undefined
+      if (!variantId || typeof variantId !== "object") {
+        return;
+      }
+
       // Color
       if (variantId.color) {
         setSelectedColor(variantId.color.code.replace("#", ""));
@@ -98,9 +103,11 @@ export const useProductVariantSelection = (productDetails) => {
 
     return productDetails.product_variant_Details
       .filter(
-        (variant) => variant.variantId.color?.code === `#${selectedColor}`
+        (variant) =>
+          variant.variantId &&
+          variant.variantId.color?.code === `#${selectedColor}`
       )
-      .map((variant) => variant.variantId.size)
+      .map((variant) => variant.variantId?.size)
       .filter(Boolean);
   }, [productDetails, selectedColor]);
 
