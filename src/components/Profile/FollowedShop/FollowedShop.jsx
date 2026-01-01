@@ -99,8 +99,8 @@ function FollowedShop({ selectedMenu }) {
   }
 
   return (
-    <div className="w-full">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Followed Shops</h1>
+    <div className="w-full text-black z-10">
+      <h1 className="text-2xl font-bold  mb-6">Followed Shops</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {followedShops.map((shop) => {
           const shopId = shop._id || shop.id;
@@ -141,11 +141,11 @@ function FollowedShop({ selectedMenu }) {
                     src={coverUrl}
                     alt={shopName}
                     fill
-                    className="object-cover rounded-lg"
+                    className="object-cover rounded-lg border border-gray-300"
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                   />
                   {/* Logo Badge - Bottom Left */}
-                  <div className="absolute bottom-2 left-2 bg-white rounded-lg p-1 shadow-lg">
+                  <div className="absolute -bottom-6 left-2  bg-white border border-gray-300 rounded-lg p-1 shadow-lg">
                     <div className="relative w-10 h-10">
                       <Image
                         src={logoUrl}

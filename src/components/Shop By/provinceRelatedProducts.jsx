@@ -115,27 +115,37 @@ export default function ProvinceRelatedProducts({
                   // Construct cover photo URL (use coverPhoto or first banner image)
                   const coverPath =
                     shopItem.coverPhoto || shopItem.banner?.[0] || "";
-                  const coverUrl = coverPath
-                    ? coverPath.startsWith("http")
-                      ? coverPath
-                      : `${getImageUrl}${
-                          coverPath.startsWith("/")
-                            ? coverPath.slice(1)
-                            : coverPath
-                        }`
-                    : "/assets/default-shop-cover.jpg";
+                  let coverUrl = "/assets/default-shop-cover.jpg";
+                  if (coverPath) {
+                    if (coverPath.startsWith("http")) {
+                      coverUrl = coverPath;
+                    } else {
+                      // Ensure proper URL construction - remove trailing slash from base and leading slash from path
+                      const baseUrl = getImageUrl.replace(/\/$/, ""); // Remove trailing slash
+                      const cleanPath = coverPath.startsWith("/")
+                        ? coverPath
+                        : `/${coverPath}`;
+                      coverUrl = `${baseUrl}${cleanPath}`;
+                      console.log("coverUrl", coverUrl);
+                    }
+                  }
 
                   // Construct logo URL
                   const logoPath = shopItem.logo || "";
-                  const logoUrl = logoPath
-                    ? logoPath.startsWith("http")
-                      ? logoPath
-                      : `${getImageUrl}${
-                          logoPath.startsWith("/")
-                            ? logoPath.slice(1)
-                            : logoPath
-                        }`
-                    : "/assets/default-store-logo.png";
+                  let logoUrl = "/assets/default-store-logo.png";
+                  if (logoPath) {
+                    if (logoPath.startsWith("http")) {
+                      logoUrl = logoPath;
+                    } else {
+                      // Ensure proper URL construction - remove trailing slash from base and leading slash from path
+                      const baseUrl = getImageUrl.replace(/\/$/, ""); // Remove trailing slash
+                      const cleanPath = logoPath.startsWith("/")
+                        ? logoPath
+                        : `/${logoPath}`;
+                      logoUrl = `${baseUrl}${cleanPath}`;
+                      console.log("logoUrl", logoUrl);
+                    }
+                  }
 
                   return (
                     <Link key={shopItem.id} href={`/store/${shopItem.id}`}>
@@ -150,14 +160,15 @@ export default function ProvinceRelatedProducts({
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
                           {/* Logo Badge - Bottom Left */}
-                          <div className="absolute bottom-3 left-3 bg-white rounded-lg p-1 shadow-lg">
-                            <div className="relative w-14 h-14">
+                          <div className="absolute -bottom-6 left-3 bg-white rounded-lg p-1 shadow-lg">
+                            <div className="relative w-14 h-14 perspective-1000">
                               <Image
                                 src={logoUrl}
                                 alt={`${shopItem.name} logo`}
-                                fill
-                                className="object-cover rounded-lg"
-                                sizes="56px"
+                                width={80}
+                                height={80}
+                                className="object-cover w-full h-full rounded-lg hover:rotate-x-40 hover:-rotate-y-10 hover:-rotate-z-10 hover:scale-110 transition-transform duration-300"
+                                sizes="80px"
                               />
                             </div>
                           </div>
