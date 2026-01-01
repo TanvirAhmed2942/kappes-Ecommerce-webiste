@@ -73,6 +73,7 @@ const PromoCodeList = () => {
           startDate: coupon.startDate || "N/A",
           endDate: coupon.endDate || "N/A",
           isActive: coupon.isActive ?? true,
+          shopId: coupon.shopId._id || "N/A",
         };
       });
     }

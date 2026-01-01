@@ -293,6 +293,46 @@ export default React.memo(function ProductView() {
     router.push(`/check-out/billing-procedure`);
   };
 
+  const handleShare = async () => {
+    try {
+      // Get the current page URL
+      const currentUrl = window.location.href;
+
+      // Try modern Clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(currentUrl);
+        toast.showSuccess("Product link copied to clipboard!");
+        return;
+      }
+
+      // Fallback method for older browsers or non-secure contexts
+      const textArea = document.createElement("textarea");
+      textArea.value = currentUrl;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      try {
+        const successful = document.execCommand("copy");
+        if (successful) {
+          toast.showSuccess("Product link copied to clipboard!");
+        } else {
+          throw new Error("execCommand failed");
+        }
+      } catch (err) {
+        throw new Error("Fallback copy failed");
+      } finally {
+        document.body.removeChild(textArea);
+      }
+    } catch (error) {
+      console.error("Failed to copy URL:", error);
+      toast.showError("Failed to copy link. Please try again.");
+    }
+  };
+
   if (isLoading || !productDetails) {
     return (
       <div className="max-w-6xl mx-auto p-4">
@@ -372,9 +412,12 @@ export default React.memo(function ProductView() {
               <h1 className="text-3xl font-bold mb-2 font-comfortaa">
                 {productDetails.name}
               </h1>
-              <span className="flex items-center gap-2 text-lg font-comfortaa font-bold cursor-pointer">
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 text-lg font-comfortaa font-bold cursor-pointer  transition-colors"
+              >
                 {provideIcon({ name: "share" })}Share
-              </span>
+              </button>
             </div>
 
             <div className="flex items-center gap-2 mb-4">

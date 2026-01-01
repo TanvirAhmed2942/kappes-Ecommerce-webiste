@@ -168,12 +168,29 @@ const TrendingProduct = () => {
                     {product.name}
                   </h3>
                   <div className="flex items-center gap-2">
-                    <span className="text-red-600 font-bold text-base">
-                      ${product.basePrice.toFixed(2)}
-                    </span>
-                    <span className="text-gray-400 line-through text-sm">
-                      ${product.basePrice.toFixed(2)}
-                    </span>
+                    {/* Get the first variant price if available, otherwise use basePrice */}
+                    {(() => {
+                      const variantPrice =
+                        product.product_variant_Details?.[0]?.variantPrice;
+                      const hasVariant =
+                        variantPrice !== undefined && variantPrice !== null;
+                      const displayPrice = hasVariant
+                        ? variantPrice
+                        : product.basePrice;
+
+                      return (
+                        <>
+                          <span className="text-red-600 font-bold text-base">
+                            ${displayPrice.toFixed(2)}
+                          </span>
+                          {hasVariant && (
+                            <span className="text-gray-400 line-through text-sm">
+                              ${product.basePrice.toFixed(2)}
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </Card>

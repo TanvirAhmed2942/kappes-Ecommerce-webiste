@@ -11,9 +11,11 @@ import { Badge } from "../../components/ui/badge";
 import { toast } from "sonner";
 import Image from "next/image";
 import { getImageUrl } from "../../redux/baseUrl";
-
+import { useRouter } from "next/navigation";
 const PromoCodeModal = ({ open, onOpenChange, promo }) => {
+  console.log("promo", promo);
   if (!promo) return null;
+  const router = useRouter();
 
   const handleCopyCode = async () => {
     try {
@@ -46,6 +48,7 @@ const PromoCodeModal = ({ open, onOpenChange, promo }) => {
     // Close modal and potentially navigate to shop or continue shopping
     onOpenChange(false);
     // You can add navigation logic here if needed
+    router.push(`/store/${promo.shopId}`);
   };
 
   // Get image source - use promo image if available, otherwise use default logo
