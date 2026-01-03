@@ -26,8 +26,9 @@ import {
   useUpdateProductMutation,
 } from "../../../redux/sellerApi/product/productApi";
 import { useGetSubCategoryReletedToCategoryQuery } from "../../../redux/sellerApi/subCategory/subCategoryApi";
-import { useGetAllVariantQuery } from "../../../redux/sellerApi/variant/variantApi";
+import { useGetAllVariantEDITQuery } from "../../../redux/sellerApi/variant/variantApi";
 import { Button } from "../../ui/button";
+import Image from "next/image";
 
 const EditProductForm = () => {
   const router = useRouter();
@@ -111,22 +112,33 @@ const EditProductForm = () => {
     data: variantData,
     isLoading: variantLoading,
     refetch: refetchVariants,
-  } = useGetAllVariantQuery(subcategoryId, {
-    skip: !subcategoryId, // Skip query if no subcategory is selected
-  });
+  } = useGetAllVariantEDITQuery(
+    {
+      subCategoryId: subcategoryId,
+      productRef: productId || productData?.data?._id || null,
+    },
+    {
+      skip: !subcategoryId || !productId, // Skip query if no subcategory or productId is selected
+    }
+  );
   const { data: brandData } = useGetAllBrandQuery(undefined, {
     skip: !brandId,
   });
 
   const variants = variantData?.data?.result || [];
 
-  // Refetch variants when subcategoryId is available
+  // Refetch variants when subcategoryId or productId changes
   useEffect(() => {
-    if (subcategoryId) {
-      console.log("Refetching variants for subcategoryId:", subcategoryId);
+    if (subcategoryId && productId) {
+      console.log(
+        "Refetching variants for subcategoryId:",
+        subcategoryId,
+        "productId:",
+        productId
+      );
       refetchVariants();
     }
-  }, [subcategoryId, refetchVariants]);
+  }, [subcategoryId, productId, refetchVariants]);
 
   // Pre-fill form data when product data is loaded
   useEffect(() => {
@@ -624,7 +636,9 @@ const EditProductForm = () => {
                     {featureImage ? (
                       // Newly uploaded feature image
                       <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden">
-                        <img
+                        <Image
+                          width={100}
+                          height={100}
                           src={URL.createObjectURL(featureImage)}
                           alt="Feature"
                           className="w-full h-48 object-cover"
@@ -639,7 +653,9 @@ const EditProductForm = () => {
                     ) : existingImages[0] ? (
                       // Existing feature image
                       <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden">
-                        <img
+                        <Image
+                          width={100}
+                          height={100}
                           src={getCompleteImageUrl(existingImages[0])}
                           alt="Feature"
                           className="w-full h-48 object-cover"
