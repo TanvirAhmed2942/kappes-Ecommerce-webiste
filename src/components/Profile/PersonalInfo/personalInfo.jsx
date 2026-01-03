@@ -15,9 +15,51 @@ import provideIcon from "../../../common/components/provideIcon";
 import useUser from "../../../hooks/useUser";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
-import { useForm } from "react-hook-form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../components/ui/select";
+import { useForm, Controller } from "react-hook-form";
 import { useUpdateUserProfileMutation } from "../../../redux/userprofileApi/userprofileApi";
 import useToast from "../../../hooks/useShowToast";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+
+// Province code mapping
+const provinceCodeMap = {
+  Alberta: "AB",
+  "British Columbia": "BC",
+  Manitoba: "MB",
+  "New Brunswick": "NB",
+  "Newfoundland and Labrador": "NL",
+  "Nova Scotia": "NS",
+  Ontario: "ON",
+  "Prince Edward Island": "PE",
+  Quebec: "QC",
+  Saskatchewan: "SK",
+  "Northwest Territories": "NT",
+  Nunavut: "NU",
+  Yukon: "YT",
+};
+
+const provinces = [
+  "Alberta",
+  "British Columbia",
+  "Manitoba",
+  "New Brunswick",
+  "Newfoundland and Labrador",
+  "Nova Scotia",
+  "Ontario",
+  "Prince Edward Island",
+  "Quebec",
+  "Saskatchewan",
+  "Northwest Territories",
+  "Nunavut",
+  "Yukon",
+];
 
 export default function PersonalInfo({ selectedMenu }) {
   const { user, profileData, updateUserProfile } = useUser();
@@ -259,12 +301,15 @@ const ShippingAddressCard = ({ user }) => {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      address: user?.address?.address || "",
-      city: user?.address?.city || "",
-      post: user?.address?.post || "",
+      address: user?.chitchat_address1 || user?.address?.address || "",
+      city: user?.chitchat_city || user?.address?.city || "",
+      post: user?.chitchat_postal_code || user?.address?.post || "",
+      province_code: user?.chitchat_province_code || "",
+      country_code: user?.chitchat_country_code || "CA",
     },
   });
 
@@ -272,9 +317,11 @@ const ShippingAddressCard = ({ user }) => {
   useEffect(() => {
     if (open && user) {
       reset({
-        address: user?.address?.address || "",
-        city: user?.address?.city || "",
-        post: user?.address?.post || "",
+        address: user?.chitchat_address1 || user?.address?.address || "",
+        city: user?.chitchat_city || user?.address?.city || "",
+        post: user?.chitchat_postal_code || user?.address?.post || "",
+        province_code: user?.chitchat_province_code || "",
+        country_code: user?.chitchat_country_code || "CA",
       });
     }
   }, [open, user, reset]);
@@ -283,6 +330,15 @@ const ShippingAddressCard = ({ user }) => {
     try {
       // Create FormData with proper structure
       const formData = new FormData();
+
+      // Map regular fields to chitchat_ prefixed fields
+      const chitchatData = {
+        chitchat_address1: data.address,
+        chitchat_city: data.city,
+        chitchat_postal_code: data.post,
+        chitchat_province_code: data.province_code,
+        chitchat_country_code: data.country_code,
+      };
 
       // Add data as JSON object
       formData.append(
@@ -293,6 +349,7 @@ const ShippingAddressCard = ({ user }) => {
             city: data.city,
             post: data.post,
           },
+          ...chitchatData,
         })
       );
 
@@ -340,13 +397,34 @@ const ShippingAddressCard = ({ user }) => {
         <div className="flex flex-col gap-4 p-5 -mt-5">
           <p className="flex items-center gap-4">
             <span>{provideIcon({ name: "location" })}</span>
-            {user?.address?.address || "No address provided"}
+            {user?.chitchat_address1 ||
+              user?.address?.address ||
+              "No address provided"}
           </p>
           <p className="flex items-center gap-4">
             <span>{provideIcon({ name: "location" })}</span>
-            {user?.address?.city
-              ? `${user.address.city}, ${user.address.post || ""}`
-              : "No city provided"}
+            {(() => {
+              const city = user?.chitchat_city || user?.address?.city || "";
+              const postalCode =
+                user?.chitchat_postal_code || user?.address?.post || "";
+              const provinceCode = user?.chitchat_province_code || "";
+              const countryCode = user?.chitchat_country_code || "";
+
+              // Get province name from code
+              const provinceName = provinceCode
+                ? Object.entries(provinceCodeMap).find(
+                    ([_, code]) => code === provinceCode
+                  )?.[0] || provinceCode
+                : "";
+
+              const parts = [];
+              if (city) parts.push(city);
+              if (provinceName) parts.push(provinceName);
+              if (postalCode) parts.push(postalCode);
+              if (countryCode) parts.push(countryCode);
+
+              return parts.length > 0 ? parts.join(", ") : "No city provided";
+            })()}
           </p>
         </div>
       </Card>
@@ -422,6 +500,72 @@ const ShippingAddressCard = ({ user }) => {
               />
               {errors.post && (
                 <p className="text-sm text-red-500">{errors.post.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="province_code">Province Code</Label>
+              <Controller
+                name="province_code"
+                control={control}
+                render={({ field }) => {
+                  // Find the province name from the code for display
+                  const selectedProvince =
+                    Object.entries(provinceCodeMap).find(
+                      ([_, code]) => code === field.value
+                    )?.[0] || "";
+
+                  return (
+                    <Select
+                      onValueChange={(value) => {
+                        // Store the province code, not the name
+                        const code = provinceCodeMap[value] || value;
+                        field.onChange(code);
+                      }}
+                      value={selectedProvince}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select province" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {provinces.map((province) => (
+                          <SelectItem key={province} value={province}>
+                            {province} ({provinceCodeMap[province] || ""})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                }}
+              />
+              {errors.province_code && (
+                <p className="text-sm text-red-500">
+                  {errors.province_code.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="country_code">Country Code</Label>
+              <Controller
+                name="country_code"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CA">Canada (CA)</SelectItem>
+                      <SelectItem value="US">United States (US)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.country_code && (
+                <p className="text-sm text-red-500">
+                  {errors.country_code.message}
+                </p>
               )}
             </div>
 

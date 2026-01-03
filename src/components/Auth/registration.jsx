@@ -14,9 +14,11 @@ import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRegisterMutation } from "../../redux/authApi/authApi";
 import provideIcon from "../../common/components/provideIcon";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import useToast from "../../hooks/useShowToast";
 import { useRouter } from "next/navigation";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 export default function RegistrationForm() {
   const router = useRouter();
@@ -29,6 +31,7 @@ export default function RegistrationForm() {
     handleSubmit,
     watch,
     reset,
+    control,
     formState: { errors },
   } = useForm({
     mode: "onChange", // This enables real-time validation
@@ -150,25 +153,24 @@ export default function RegistrationForm() {
             <Label htmlFor="phone">
               Phone<span className="text-red-600">*</span>
             </Label>
-            <div className="flex">
-              <div className="inline-flex items-center justify-center rounded-l-md border border-r-0 border-input bg-background px-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <img
-                    src="/api/placeholder/24/24"
-                    alt="CA flag"
-                    className="w-4 h-4 rounded-sm"
-                  />
-                  +1
-                </span>
-              </div>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="Enter your phone number"
-                className="rounded-l-none"
-                {...register("phone", { required: "Phone number is required" })}
-              />
-            </div>
+            <Controller
+              name="phone"
+              control={control}
+              rules={{ required: "Phone number is required" }}
+              render={({ field }) => (
+                <PhoneInput
+                  {...field}
+                  defaultCountry="CA"
+                  international
+                  countryCallingCodeEditable={false}
+                  className="phone-input-container"
+                  numberInputProps={{
+                    id: "phone",
+                    placeholder: "Enter your phone number",
+                  }}
+                />
+              )}
+            />
             {errors.phone && (
               <p className="text-red-500 text-sm">{errors.phone.message}</p>
             )}

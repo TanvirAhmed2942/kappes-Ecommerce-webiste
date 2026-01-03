@@ -32,6 +32,8 @@ import {
 } from "../../redux/authApi/authApi";
 import useToast from "../../hooks/useShowToast";
 import { useRouter } from "next/navigation";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 export default function SellerRegistrationForm() {
   const router = useRouter();
@@ -146,10 +148,8 @@ export default function SellerRegistrationForm() {
     }
 
     try {
-      // Format phone number with +1 prefix
-      const formattedPhone = phone.startsWith("+1")
-        ? phone
-        : `+1${phone.replace(/\D/g, "")}`;
+      // PhoneInput already provides formatted phone number with country code
+      const formattedPhone = phone || "";
 
       // Prepare data according to API format
       const sellerData = {
@@ -479,27 +479,18 @@ export default function SellerRegistrationForm() {
             <Label htmlFor="phone">
               Phone<span className="text-red-600">*</span>
             </Label>
-            <div className="flex">
-              <div className="inline-flex items-center justify-center rounded-l-md border border-r-0 border-input bg-background px-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <img
-                    src="/api/placeholder/24/24"
-                    alt="CA flag"
-                    className="w-4 h-4 rounded-sm"
-                  />
-                  +1
-                </span>
-              </div>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="Enter your phone number"
-                className="rounded-l-none"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-              />
-            </div>
+            <PhoneInput
+              value={phone}
+              onChange={setPhone}
+              defaultCountry="CA"
+              international
+              countryCallingCodeEditable={false}
+              className="phone-input-container"
+              numberInputProps={{
+                id: "phone",
+                placeholder: "Enter your phone number",
+              }}
+            />
             {errors.phone && (
               <p className="text-sm text-red-500">{errors.phone}</p>
             )}
