@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { Provider, useSelector } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { Toaster } from "sonner";
-import Chat from '../common/components/chatComponent';
+import Chat from "../common/components/chatComponent";
 import { persistor, store } from "../store";
 
 // Wrapper to access Redux + pathname within Provider
@@ -31,7 +31,7 @@ export default function Providers({ children }) {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <Toaster richColors />
+        <Toaster richColors position="top-right" />
         <ChatWrapper>{children}</ChatWrapper>
       </PersistGate>
     </Provider>

@@ -27,6 +27,8 @@ import { TbBoomFilled, TbPackages } from "react-icons/tb";
 import { BsBoxSeam } from "react-icons/bs";
 import { MdAdsClick } from "react-icons/md";
 import { useGetStoreInfoQuery } from "../../redux/sellerApi/storeInfoApi/storeInfoApi";
+import { useEnableChitchatMutation } from "../../redux/chitchatApi/chitchatApi";
+import useToast from "../../hooks/useShowToast";
 
 const AppSidebar = () => {
   const [activeItem, setActiveItem] = useState("Overview");
@@ -39,6 +41,7 @@ const AppSidebar = () => {
     data: storeInfoData,
     isLoading: storeInfoLoading,
     error: storeInfoError,
+    refetch: refetchStoreInfo,
   } = useGetStoreInfoQuery();
   const menuItems = [
     {
@@ -65,6 +68,11 @@ const AppSidebar = () => {
     logout();
     router.push("/auth/become-seller-login");
   };
+  const [
+    enableChitchat,
+    { isLoading: isEnableChitchatLoading, isError: isEnableChitchatError },
+  ] = useEnableChitchatMutation();
+  const toast = useToast();
 
   // Update store info in Redux when API data is available
   useEffect(() => {
@@ -77,6 +85,7 @@ const AppSidebar = () => {
           advertisedAt: storeInfoData.data.advertisedAt || null,
           advertisedExpiresAt: storeInfoData.data.advertisedExpiresAt || null,
           advertisementBanner: storeInfoData.data.advertisement_banner || [],
+          isChitChatsEnabled: storeInfoData.data.isChitChatsEnabled || false,
         })
       );
     }
@@ -99,6 +108,58 @@ const AppSidebar = () => {
     }
   };
 
+  const handleChitChatClick = async () => {
+    try {
+      const shopId = localStorage.getItem("shop");
+
+      if (!shopId) {
+        console.error("Shop ID not found in localStorage");
+        toast.showError("Shop ID not found. Please login again.");
+        return;
+      }
+
+      const requestData = {
+        shopId: shopId,
+        chitchats_client_id: "918456",
+        chitchats_access_token: "7c493995183240718d2fd067b62fc3dd",
+      };
+
+      console.log("Enabling ChitChat with data:", requestData);
+
+      const response = await enableChitchat({
+        data: requestData,
+      }).unwrap();
+
+      console.log("ChitChat enabled successfully:", response);
+
+      if (response?.success) {
+        toast.showSuccess(
+          response?.message || "ChitChat enabled successfully!"
+        );
+        // Refetch store info to get updated chitchat status
+        refetchStoreInfo();
+      } else {
+        toast.showError(response?.message || "Failed to enable ChitChat");
+      }
+    } catch (error) {
+      console.error("Error enabling chit chat:", error);
+      console.error("Error details:", {
+        status: error?.status,
+        data: error?.data,
+        message: error?.message,
+      });
+
+      const errorMessage =
+        error?.data?.message ||
+        error?.data?.errorMessages?.[0]?.message ||
+        error?.data?.error?.[0]?.message ||
+        error?.message ||
+        "Failed to enable ChitChat. Please try again.";
+
+      toast.showError(errorMessage);
+    }
+  };
+
   return (
     <div className="w-80 bg-white rounded-2xl shadow-lg p-6 min-h-screen">
       {/* Profile Section */}
@@ -118,6 +179,7 @@ const AppSidebar = () => {
           height={100}
           className="w-24 h-24 ring-2 ring-[#B01501] rounded-full object-contain bg-white p-1"
         />
+
         <h2 className="text-xl font-semibold text-gray-900 my-2">
           {storeInfoLoading
             ? "Loading..."
@@ -125,6 +187,62 @@ const AppSidebar = () => {
         </h2>
         {storeInfoError && (
           <p className="text-xs text-red-500">Error loading store info</p>
+        )}
+      </div>
+
+      <div
+        className={`flex items-center gap-2 p-4 rounded-lg cursor-pointer transition-colors ${
+          storeInfoData?.data?.isChitChatsEnabled ||
+          storeInfo?.isChitChatsEnabled
+            ? "bg-transparent"
+            : "bg-red-300 hover:bg-red-400"
+        }`}
+        onClick={handleChitChatClick}
+        disabled={isEnableChitchatLoading}
+      >
+        {storeInfoData?.data?.isChitChatsEnabled ||
+        storeInfo?.isChitChatsEnabled ? (
+          <div className="flex items-center gap-2">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 205 197"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.5 146.5L102.5 197V0L46.5 103L0 67.5L12.5 146.5Z"
+                fill="#F22631"
+              />
+              <path
+                d="M192.5 146.5L102.5 197V0L158.5 103L205 67.5L192.5 146.5Z"
+                fill="#B52428"
+              />
+            </svg>
+            <p className="text-xs text-gray-500">Chit Chat Enabled</p>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 205 197"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.5 146.5L102.5 197V0L46.5 103L0 67.5L12.5 146.5Z"
+                fill="#EBEBEB"
+              />
+              <path
+                d="M192.5 146.5L102.5 197V0L158.5 103L205 67.5L192.5 146.5Z"
+                fill="#A7A7A7"
+              />
+            </svg>
+            <p className="text-xs text-gray-500">
+              {isEnableChitchatLoading ? "Enabling..." : "Chit Chat Disabled"}
+            </p>
+          </div>
         )}
       </div>
 

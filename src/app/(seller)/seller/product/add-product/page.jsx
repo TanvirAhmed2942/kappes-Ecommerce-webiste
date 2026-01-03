@@ -21,7 +21,7 @@ import { useGetAllBrandQuery } from "../../../../../redux/sellerApi/brand/brandA
 import { useGetAllCategoryQuery } from "../../../../../redux/sellerApi/category/categoryApi";
 import { useCreateProductMutation } from "../../../../../redux/sellerApi/product/productApi";
 import { useGetSubCategoryReletedToCategoryQuery } from "../../../../../redux/sellerApi/subCategory/subCategoryApi";
-import { useGetAllVariantQuery } from "../../../../../redux/sellerApi/variant/variantApi";
+import { useGetAllVariantADDQuery } from "../../../../../redux/sellerApi/variant/variantApi";
 import CreateVariantSheet from "../../../../../components/SellerDahsboard/Product/CreateVariantSheet";
 import EditVariantModal from "../../../../../components/SellerDahsboard/Product/EditVariantModal";
 import { BiSolidEdit } from "react-icons/bi";
@@ -35,9 +35,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../../../../../components/ui/dialog";
+import useToast from "../../../../../hooks/useShowToast";
 
 const AddProductForm = () => {
   const router = useRouter();
+  const toast = useToast();
 
   // Basic Info States
   const [productName, setProductName] = useState("");
@@ -45,6 +47,31 @@ const AddProductForm = () => {
   const [basePrice, setBasePrice] = useState("");
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
+
+  // Chitchat States
+  const [chitchatsWeightUnit, setChitchatsWeightUnit] = useState("g");
+  const [chitchatsWeight, setChitchatsWeight] = useState("");
+  const [chitchatsSizeUnit, setChitchatsSizeUnit] = useState("cm");
+  const [chitchatsSizeX, setChitchatsSizeX] = useState("");
+  const [chitchatsSizeY, setChitchatsSizeY] = useState("");
+  const [chitchatsSizeZ, setChitchatsSizeZ] = useState("");
+  const [chitchatsManufacturerContact, setChitchatsManufacturerContact] =
+    useState("");
+  const [chitchatsManufacturerStreet, setChitchatsManufacturerStreet] =
+    useState("");
+  const [chitchatsManufacturerCity, setChitchatsManufacturerCity] =
+    useState("");
+  const [chitchatsManufacturerPostalCode, setChitchatsManufacturerPostalCode] =
+    useState("");
+  const [
+    chitchatsManufacturerProvinceCode,
+    setChitchatsManufacturerProvinceCode,
+  ] = useState("");
+  const [chitchatsDescription, setChitchatsDescription] = useState("");
+  const [chitchatsValueAmount, setChitchatsValueAmount] = useState("");
+  const [chitchatsCurrencyCode, setChitchatsCurrencyCode] = useState("CAD");
+  const [chitchatsHsTariffCode, setChitchatsHsTariffCode] = useState("");
+  const [chitchatsOriginCountry, setChitchatsOriginCountry] = useState("CA");
 
   // Edit Variant Modal State
   const [editVariantModalOpen, setEditVariantModalOpen] = useState(false);
@@ -85,12 +112,45 @@ const AddProductForm = () => {
     });
 
   const { data: variantData, isLoading: variantLoading } =
-    useGetAllVariantQuery(subcategoryId, {
+    useGetAllVariantADDQuery(subcategoryId, {
       skip: !subcategoryId, // Skip query if no subcategory is selected
     });
   const { data: brandData } = useGetAllBrandQuery();
 
   const variants = variantData?.data?.result || [];
+
+  // Province code mapping
+  const provinceCodeMap = {
+    Alberta: "AB",
+    "British Columbia": "BC",
+    Manitoba: "MB",
+    "New Brunswick": "NB",
+    "Newfoundland and Labrador": "NL",
+    "Nova Scotia": "NS",
+    Ontario: "ON",
+    "Prince Edward Island": "PE",
+    Quebec: "QC",
+    Saskatchewan: "SK",
+    "Northwest Territories": "NT",
+    Nunavut: "NU",
+    Yukon: "YT",
+  };
+
+  const provinces = [
+    "Alberta",
+    "British Columbia",
+    "Manitoba",
+    "New Brunswick",
+    "Newfoundland and Labrador",
+    "Nova Scotia",
+    "Ontario",
+    "Prince Edward Island",
+    "Quebec",
+    "Saskatchewan",
+    "Northwest Territories",
+    "Nunavut",
+    "Yukon",
+  ];
 
   // Filter subcategories when category changes
   useEffect(() => {
@@ -187,7 +247,25 @@ const AddProductForm = () => {
     );
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    console.log("=== handleSubmit START ===");
+
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    console.log("handleSubmit called", {
+      toast,
+      hasShowError: typeof toast?.showError,
+      productName,
+      description,
+      basePrice,
+      categoryId,
+      subcategoryId,
+      brandId,
+    });
+
     // Validation
     if (
       !productName ||
@@ -197,36 +275,114 @@ const AddProductForm = () => {
       !subcategoryId ||
       !brandId
     ) {
-      alert(
-        "Please fill all required fields: Product Name, Description, Base Price, Category, Subcategory, and Brand"
-      );
+      console.log("❌ Validation failed - missing required fields");
+      const missingFields = [];
+      if (!productName) missingFields.push("Product Name");
+      if (!description) missingFields.push("Description");
+      if (!basePrice) missingFields.push("Base Price");
+      if (!categoryId) missingFields.push("Category");
+      if (!subcategoryId) missingFields.push("Subcategory");
+      if (!brandId) missingFields.push("Brand");
+
+      console.log("Missing fields:", missingFields);
+
+      if (toast && typeof toast.showError === "function") {
+        toast.showError(
+          `Please fill all required fields: ${missingFields.join(", ")}`
+        );
+      } else {
+        console.error("Toast.showError is not a function", toast);
+        alert(`Please fill all required fields: ${missingFields.join(", ")}`);
+      }
       return;
     }
 
+    console.log("✅ Basic validation passed");
+
+    console.log("Checking description length...", {
+      descriptionLength: description.length,
+    });
     if (description.length < 10) {
-      alert("Description must be at least 10 characters long");
+      console.log("❌ Description too short");
+      toast.showError("Description must be at least 10 characters long");
       return;
     }
+    console.log("✅ Description length OK");
 
+    console.log("Checking feature image...", {
+      hasFeatureImage: !!featureImage,
+    });
     if (!featureImage) {
-      alert("Please upload a feature image");
+      console.log("❌ No feature image");
+      toast.showError("Please upload a feature image");
       return;
     }
+    console.log("✅ Feature image OK");
 
+    console.log("Checking variants...", {
+      variantsCount: selectedVariants.length,
+      variants: selectedVariants,
+    });
     if (selectedVariants.length === 0) {
-      alert("Select at least one variant for this product");
+      console.log("❌ No variants selected");
+      toast.showError("Select at least one variant for this product");
       return;
     }
+    console.log("✅ Variants selected");
 
     const invalidVariant = selectedVariants.find(
       (v) => !v.variantPrice || v.variantQuantity < 1
     );
     if (invalidVariant) {
-      alert("Each selected variant needs price and quantity greater than 0");
+      console.log("❌ Invalid variant found:", invalidVariant);
+      toast.showError(
+        "Each selected variant needs price and quantity greater than 0"
+      );
+      return;
+    }
+    console.log("✅ All variants valid");
+
+    // Validate chitchat fields
+    console.log("Validating chitchat fields...");
+    const missingChitchatFields = [];
+    if (!chitchatsWeight) missingChitchatFields.push("Weight");
+    if (!chitchatsSizeX) missingChitchatFields.push("Size X");
+    if (!chitchatsSizeY) missingChitchatFields.push("Size Y");
+    if (!chitchatsSizeZ) missingChitchatFields.push("Size Z");
+    if (!chitchatsManufacturerContact)
+      missingChitchatFields.push("Manufacturer Contact");
+    if (!chitchatsManufacturerStreet)
+      missingChitchatFields.push("Manufacturer Street");
+    if (!chitchatsManufacturerCity)
+      missingChitchatFields.push("Manufacturer City");
+    if (!chitchatsManufacturerPostalCode)
+      missingChitchatFields.push("Manufacturer Postal Code");
+    if (!chitchatsManufacturerProvinceCode)
+      missingChitchatFields.push("Manufacturer Province Code");
+    if (!chitchatsDescription)
+      missingChitchatFields.push("Chitchat Description");
+    if (!chitchatsValueAmount) missingChitchatFields.push("Value Amount");
+    if (!chitchatsCurrencyCode) missingChitchatFields.push("Currency Code");
+    if (!chitchatsHsTariffCode) missingChitchatFields.push("HS Tariff Code");
+    if (!chitchatsOriginCountry) missingChitchatFields.push("Origin Country");
+
+    if (missingChitchatFields.length > 0) {
+      console.log(
+        "❌ Chitchat validation failed - missing fields:",
+        missingChitchatFields
+      );
+      toast.showError(
+        `Please fill all required chitchat fields: ${missingChitchatFields.join(
+          ", "
+        )}`
+      );
       return;
     }
 
+    console.log("✅ All validations passed - proceeding to API call");
+
     try {
+      console.log("Starting product creation...");
       const formData = new FormData();
 
       // Create the product data object matching API structure
@@ -250,23 +406,73 @@ const AddProductForm = () => {
               ? variant.variantQuantity
               : parseInt(variant.variantQuantity) || 1,
         })),
+        // Chitchat fields
+        chitchats_weight_unit: chitchatsWeightUnit,
+        chitchats_weight: parseFloat(chitchatsWeight),
+        chitchats_size_unit: chitchatsSizeUnit,
+        chitchats_size_x: parseFloat(chitchatsSizeX),
+        chitchats_size_y: parseFloat(chitchatsSizeY),
+        chitchats_size_z: parseFloat(chitchatsSizeZ),
+        chitchats_manufacturer_contact: chitchatsManufacturerContact,
+        chitchats_manufacturer_street: chitchatsManufacturerStreet,
+        chitchats_manufacturer_city: chitchatsManufacturerCity,
+        chitchats_manufacturer_postal_code: chitchatsManufacturerPostalCode,
+        chitchats_manufacturer_province_code: chitchatsManufacturerProvinceCode,
+        chitchats_description: chitchatsDescription,
+        chitchats_value_amount: chitchatsValueAmount,
+        chitchats_currency_code: chitchatsCurrencyCode,
+        chitchats_hs_tariff_code: chitchatsHsTariffCode,
+        chitchats_origin_country: chitchatsOriginCountry,
       };
 
+      console.log("Product Data:", productData);
+      console.log("FormData entries:");
       formData.append("data", JSON.stringify(productData));
+
+      // Log FormData contents
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
 
       // Add feature image
       if (featureImage) {
         formData.append("image", featureImage);
+        console.log(
+          "Feature image added:",
+          featureImage.name,
+          featureImage.size
+        );
       }
 
+      console.log("Calling createProduct API...");
       const response = await createProduct(formData).unwrap();
-      alert("Product created successfully!");
-      router.push("/seller/product");
+      console.log("API Response:", response);
+
+      if (response?.success) {
+        toast.showSuccess("Product created successfully!");
+        // Small delay to show toast before navigation
+        setTimeout(() => {
+          router.push("/seller/product");
+        }, 1000);
+      } else {
+        toast.showError(response?.message || "Failed to create product");
+      }
     } catch (error) {
-      alert(
-        "Failed to create product: " + (error?.data?.message || "Unknown error")
-      );
-      console.error("Error:", error);
+      console.error("Product creation error:", error);
+      console.error("Error details:", {
+        status: error?.status,
+        data: error?.data,
+        message: error?.message,
+      });
+
+      const errorMessage =
+        error?.data?.message ||
+        error?.data?.errorMessages?.[0]?.message ||
+        error?.data?.error?.[0]?.message ||
+        error?.message ||
+        "Failed to create product. Please try again.";
+
+      toast.showError(errorMessage);
     }
   };
 
@@ -292,17 +498,17 @@ const AddProductForm = () => {
     try {
       const response = await deleteVariant(deletingVariantId).unwrap();
       if (response?.success) {
-        alert("Variant deleted successfully!");
+        toast.showSuccess("Variant deleted successfully!");
         // Remove from selected variants if it was selected
         setSelectedVariants((prev) =>
           prev.filter((v) => v.variantId !== deletingVariantId)
         );
       } else {
-        alert(response?.message || "Failed to delete variant");
+        toast.showError(response?.message || "Failed to delete variant");
       }
     } catch (error) {
       console.error("Error deleting variant:", error);
-      alert(error?.data?.message || "Failed to delete variant");
+      toast.showError(error?.data?.message || "Failed to delete variant");
     } finally {
       setDeleteModalOpen(false);
       setDeletingVariantId(null);
@@ -525,6 +731,310 @@ const AddProductForm = () => {
                     />
                   </div>
                 </div>
+
+                {/* Chitchat Fields Section */}
+                <div className="border-t pt-6 mt-6">
+                  <h3 className="text-lg font-semibold mb-4">
+                    Shipping & Customs Information
+                  </h3>
+
+                  {/* Weight */}
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <Label className="text-base font-medium">
+                        Weight <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={chitchatsWeight}
+                        onChange={(e) => setChitchatsWeight(e.target.value)}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-base font-medium">
+                        Weight Unit <span className="text-red-500">*</span>
+                      </Label>
+                      <Select
+                        value={chitchatsWeightUnit}
+                        onValueChange={setChitchatsWeightUnit}
+                      >
+                        <SelectTrigger className="mt-2 w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="g">g (Grams)</SelectItem>
+                          <SelectItem value="kg">kg (Kilograms)</SelectItem>
+                          <SelectItem value="lb">lb (Pounds)</SelectItem>
+                          <SelectItem value="oz">oz (Ounces)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Size */}
+                  <div className="mb-4">
+                    <Label className="text-base font-medium mb-2 block">
+                      Dimensions <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      <div>
+                        <Label className="text-xs text-gray-600">
+                          Length (X)
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={chitchatsSizeX}
+                          onChange={(e) => setChitchatsSizeX(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-600">
+                          Width (Y)
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={chitchatsSizeY}
+                          onChange={(e) => setChitchatsSizeY(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-600">
+                          Height (Z)
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={chitchatsSizeZ}
+                          onChange={(e) => setChitchatsSizeZ(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-600">Unit</Label>
+                        <Select
+                          value={chitchatsSizeUnit}
+                          onValueChange={setChitchatsSizeUnit}
+                        >
+                          <SelectTrigger className="mt-1 w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cm">cm</SelectItem>
+                            <SelectItem value="m">m</SelectItem>
+                            <SelectItem value="in">in</SelectItem>
+                            <SelectItem value="ft">ft</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Manufacturer Information */}
+                  <div className="mb-4">
+                    <h4 className="text-base font-medium mb-3">
+                      Manufacturer Information
+                    </h4>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-base font-medium">
+                          Manufacturer Contact{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          placeholder="Enter manufacturer contact"
+                          value={chitchatsManufacturerContact}
+                          onChange={(e) =>
+                            setChitchatsManufacturerContact(e.target.value)
+                          }
+                          className="mt-2"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-base font-medium">
+                          Manufacturer Street{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          placeholder="Enter street address"
+                          value={chitchatsManufacturerStreet}
+                          onChange={(e) =>
+                            setChitchatsManufacturerStreet(e.target.value)
+                          }
+                          className="mt-2"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-base font-medium">
+                            City <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            placeholder="Enter city"
+                            value={chitchatsManufacturerCity}
+                            onChange={(e) =>
+                              setChitchatsManufacturerCity(e.target.value)
+                            }
+                            className="mt-2"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-base font-medium">
+                            Postal Code <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            placeholder="Enter postal code"
+                            value={chitchatsManufacturerPostalCode}
+                            onChange={(e) =>
+                              setChitchatsManufacturerPostalCode(e.target.value)
+                            }
+                            className="mt-2"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-base font-medium">
+                          Province Code <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          value={
+                            Object.entries(provinceCodeMap).find(
+                              ([_, code]) =>
+                                code === chitchatsManufacturerProvinceCode
+                            )?.[0] || ""
+                          }
+                          onValueChange={(value) => {
+                            const code = provinceCodeMap[value] || value;
+                            setChitchatsManufacturerProvinceCode(code);
+                          }}
+                        >
+                          <SelectTrigger className="mt-2 w-full">
+                            <SelectValue placeholder="Select province" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {provinces.map((province) => (
+                              <SelectItem key={province} value={province}>
+                                {province} ({provinceCodeMap[province] || ""})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Customs & Value Information */}
+                  <div className="mb-4">
+                    <h4 className="text-base font-medium mb-3">
+                      Customs & Value Information
+                    </h4>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-base font-medium">
+                          Chitchat Description{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Textarea
+                          placeholder="Enter chitchat description"
+                          value={chitchatsDescription}
+                          onChange={(e) =>
+                            setChitchatsDescription(e.target.value)
+                          }
+                          className="mt-2 min-h-[80px] resize-none"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-base font-medium">
+                            Value Amount <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            type="text"
+                            placeholder="Enter value amount"
+                            value={chitchatsValueAmount}
+                            onChange={(e) =>
+                              setChitchatsValueAmount(e.target.value)
+                            }
+                            className="mt-2"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-base font-medium">
+                            Currency Code{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            value={chitchatsCurrencyCode}
+                            onValueChange={setChitchatsCurrencyCode}
+                          >
+                            <SelectTrigger className="mt-2 w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="CAD">
+                                CAD (Canadian Dollar)
+                              </SelectItem>
+                              <SelectItem value="USD">
+                                USD (US Dollar)
+                              </SelectItem>
+                              <SelectItem value="EUR">EUR (Euro)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-base font-medium">
+                            HS Tariff Code{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            placeholder="Enter HS tariff code"
+                            value={chitchatsHsTariffCode}
+                            onChange={(e) =>
+                              setChitchatsHsTariffCode(e.target.value)
+                            }
+                            className="mt-2"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-base font-medium">
+                            Origin Country{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            value={chitchatsOriginCountry}
+                            onValueChange={setChitchatsOriginCountry}
+                          >
+                            <SelectTrigger className="mt-2 w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="CA">CA (Canada)</SelectItem>
+                              <SelectItem value="US">
+                                US (United States)
+                              </SelectItem>
+                              <SelectItem value="MX">MX (Mexico)</SelectItem>
+                              <SelectItem value="CN">CN (China)</SelectItem>
+                              <SelectItem value="GB">
+                                GB (United Kingdom)
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Right Column */}
@@ -607,12 +1117,12 @@ const AddProductForm = () => {
                           >
                             <div className="flex items-center justify-between">
                               <label className="flex items-start gap-3 cursor-pointer">
-                      <input
+                                <input
                                   type="checkbox"
                                   checked={isSelected}
                                   onChange={() => toggleVariant(variant)}
                                   className="mt-1 h-4 w-4 accent-red-600"
-                      />
+                                />
                                 <div className="flex-1">
                                   <p className="font-medium text-gray-900">
                                     {title}
@@ -626,8 +1136,8 @@ const AddProductForm = () => {
                                     {variant.categoryId?.name} •{" "}
                                     {variant.subCategoryId?.name}
                                   </p>
-                      </div>
-                    </label>
+                                </div>
+                              </label>
                               <div className="flex items-center gap-2 justify-end">
                                 <button
                                   type="button"
@@ -648,16 +1158,16 @@ const AddProductForm = () => {
                                 >
                                   <RiDeleteBin6Line />
                                 </button>
-                  </div>
-                </div>
+                              </div>
+                            </div>
                             {isSelected && (
                               <div className="grid grid-cols-2 gap-3">
-                <div>
+                                <div>
                                   <Label className="text-xs text-gray-600">
-                    Variant Price
-                  </Label>
-                  <Input
-                    type="number"
+                                    Variant Price
+                                  </Label>
+                                  <Input
+                                    type="number"
                                     min="0"
                                     value={
                                       selection.variantPrice ?? basePrice ?? ""
@@ -669,25 +1179,25 @@ const AddProductForm = () => {
                                         e.target.value
                                       )
                                     }
-                  />
-                </div>
-                <div>
+                                  />
+                                </div>
+                                <div>
                                   <Label className="text-xs text-gray-600">
-                    Variant Quantity
-                  </Label>
+                                    Variant Quantity
+                                  </Label>
                                   <Input
-                      type="number"
+                                    type="number"
                                     min="1"
                                     value={selection.variantQuantity ?? 1}
-                      onChange={(e) =>
+                                    onChange={(e) =>
                                       updateVariantQuantity(
                                         variant._id,
                                         e.target.value
                                       )
-                        }
+                                    }
                                   />
-                    </div>
-                  </div>
+                                </div>
+                              </div>
                             )}
                           </div>
                         );
@@ -708,7 +1218,13 @@ const AddProductForm = () => {
                 Cancel
               </Button>
               <Button
-                onClick={handleSubmit}
+                type="button"
+                onClick={(e) => {
+                  console.log("Button clicked!", { isLoading, e });
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSubmit(e);
+                }}
                 className="px-8 bg-red-700 hover:bg-red-800 text-white"
                 disabled={isLoading}
               >

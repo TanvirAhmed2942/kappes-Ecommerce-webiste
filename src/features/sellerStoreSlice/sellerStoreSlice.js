@@ -7,6 +7,7 @@ const initialState = {
   advertisedAt: null,
   advertisedExpiresAt: null,
   advertisementBanner: [],
+  isChitChatsEnabled: false,
 };
 
 const sellerStoreSlice = createSlice({
@@ -20,6 +21,7 @@ const sellerStoreSlice = createSlice({
       state.advertisedAt = action.payload.advertisedAt || null;
       state.advertisedExpiresAt = action.payload.advertisedExpiresAt || null;
       state.advertisementBanner = action.payload.advertisementBanner || [];
+      state.isChitChatsEnabled = action.payload.isChitChatsEnabled || false;
     },
   },
 });

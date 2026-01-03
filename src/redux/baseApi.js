@@ -72,6 +72,7 @@ export const api = createApi({
     "Variant",
     "Advertisement",
     "Coupon",
+    "Chitchat",
   ],
 });
 
