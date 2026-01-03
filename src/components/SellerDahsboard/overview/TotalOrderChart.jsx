@@ -1,19 +1,86 @@
 "use client";
 
-import { ChevronDown } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 const TotalOrderChart = ({ data }) => {
-  const [selectedYear, setSelectedYear] = useState('2025');
+  // Get current year
+  const currentYear = new Date().getFullYear();
+
+  // Generate years dynamically from 2025 to current year
+  const generateYears = () => {
+    const yearsList = [];
+    for (let year = 2025; year <= currentYear; year++) {
+      yearsList.push(year.toString());
+    }
+    return yearsList;
+  };
+
+  // Use API years if available, otherwise use generated years
+  const availableYears =
+    data?.yearOrders?.map((year) => year._id.toString()) || generateYears();
+
+  // Set default year to current year, or 2025 if current year is before 2025
+  const defaultYear = currentYear >= 2025 ? currentYear.toString() : "2025";
+
+  const [selectedYear, setSelectedYear] = useState(defaultYear);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [chartData, setChartData] = useState([]);
 
-  // Available years from API
-  const years = data?.yearOrders?.map(year => year._id.toString()) || ['2025'];
+  // Available years - merge API years with generated years to ensure all years from 2025 are available
+  const years = [...new Set([...generateYears(), ...availableYears])].sort(
+    (a, b) => parseInt(b) - parseInt(a)
+  );
 
   // Month names
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  // Update selected year to default if not in available years
+  useEffect(() => {
+    if (years.length > 0 && !years.includes(selectedYear)) {
+      setSelectedYear(defaultYear);
+    }
+  }, [years, defaultYear, selectedYear]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isDropdownOpen && !event.target.closest(".relative")) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   useEffect(() => {
     if (data?.monthEarnings) {
@@ -21,11 +88,11 @@ const TotalOrderChart = ({ data }) => {
       const monthlyData = Array.from({ length: 12 }, (_, i) => ({
         month: monthNames[i],
         orders: 0,
-        monthNumber: i + 1
+        monthNumber: i + 1,
       }));
 
       // Fill in actual data from API
-      data.monthEarnings.forEach(item => {
+      data.monthEarnings.forEach((item) => {
         if (item._id.year.toString() === selectedYear) {
           const monthIndex = item._id.month - 1;
           if (monthIndex >= 0 && monthIndex < 12) {
@@ -38,7 +105,7 @@ const TotalOrderChart = ({ data }) => {
     }
   }, [data, selectedYear]);
 
-  const maxValue = Math.max(...chartData.map(d => d.orders), 100);
+  const maxValue = Math.max(...chartData.map((d) => d.orders), 100);
   const yAxisMax = Math.ceil(maxValue / 200) * 200;
 
   const CustomTooltip = ({ active, payload }) => {
@@ -78,8 +145,9 @@ const TotalOrderChart = ({ data }) => {
                       setSelectedYear(year);
                       setIsDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors first:rounded-t-lg last:rounded-b-lg ${selectedYear === year ? 'bg-gray-100 font-medium' : ''
-                      }`}
+                    className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                      selectedYear === year ? "bg-gray-100 font-medium" : ""
+                    }`}
                   >
                     {year}
                   </button>
@@ -105,18 +173,18 @@ const TotalOrderChart = ({ data }) => {
                 dataKey="month"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#B01501', fontSize: 14 }}
+                tick={{ fill: "#B01501", fontSize: 14 }}
                 dy={10}
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#B01501', fontSize: 14 }}
+                tick={{ fill: "#B01501", fontSize: 14 }}
                 domain={[0, yAxisMax]}
               />
               <Tooltip
                 content={<CustomTooltip />}
-                cursor={{ fill: 'transparent' }}
+                cursor={{ fill: "transparent" }}
               />
               <Bar
                 dataKey="orders"
@@ -125,10 +193,7 @@ const TotalOrderChart = ({ data }) => {
                 maxBarSize={60}
               >
                 {chartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill="#B01501"
-                  />
+                  <Cell key={`cell-${index}`} fill="#B01501" />
                 ))}
               </Bar>
             </BarChart>

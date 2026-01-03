@@ -29,9 +29,23 @@ import { MdAdsClick } from "react-icons/md";
 import { useGetStoreInfoQuery } from "../../redux/sellerApi/storeInfoApi/storeInfoApi";
 import { useEnableChitchatMutation } from "../../redux/chitchatApi/chitchatApi";
 import useToast from "../../hooks/useShowToast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../ui/dialog";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
 
 const AppSidebar = () => {
   const [activeItem, setActiveItem] = useState("Overview");
+  const [isChitChatModalOpen, setIsChitChatModalOpen] = useState(false);
+  const [chitchatsClientId, setChitchatsClientId] = useState("");
+  const [chitchatsAccessToken, setChitchatsAccessToken] = useState("");
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
@@ -108,7 +122,24 @@ const AppSidebar = () => {
     }
   };
 
-  const handleChitChatClick = async () => {
+  const isChitChatEnabled =
+    storeInfoData?.data?.isChitChatsEnabled || storeInfo?.isChitChatsEnabled;
+
+  const handleChitChatClick = () => {
+    // If ChitChat is disabled, show modal to enter credentials
+    if (!isChitChatEnabled) {
+      setIsChitChatModalOpen(true);
+    }
+    // If enabled, do nothing (or you can add functionality to disable it)
+  };
+
+  const handleSaveChitChatCredentials = async () => {
+    // Validate inputs
+    if (!chitchatsClientId.trim() || !chitchatsAccessToken.trim()) {
+      toast.showError("Please fill in both fields");
+      return;
+    }
+
     try {
       const shopId = localStorage.getItem("shop");
 
@@ -120,8 +151,8 @@ const AppSidebar = () => {
 
       const requestData = {
         shopId: shopId,
-        chitchats_client_id: "918456",
-        chitchats_access_token: "7c493995183240718d2fd067b62fc3dd",
+        chitchats_client_id: chitchatsClientId.trim(),
+        chitchats_access_token: chitchatsAccessToken.trim(),
       };
 
       console.log("Enabling ChitChat with data:", requestData);
@@ -136,6 +167,10 @@ const AppSidebar = () => {
         toast.showSuccess(
           response?.message || "ChitChat enabled successfully!"
         );
+        // Close modal and reset form
+        setIsChitChatModalOpen(false);
+        setChitchatsClientId("");
+        setChitchatsAccessToken("");
         // Refetch store info to get updated chitchat status
         refetchStoreInfo();
       } else {
@@ -192,16 +227,11 @@ const AppSidebar = () => {
 
       <div
         className={`flex items-center gap-2 p-4 rounded-lg cursor-pointer transition-colors ${
-          storeInfoData?.data?.isChitChatsEnabled ||
-          storeInfo?.isChitChatsEnabled
-            ? "bg-transparent"
-            : "bg-red-300 hover:bg-red-400"
+          isChitChatEnabled ? "bg-transparent" : "bg-red-300 hover:bg-red-400"
         }`}
         onClick={handleChitChatClick}
-        disabled={isEnableChitchatLoading}
       >
-        {storeInfoData?.data?.isChitChatsEnabled ||
-        storeInfo?.isChitChatsEnabled ? (
+        {isChitChatEnabled ? (
           <div className="flex items-center gap-2">
             <svg
               width="20"
@@ -245,6 +275,65 @@ const AppSidebar = () => {
           </div>
         )}
       </div>
+
+      {/* ChitChat Credentials Modal */}
+      <Dialog open={isChitChatModalOpen} onOpenChange={setIsChitChatModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enable ChitChat Shipping</DialogTitle>
+            <DialogDescription>
+              Enter your ChitChat credentials to enable shipping integration.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="chitchats_client_id">
+                ChitChats Client ID <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="chitchats_client_id"
+                placeholder="Enter ChitChats Client ID"
+                value={chitchatsClientId}
+                onChange={(e) => setChitchatsClientId(e.target.value)}
+                disabled={isEnableChitchatLoading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="chitchats_access_token">
+                ChitChats Access Token <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="chitchats_access_token"
+                type="password"
+                placeholder="Enter ChitChats Access Token"
+                value={chitchatsAccessToken}
+                onChange={(e) => setChitchatsAccessToken(e.target.value)}
+                disabled={isEnableChitchatLoading}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsChitChatModalOpen(false);
+                setChitchatsClientId("");
+                setChitchatsAccessToken("");
+              }}
+              disabled={isEnableChitchatLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveChitChatCredentials}
+              disabled={isEnableChitchatLoading}
+              className="bg-[#B01501] hover:bg-[#8B1100] text-white"
+            >
+              {isEnableChitchatLoading ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Menu Items */}
       <nav className="space-y-1">
