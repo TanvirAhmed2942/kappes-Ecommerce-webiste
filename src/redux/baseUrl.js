@@ -13,6 +13,11 @@ export const getSocketUrl = () => {
 export const getImageUrl = () => {
   // Extract domain and port from getBaseUrl() (remove protocol and /api/v1)
   const fullBaseUrl = getBaseUrl();
+
+  // Detect protocol from getBaseUrl() (http:// or https://)
+  const protocolMatch = fullBaseUrl.match(/^(https?):\/\//);
+  const protocol = protocolMatch ? protocolMatch[1] : "http"; // Default to http if not found
+
   // Remove protocol (http:// or https://) and /api/v1 path
   const baseUrlWithoutProtocol = fullBaseUrl
     .replace(/^https?:\/\//, "") // Remove http:// or https://
@@ -22,7 +27,7 @@ export const getImageUrl = () => {
   // const baseUrl = "asif7001.binarybards.online";
   // const baseUrl = "api.thecanuckmall.ca";
 
-  // Always use http:// for image URLs since backend images are served over HTTP
-  // Even if the frontend is served over HTTPS (like on Vercel), images use HTTP
-  return `http://${baseUrl}/`;
+  // Use the same protocol as getBaseUrl() (http:// or https://)
+  // This ensures images use the same protocol as the API backend
+  return `${protocol}://${baseUrl}/`;
 };

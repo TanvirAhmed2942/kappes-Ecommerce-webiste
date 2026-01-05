@@ -199,16 +199,8 @@ const AppSidebar = () => {
     <div className="w-80 bg-white rounded-2xl shadow-lg p-6 min-h-screen">
       {/* Profile Section */}
       <div className="flex flex-col items-center mb-8">
-        <Image
-          src={
-            storeInfo?.storeLogo
-              ? `${getImageUrl()}${
-                  storeInfo.storeLogo.startsWith("/")
-                    ? storeInfo.storeLogo.slice(1)
-                    : storeInfo.storeLogo
-                }`
-              : "/assets/default-store-logo.png"
-          }
+        <img
+          src={`${getImageUrl()}${storeInfo?.storeLogo}`}
           alt="store logo"
           width={100}
           height={100}

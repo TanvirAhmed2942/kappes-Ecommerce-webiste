@@ -671,7 +671,7 @@ export default React.memo(function ProductView() {
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center justify-start gap-4">
                   <div className="bg-gray-800 text-white  rounded-full border flex items-center gap-2">
-                    <Image
+                    <img
                       src={`${getImageUrl()}/${productDetails.shopId?.logo}`}
                       alt={productDetails.shopId?.name}
                       priority
