@@ -30,6 +30,11 @@ const nextConfig = {
         hostname: "api.thecanuckmall.ca",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "kappes-ecommerce-webiste.vercel.app",
+        pathname: "/**",
+      },
     ],
   },
 };
