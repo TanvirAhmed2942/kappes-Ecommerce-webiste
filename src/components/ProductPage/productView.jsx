@@ -672,7 +672,7 @@ export default React.memo(function ProductView() {
                 <div className="flex items-center justify-start gap-4">
                   <div className="bg-gray-800 text-white  rounded-full border flex items-center gap-2">
                     <img
-                      src={`${getImageUrl()}/${productDetails.shopId?.logo}`}
+                      src={`${getImageUrl()}${productDetails.shopId?.logo}`}
                       alt={productDetails.shopId?.name}
                       priority
                       width={50}

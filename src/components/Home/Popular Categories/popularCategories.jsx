@@ -125,7 +125,7 @@ function PopularCategories() {
                       }
                     >
                       <div className="w-24 h-24 rounded-full bg-gray-100 p-4 flex ring-1 items-center justify-center overflow-hidden">
-                        <Image
+                        <img
                           src={`${getImageUrl()}${category?.image}`}
                           width={80}
                           height={80}
