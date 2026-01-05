@@ -17,7 +17,6 @@ import { Button } from "../../../components/ui/button";
 import { getImageUrl } from "../../../redux/baseUrl";
 import useUser from "../../../hooks/useUser";
 import useAuth from "../../../hooks/useAuth";
-import { openChat } from "../../../features/chatSlice";
 import { logout } from "../../../features/authSlice/authSlice";
 import LogoutAlertModal from "./logoutAlertModal";
 import ConnectStripeForSellerModal from "../../Navbar/connectStripeForSellerModal";
@@ -73,15 +72,8 @@ const SellerNav = () => {
   // Handle opening chat
   const handleOpenChat = () => {
     if (!currentSeller) {
-      dispatch(
-        openChat({
-          id: 1,
-          name: "Customer Support",
-          avatar: "/assets/chat/support-avatar.png",
-          isOnline: true,
-          lastSeen: "Online",
-        })
-      );
+      showError("No chat created yet");
+      return;
     }
   };
 
@@ -166,10 +158,12 @@ const SellerNav = () => {
                 showError("Please login to access chat");
                 return;
               }
-              handleOpenChat();
               // Only navigate if there's a current seller
               if (currentSeller) {
+                handleOpenChat();
                 router.push("/chat/all-chat");
+              } else {
+                handleOpenChat(); // This will show "No chat created yet" message
               }
             }}
             className="relative flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none bg-white shadow-none w-10 h-10  rounded-full hover:bg-gray-100 sm:hover:bg-gray-300 cursor-pointer p-0"
