@@ -419,9 +419,13 @@ function SeeAllCategories() {
           })()}
         </div>
       )}
+
       {/* Show products when categories are selected or when a specific category is in URL */}
       {(selectedCategories.length > 0 || isSpecificCategorySelected) && (
         <div className="mt-4">
+          <p className="text-2xl font-bold font-comfortaa text-left max-w-[88rem] mx-auto p-2 rounded-lg">
+            {categoryNameParam}
+          </p>
           <ShopLayout />
         </div>
       )}
