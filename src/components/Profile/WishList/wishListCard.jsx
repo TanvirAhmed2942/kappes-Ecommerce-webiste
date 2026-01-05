@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Heart } from "lucide-react";
 import useFavProducts from "../../../hooks/useFavProducts";
 import { getImageUrl } from "../../../redux/baseUrl";
@@ -43,11 +42,7 @@ export default function WishListCard({ product }) {
   };
 
   const imageSrc = productImage?.[0]
-    ? `${getImageUrl()}${
-        productImage[0].startsWith("/")
-          ? productImage[0]
-          : `/${productImage[0]}`
-      }`
+    ? `${getImageUrl()}${productImage[0]}`
     : "/assets/fallback.jpg";
 
   return (
@@ -64,7 +59,7 @@ export default function WishListCard({ product }) {
       </button>
 
       <div className="w-full aspect-square relative flex-shrink-0">
-        <Image
+        <img
           src={imageSrc}
           alt={name || "Product"}
           fill
@@ -79,11 +74,11 @@ export default function WishListCard({ product }) {
 
         <div className="flex items-center gap-2 mb-1">
           <span className="text-lg font-bold text-[#AF1500]">
-            ${discountedPrice.toFixed(2)}
+            C$ {discountedPrice.toFixed(2)}
           </span>
           {hasDiscount && (
             <span className="text-sm line-through text-gray-400">
-              ${originalPrice.toFixed(2)}
+              C$ {originalPrice.toFixed(2)}
             </span>
           )}
         </div>

@@ -1,11 +1,11 @@
 "use client";
 import React from "react";
-import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 
 import "swiper/css";
 import "swiper/css/pagination";
+import { getImageUrl } from "../../redux/baseUrl";
 
 function CarouselPlay({ slideItem, imageClassName = "" }) {
   // Ensure slideItem is always an array
@@ -29,8 +29,8 @@ function CarouselPlay({ slideItem, imageClassName = "" }) {
         {items.map((item) => (
           <SwiperSlide key={item.id} className="w-full h-full">
             <div className="relative w-full h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-hidden">
-              <Image
-                src={item.image}
+              <img
+                src={`${getImageUrl()}${item.image}`}
                 width={1200}
                 height={600}
                 alt={item.image || "Carousel image"}

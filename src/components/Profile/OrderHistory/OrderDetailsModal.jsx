@@ -15,7 +15,6 @@ import {
 } from "../../../components/ui/card";
 import { Badge } from "../../../components/ui/badge";
 import { Separator } from "../../../components/ui/separator";
-import Image from "next/image";
 import { getImageUrl } from "../../../redux/baseUrl";
 
 export default function OrderDetailsModal({
@@ -143,7 +142,7 @@ export default function OrderDetailsModal({
                       className="flex gap-4 p-4 border rounded-lg"
                     >
                       <div className="relative w-20 h-20 flex-shrink-0">
-                        <Image
+                        <img
                           src={
                             productItem.product?.images?.[0]
                               ? `${getImageUrl()}${
@@ -152,11 +151,7 @@ export default function OrderDetailsModal({
                               : "/assets/bag.png"
                           }
                           alt={productItem.product?.name || "Product"}
-                          fill
                           className="object-cover rounded-md"
-                          onError={(e) => {
-                            e.target.src = "/assets/bag.png";
-                          }}
                         />
                       </div>
                       <div className="flex-1">

@@ -1,11 +1,9 @@
 "use client";
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useGetFollowedShopsQuery } from "../../../redux/userprofileApi/userprofileApi";
 import { getImageUrl } from "../../../redux/baseUrl";
-import { Card, CardContent } from "../../ui/card";
-import { MapPin } from "lucide-react";
+import { Card } from "../../../components/ui/card";
 
 function FollowedShop({ selectedMenu }) {
   const {
@@ -115,29 +113,21 @@ function FollowedShop({ selectedMenu }) {
           // Construct cover photo URL (use coverPhoto or first banner image)
           const coverPath = shop.coverPhoto || shop.banner?.[0] || "";
           const coverUrl = coverPath
-            ? coverPath.startsWith("http")
-              ? coverPath
-              : `${getImageUrl()}${
-                  coverPath.startsWith("/") ? coverPath.slice(1) : coverPath
-                }`
+            ? `${getImageUrl()}${coverPath}`
             : "/assets/default-shop-cover.jpg";
-
+          console.log("coverUrl", coverUrl);
           // Construct logo URL
           const logoPath = shop.logo || shop.image || "";
           const logoUrl = logoPath
-            ? logoPath.startsWith("http")
-              ? logoPath
-              : `${getImageUrl()}${
-                  logoPath.startsWith("/") ? logoPath.slice(1) : logoPath
-                }`
+            ? `${getImageUrl()}${logoPath}`
             : "/assets/default-store-logo.png";
-
+          console.log("logoUrl", logoUrl);
           return (
             <Link key={shopId} href={`/store/${shopId}`}>
               <Card className="overflow-hidden rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer h-full  flex flex-col bg-white">
                 {/* Background Image Container */}
                 <div className="relative w-full h-32 bg-gray-200 rounded-lg">
-                  <Image
+                  <img
                     src={coverUrl}
                     alt={shopName}
                     fill
@@ -147,7 +137,7 @@ function FollowedShop({ selectedMenu }) {
                   {/* Logo Badge - Bottom Left */}
                   <div className="absolute -bottom-6 left-2  bg-white border border-gray-300 rounded-lg p-1 shadow-lg">
                     <div className="relative w-10 h-10">
-                      <Image
+                      <img
                         src={logoUrl}
                         alt={`${shopName} logo`}
                         fill

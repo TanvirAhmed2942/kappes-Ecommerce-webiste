@@ -48,9 +48,9 @@ export default function OrderHistory({ selectedMenu }) {
   const { showSuccess, showError } = useToast();
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-CA", {
       style: "currency",
-      currency: "USD",
+      currency: "CAD",
     }).format(amount);
   };
 
