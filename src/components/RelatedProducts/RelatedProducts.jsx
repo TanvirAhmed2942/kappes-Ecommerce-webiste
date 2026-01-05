@@ -170,10 +170,10 @@ const RelatedProducts = () => {
             ? "Related Products"
             : "Recommended Products"}
         </h2>
-        <button className="flex items-center text-gray-600 hover:text-gray-800 hover:underline transition">
+        {/* <button className="flex items-center text-gray-600 hover:text-gray-800 hover:underline transition">
           See all
           <IoArrowForward className="ml-2 rotate-[-45deg]" />
-        </button>
+        </button> */}
       </div>
 
       {/* Swiper Carousel */}

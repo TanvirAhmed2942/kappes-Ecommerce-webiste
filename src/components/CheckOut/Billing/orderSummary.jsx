@@ -383,18 +383,10 @@ export default function OrderSummary({
                     <Card key={index} className="p-4">
                       <div className="flex gap-4">
                         <div className="relative w-20 h-20 flex-shrink-0">
-                          <Image
-                            src={
-                              (item.productImage || item.image)?.startsWith(
-                                "http"
-                              )
-                                ? item.productImage || item.image
-                                : item.productImage || item.image
-                                ? `${getImageUrl()}${
-                                    item.productImage || item.image
-                                  }`
-                                : "/assets/bag.png"
-                            }
+                          <img
+                            src={`${getImageUrl()}${
+                              item.productImage || item.image
+                            }`}
                             alt={item.name || "Product"}
                             fill
                             className="object-cover rounded-md"

@@ -265,15 +265,15 @@ export default React.memo(function ShopProductList({
                                 {hasDiscount ? (
                                   <div className="flex items-center gap-2">
                                     <p className="text-red-600 font-bold">
-                                      ${productPrice.toFixed(2)}
+                                      C$ {productPrice.toFixed(2)}
                                     </p>
                                     <p className="text-gray-500 text-sm line-through">
-                                      ${basePrice.toFixed(2)}
+                                      C$ {basePrice.toFixed(2)}
                                     </p>
                                   </div>
                                 ) : (
                                   <p className="text-red-600 font-bold">
-                                    ${basePrice.toFixed(2)}
+                                    C$ {basePrice.toFixed(2)}
                                   </p>
                                 )}
                               </div>

@@ -11,7 +11,6 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import CartControlButton from "./CartControlButton";
-import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "../../hooks/useCart";
 import { getImageUrl } from "../../redux/baseUrl";
@@ -63,14 +62,8 @@ function Checkout() {
               return (
                 <TableRow key={uniqueKey}>
                   <TableCell className="font-medium">
-                    <Image
-                      src={
-                        item.productImage?.startsWith("http")
-                          ? item.productImage
-                          : item.productImage
-                          ? `${getImageUrl()}${item.productImage}`
-                          : "/assets/bag.png"
-                      }
+                    <img
+                      src={`${getImageUrl()}${item.productImage}`}
                       alt={item.name || "Product Image"}
                       width={50}
                       height={50}

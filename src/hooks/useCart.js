@@ -173,10 +173,11 @@ export function useCart() {
 
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
+    const formatted = new Intl.NumberFormat("en-CA", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(amount);
+    return `C$${formatted}`;
   };
 
   return {
