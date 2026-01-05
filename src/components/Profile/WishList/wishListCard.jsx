@@ -43,7 +43,7 @@ export default function WishListCard({ product }) {
   };
 
   const imageSrc = productImage?.[0]
-    ? `${getImageUrl}${
+    ? `${getImageUrl()}${
         productImage[0].startsWith("/")
           ? productImage[0]
           : `/${productImage[0]}`

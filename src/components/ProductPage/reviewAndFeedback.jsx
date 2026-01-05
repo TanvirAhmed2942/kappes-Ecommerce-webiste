@@ -232,7 +232,7 @@ export default React.memo(function ReviewAndFeedback() {
                         className="w-16 h-16 rounded overflow-hidden border border-gray-200"
                       >
                         <Image
-                          src={`${getImageUrl}${image}`}
+                          src={`${getImageUrl()}${image}`}
                           alt={`Review image ${index + 1}`}
                           width={64}
                           height={64}

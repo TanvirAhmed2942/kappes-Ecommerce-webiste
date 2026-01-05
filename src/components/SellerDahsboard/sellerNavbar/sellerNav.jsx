@@ -202,7 +202,7 @@ const SellerNav = () => {
               <AvatarImage
                 src={
                   userImage
-                    ? `${getImageUrl}/${userImage}`
+                    ? `${getImageUrl()}/${userImage}`
                     : "/assets/userProfile/profileImage.jpg"
                 }
                 alt={userName || "User"}

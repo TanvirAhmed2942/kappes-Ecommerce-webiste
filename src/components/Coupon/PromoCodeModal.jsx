@@ -64,11 +64,11 @@ const PromoCodeModal = ({ open, onOpenChange, promo }) => {
 
     // If it starts with /, it's a relative path from the API
     if (promo.image.startsWith("/")) {
-      return `${getImageUrl}${promo.image}`;
+      return `${getImageUrl()}${promo.image}`;
     }
 
     // Otherwise, prepend the image URL
-    return `${getImageUrl}${
+    return `${getImageUrl()}${
       promo.image.startsWith("/") ? promo.image : `/${promo.image}`
     }`;
   };

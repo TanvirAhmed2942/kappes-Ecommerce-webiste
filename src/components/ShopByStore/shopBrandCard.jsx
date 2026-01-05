@@ -1,4 +1,4 @@
-import { Card, CardContent, CardFooter } from "../../components/ui/card"; 
+import { Card, CardContent, CardFooter } from "../../components/ui/card";
 import { GrLocation } from "react-icons/gr";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,7 +15,7 @@ export default function ShopBrandCard({ brandInfo }) {
             {/* Cover Image */}
             <div>
               <Image
-                src={`${getImageUrl}${cover}`}
+                src={`${getImageUrl()}${cover}`}
                 width={1000}
                 height={1000}
                 alt="cover"
@@ -28,7 +28,7 @@ export default function ShopBrandCard({ brandInfo }) {
               {/* Mobile Layout: Center everything */}
               <div className="flex flex-col items-center text-center sm:hidden">
                 <Image
-                  src={`${getImageUrl}${logo}`}
+                  src={`${getImageUrl()}${logo}`}
                   width={1000}
                   height={1000}
                   alt="logo"
@@ -46,7 +46,7 @@ export default function ShopBrandCard({ brandInfo }) {
               {/* Desktop Layout: Side by side (original) */}
               <div className="hidden sm:flex items-end gap-4">
                 <Image
-                  src={`${getImageUrl}${logo}`}
+                  src={`${getImageUrl()}${logo}`}
                   width={500}
                   height={500}
                   alt="logo"

@@ -90,7 +90,7 @@ const MessagingApp = () => {
           // If image path already starts with http, return as is
           if (imagePath.startsWith("http")) return imagePath;
           // Otherwise, prefix with base URL
-          return `${getImageUrl}${
+          return `${getImageUrl()}${
             imagePath.startsWith("/") ? imagePath.slice(1) : imagePath
           }`;
         };

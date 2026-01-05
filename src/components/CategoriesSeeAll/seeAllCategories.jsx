@@ -307,7 +307,7 @@ function SeeAllCategories() {
 
               const imageUrl = currentImage.startsWith("http")
                 ? currentImage
-                : `${getImageUrl}${
+                : `${getImageUrl()}${
                     currentImage.startsWith("/")
                       ? currentImage.slice(1)
                       : currentImage

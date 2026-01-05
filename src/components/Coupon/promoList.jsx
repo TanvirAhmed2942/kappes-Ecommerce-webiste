@@ -151,7 +151,7 @@ const PromoCodeCard = ({ promo, onShowPromoCode }) => {
                 src={
                   promo.image?.startsWith("http")
                     ? promo.image
-                    : `${getImageUrl}${promo.image}`
+                    : `${getImageUrl()}${promo.image}`
                 }
                 alt={promo.title || "Shop logo"}
                 width={64}

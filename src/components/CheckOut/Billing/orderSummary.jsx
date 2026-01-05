@@ -390,7 +390,7 @@ export default function OrderSummary({
                               )
                                 ? item.productImage || item.image
                                 : item.productImage || item.image
-                                ? `${getImageUrl}${
+                                ? `${getImageUrl()}${
                                     item.productImage || item.image
                                   }`
                                 : "/assets/bag.png"

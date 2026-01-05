@@ -167,7 +167,7 @@ function TopNav() {
                 <AvatarImage
                   src={
                     userImage
-                      ? `${getImageUrl}/${userImage}`
+                      ? `${getImageUrl()}/${userImage}`
                       : "/assets/userProfile/profileImage.jpg"
                   }
                   alt={userName || "User"}
@@ -189,7 +189,7 @@ function TopNav() {
                     alt={userName || "User profile"}
                     src={
                       userImage
-                        ? `${getImageUrl}/${userImage}`
+                        ? `${getImageUrl()}/${userImage}`
                         : "/assets/userProfile/profileImage.jpg"
                     }
                   />

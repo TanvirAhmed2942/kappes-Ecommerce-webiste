@@ -146,7 +146,9 @@ export default function OrderDetailsModal({
                         <Image
                           src={
                             productItem.product?.images?.[0]
-                              ? `${getImageUrl}${productItem.product.images[0]}`
+                              ? `${getImageUrl()}${
+                                  productItem.product.images[0]
+                                }`
                               : "/assets/bag.png"
                           }
                           alt={productItem.product?.name || "Product"}

@@ -202,7 +202,7 @@ const AppSidebar = () => {
         <Image
           src={
             storeInfo?.storeLogo
-              ? `${getImageUrl}${
+              ? `${getImageUrl()}${
                   storeInfo.storeLogo.startsWith("/")
                     ? storeInfo.storeLogo.slice(1)
                     : storeInfo.storeLogo

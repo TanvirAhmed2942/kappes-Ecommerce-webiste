@@ -44,7 +44,7 @@ export default React.memo(function Banner() {
               <Image
                 width={2048}
                 height={2048}
-                src={`${getImageUrl}${
+                src={`${getImageUrl()}${
                   image.startsWith("/") ? image.slice(1) : image
                 }`}
                 alt={`Banner ${index + 1}`}

@@ -213,7 +213,7 @@ const EditProductForm = () => {
   const getCompleteImageUrl = (imagePath) => {
     if (!imagePath) return "";
     if (imagePath.startsWith("http")) return imagePath;
-    return `${getImageUrl}${imagePath}`;
+    return `${getImageUrl()}${imagePath}`;
   };
 
   const removeTag = (tagToRemove) => {

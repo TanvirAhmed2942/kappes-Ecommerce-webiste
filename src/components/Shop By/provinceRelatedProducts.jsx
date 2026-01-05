@@ -121,7 +121,7 @@ export default function ProvinceRelatedProducts({
                       coverUrl = coverPath;
                     } else {
                       // Ensure proper URL construction - remove trailing slash from base and leading slash from path
-                      const baseUrl = getImageUrl.replace(/\/$/, ""); // Remove trailing slash
+                      const baseUrl = getImageUrl().replace(/\/$/, ""); // Remove trailing slash
                       const cleanPath = coverPath.startsWith("/")
                         ? coverPath
                         : `/${coverPath}`;
@@ -138,7 +138,7 @@ export default function ProvinceRelatedProducts({
                       logoUrl = logoPath;
                     } else {
                       // Ensure proper URL construction - remove trailing slash from base and leading slash from path
-                      const baseUrl = getImageUrl.replace(/\/$/, ""); // Remove trailing slash
+                      const baseUrl = getImageUrl().replace(/\/$/, ""); // Remove trailing slash
                       const cleanPath = logoPath.startsWith("/")
                         ? logoPath
                         : `/${logoPath}`;

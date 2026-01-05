@@ -258,7 +258,9 @@ export default function EditStoreOwnerForm() {
                   {(imagePreview || originalImage) && (
                     <div className="mt-4">
                       <Image
-                        src={imagePreview || `${getImageUrl}/${originalImage}`}
+                        src={
+                          imagePreview || `${getImageUrl()}/${originalImage}`
+                        }
                         alt="Owner preview"
                         width={500}
                         height={500}
@@ -276,7 +278,7 @@ export default function EditStoreOwnerForm() {
                 <Label className="text-base">Current Image</Label>
                 <div className="mt-2">
                   <Image
-                    src={`${getImageUrl}/${originalImage}`}
+                    src={`${getImageUrl()}/${originalImage}`}
                     alt="Owner image"
                     width={500}
                     height={500}

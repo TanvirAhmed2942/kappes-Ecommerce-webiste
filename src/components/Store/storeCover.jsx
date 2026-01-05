@@ -185,7 +185,7 @@ const StoreCover = ({ shopInfo }) => {
             src={
               shopInfo.shopCover.startsWith("http")
                 ? shopInfo.shopCover
-                : `${getImageUrl}${
+                : `${getImageUrl()}${
                     shopInfo.shopCover.startsWith("/")
                       ? shopInfo.shopCover.slice(1)
                       : shopInfo.shopCover
@@ -209,7 +209,7 @@ const StoreCover = ({ shopInfo }) => {
                 src={
                   shopInfo.logo.startsWith("http")
                     ? shopInfo.logo
-                    : `${getImageUrl}${
+                    : `${getImageUrl()}${
                         shopInfo.logo.startsWith("/")
                           ? shopInfo.logo.slice(1)
                           : shopInfo.logo

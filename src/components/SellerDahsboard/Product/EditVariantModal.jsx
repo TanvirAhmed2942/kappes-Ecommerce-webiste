@@ -329,7 +329,7 @@ export default function EditVariantModal({ open, onOpenChange, variantId }) {
                   {existingImages.map((img, index) => (
                     <div key={index} className="relative">
                       <img
-                        src={`${getImageUrl}${img}`}
+                        src={`${getImageUrl()}${img}`}
                         alt={`Variant ${index + 1}`}
                         className="w-20 h-20 object-cover rounded-lg border"
                       />

@@ -211,7 +211,7 @@ function Chat() {
         const getImageUrlFull = (imagePath) => {
           if (!imagePath) return null;
           if (imagePath.startsWith("http")) return imagePath;
-          return `${getImageUrl}${
+          return `${getImageUrl()}${
             imagePath.startsWith("/") ? imagePath.slice(1) : imagePath
           }`;
         };

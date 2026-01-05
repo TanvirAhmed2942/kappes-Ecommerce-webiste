@@ -208,7 +208,7 @@ export default function AddEditSubCategory() {
         if (imagePath) {
           const imageUrl = imagePath.startsWith("http")
             ? imagePath
-            : `${getImageUrl}${
+            : `${getImageUrl()}${
                 imagePath.startsWith("/") ? imagePath : `/${imagePath}`
               }`;
           console.log("Setting image preview:", imageUrl);

@@ -38,7 +38,7 @@ function AdvertisementBanner() {
             imageUrl: banner,
             shopId: shop._id || shop.id,
             shopName: shop.name || "Store",
-            shopLogo: `${getImageUrl}${
+            shopLogo: `${getImageUrl()}${
               shop.logo.startsWith("/") ? shop.logo.slice(1) : shop.logo
             }`,
           });
@@ -96,7 +96,7 @@ function AdvertisementBanner() {
                 onClick={() => handleBannerClick(banner.shopId)}
               >
                 <Image
-                  src={`${getImageUrl}${
+                  src={`${getImageUrl()}${
                     banner.imageUrl.startsWith("/")
                       ? banner.imageUrl.slice(1)
                       : banner.imageUrl

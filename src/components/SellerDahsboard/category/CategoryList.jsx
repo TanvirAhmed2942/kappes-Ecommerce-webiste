@@ -69,7 +69,7 @@ const CategoryList = () => {
   const getImageSrc = (imagePath) => {
     if (!imagePath) return "/placeholder-image.png";
     if (imagePath.startsWith("http")) return imagePath;
-    return `${getImageUrl}${
+    return `${getImageUrl()}${
       imagePath.startsWith("/") ? imagePath : `/${imagePath}`
     }`;
   };

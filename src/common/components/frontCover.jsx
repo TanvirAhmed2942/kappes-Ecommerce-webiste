@@ -16,7 +16,7 @@ const FrontCover = ({ coverPhoto, logo, name, totalReviews, description }) => {
           src={
             coverPhoto?.startsWith("http")
               ? coverPhoto
-              : `${getImageUrl}${coverPhoto}`
+              : `${getImageUrl()}${coverPhoto}`
           }
           width={5000}
           height={5000}
@@ -31,7 +31,7 @@ const FrontCover = ({ coverPhoto, logo, name, totalReviews, description }) => {
           {/* <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white bg-white"> */}
           <div className="flex items-center justify-center h-full w-full  text-white">
             <Image
-              src={logo?.startsWith("http") ? logo : `${getImageUrl}${logo}`}
+              src={logo?.startsWith("http") ? logo : `${getImageUrl()}${logo}`}
               width={1000}
               height={1000}
               alt="storeLogo"

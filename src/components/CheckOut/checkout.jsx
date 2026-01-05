@@ -68,7 +68,7 @@ function Checkout() {
                         item.productImage?.startsWith("http")
                           ? item.productImage
                           : item.productImage
-                          ? `${getImageUrl}${item.productImage}`
+                          ? `${getImageUrl()}${item.productImage}`
                           : "/assets/bag.png"
                       }
                       alt={item.name || "Product Image"}

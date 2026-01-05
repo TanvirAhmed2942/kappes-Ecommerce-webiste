@@ -228,7 +228,7 @@ export default function AdvertisePage() {
                           className="relative rounded-lg overflow-hidden border-2 border-green-300"
                         >
                           <Image
-                            src={`${getImageUrl}${
+                            src={`${getImageUrl()}${
                               banner.startsWith("/") ? banner.slice(1) : banner
                             }`}
                             alt={`Advertisement ${index + 1}`}

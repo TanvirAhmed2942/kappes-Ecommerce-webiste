@@ -175,7 +175,9 @@ export default React.memo(function ShopProductList({
                               <div className="h-48 overflow-hidden relative">
                                 {product.images && product.images.length > 0 ? (
                                   <Image
-                                    src={`${getImageUrl}/${product.images[0]}`}
+                                    src={`${getImageUrl()}/${
+                                      product.images[0]
+                                    }`}
                                     alt={product.name}
                                     fill
                                     className="object-contain"

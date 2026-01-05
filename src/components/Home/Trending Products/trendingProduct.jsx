@@ -154,7 +154,7 @@ const TrendingProduct = () => {
                 {/* Product Image */}
                 <div className="w-full h-52 flex justify-center items-center">
                   <Image
-                    src={`${getImageUrl}/${product.images?.[0]}`}
+                    src={`${getImageUrl()}/${product.images?.[0]}`}
                     alt={product.name}
                     width={1200}
                     height={1200}

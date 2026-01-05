@@ -117,7 +117,7 @@ function FollowedShop({ selectedMenu }) {
           const coverUrl = coverPath
             ? coverPath.startsWith("http")
               ? coverPath
-              : `${getImageUrl}${
+              : `${getImageUrl()}${
                   coverPath.startsWith("/") ? coverPath.slice(1) : coverPath
                 }`
             : "/assets/default-shop-cover.jpg";
@@ -127,7 +127,7 @@ function FollowedShop({ selectedMenu }) {
           const logoUrl = logoPath
             ? logoPath.startsWith("http")
               ? logoPath
-              : `${getImageUrl}${
+              : `${getImageUrl()}${
                   logoPath.startsWith("/") ? logoPath.slice(1) : logoPath
                 }`
             : "/assets/default-store-logo.png";

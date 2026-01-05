@@ -105,7 +105,7 @@ export default function EditStoreInfoForm() {
         if (logoPath) {
           const logoUrl = logoPath.startsWith("http")
             ? logoPath
-            : `${getImageUrl}${
+            : `${getImageUrl()}${
                 logoPath.startsWith("/") ? logoPath.slice(1) : logoPath
               }`;
           setLogoPreview(logoUrl);
@@ -121,7 +121,7 @@ export default function EditStoreInfoForm() {
         if (coverImage) {
           const coverUrl = coverImage.startsWith("http")
             ? coverImage
-            : `${getImageUrl}${
+            : `${getImageUrl()}${
                 coverImage.startsWith("/") ? coverImage.slice(1) : coverImage
               }`;
           setCoverPreview(coverUrl);
@@ -142,7 +142,7 @@ export default function EditStoreInfoForm() {
             if (!bannerPath) return null;
             return bannerPath.startsWith("http")
               ? bannerPath
-              : `${getImageUrl}${
+              : `${getImageUrl()}${
                   bannerPath.startsWith("/") ? bannerPath.slice(1) : bannerPath
                 }`;
           })
@@ -354,7 +354,7 @@ export default function EditStoreInfoForm() {
       const logoImage = storeInfo.data.logo;
       const logoUrl = logoImage.startsWith("http")
         ? logoImage
-        : `${getImageUrl}${
+        : `${getImageUrl()}${
             logoImage.startsWith("/") ? logoImage.slice(1) : logoImage
           }`;
       setLogoPreview(logoUrl);
@@ -366,7 +366,7 @@ export default function EditStoreInfoForm() {
       const coverImage = storeInfo.data.coverPhoto || storeInfo.data.cover;
       const coverUrl = coverImage.startsWith("http")
         ? coverImage
-        : `${getImageUrl}${
+        : `${getImageUrl()}${
             coverImage.startsWith("/") ? coverImage.slice(1) : coverImage
           }`;
       setCoverPreview(coverUrl);
@@ -384,7 +384,7 @@ export default function EditStoreInfoForm() {
           if (!banner) return null;
           return banner.startsWith("http")
             ? banner
-            : `${getImageUrl}${
+            : `${getImageUrl()}${
                 banner.startsWith("/") ? banner.slice(1) : banner
               }`;
         })

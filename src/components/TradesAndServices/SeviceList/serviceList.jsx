@@ -95,7 +95,7 @@ function BusinessCard({ business }) {
             src={
               business.logo?.startsWith("http")
                 ? business.logo
-                : `${getImageUrl}${
+                : `${getImageUrl()}${
                     business.logo?.startsWith("/")
                       ? business.logo.slice(1)
                       : business.logo

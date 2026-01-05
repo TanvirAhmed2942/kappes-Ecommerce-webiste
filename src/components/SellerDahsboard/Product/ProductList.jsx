@@ -361,7 +361,7 @@ const ProductList = () => {
                   {selectedProduct.images?.map((img, idx) => (
                     <img
                       key={idx}
-                      src={getImageUrl + img}
+                      src={getImageUrl() + img}
                       alt={`Product ${idx}`}
                       className="w-full h-full object-contain rounded"
                     />

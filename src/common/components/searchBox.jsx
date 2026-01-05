@@ -202,7 +202,7 @@ function SearchBox({
                               : suggestion.images?.[0]?.startsWith("http")
                               ? suggestion.images[0]
                               : suggestion.images?.[0]
-                              ? `${getImageUrl}${
+                              ? `${getImageUrl()}${
                                   suggestion.images[0].startsWith("/")
                                     ? suggestion.images[0].slice(1)
                                     : suggestion.images[0]

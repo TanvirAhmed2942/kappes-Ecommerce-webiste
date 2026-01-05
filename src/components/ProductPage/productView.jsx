@@ -222,7 +222,7 @@ export default React.memo(function ProductView() {
           id: response.data._id, // Use the chat ID
           chatId: response.data._id,
           avatar: productDetails.shopId.logo
-            ? `${getImageUrl}${
+            ? `${getImageUrl()}${
                 productDetails.shopId.logo.startsWith("/")
                   ? productDetails.shopId.logo.slice(1)
                   : productDetails.shopId.logo
@@ -365,7 +365,7 @@ export default React.memo(function ProductView() {
               <Image
                 width={500}
                 height={500}
-                src={`${getImageUrl}/${productImages[mainImage]}`}
+                src={`${getImageUrl()}/${productImages[mainImage]}`}
                 alt={productDetails.name}
                 className="w-full h-[20rem] md:h-[30rem] lg:h-[40rem] object-contain transition-transform duration-300 hover:scale-110"
                 priority
@@ -395,7 +395,7 @@ export default React.memo(function ProductView() {
                   onClick={() => setMainImage(index)}
                 >
                   <Image
-                    src={`${getImageUrl}/${image}`}
+                    src={`${getImageUrl()}/${image}`}
                     alt={`Thumbnail ${index + 1}`}
                     width={500}
                     height={500}
@@ -672,7 +672,7 @@ export default React.memo(function ProductView() {
                 <div className="flex items-center justify-start gap-4">
                   <div className="bg-gray-800 text-white  rounded-full border flex items-center gap-2">
                     <Image
-                      src={`${getImageUrl}/${productDetails.shopId?.logo}`}
+                      src={`${getImageUrl()}/${productDetails.shopId?.logo}`}
                       alt={productDetails.shopId?.name}
                       priority
                       width={50}

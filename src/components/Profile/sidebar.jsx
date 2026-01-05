@@ -182,7 +182,7 @@ const Sidebar = ({ setSelectedMenu, selectedMenu }) => {
             <Image
               src={
                 user?.image
-                  ? `${getImageUrl}${
+                  ? `${getImageUrl()}${
                       user?.image.startsWith("/")
                         ? user.image.slice(1)
                         : user.image
