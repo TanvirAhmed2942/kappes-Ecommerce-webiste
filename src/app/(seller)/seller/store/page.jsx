@@ -103,11 +103,7 @@ export default function EditStoreInfoForm() {
       if (storeData.logo) {
         const logoPath = String(storeData.logo).trim();
         if (logoPath) {
-          const logoUrl = logoPath.startsWith("http")
-            ? logoPath
-            : `${getImageUrl()}${
-                logoPath.startsWith("/") ? logoPath.slice(1) : logoPath
-              }`;
+          const logoUrl = `${getImageUrl()}${logoPath}`;
           setLogoPreview(logoUrl);
         }
       } else {
@@ -119,11 +115,7 @@ export default function EditStoreInfoForm() {
           storeData.coverPhoto || storeData.cover
         ).trim();
         if (coverImage) {
-          const coverUrl = coverImage.startsWith("http")
-            ? coverImage
-            : `${getImageUrl()}${
-                coverImage.startsWith("/") ? coverImage.slice(1) : coverImage
-              }`;
+          const coverUrl = `${getImageUrl()}${coverImage}`;
           setCoverPreview(coverUrl);
         }
       } else {
@@ -140,11 +132,7 @@ export default function EditStoreInfoForm() {
             if (!banner) return null;
             const bannerPath = String(banner).trim();
             if (!bannerPath) return null;
-            return bannerPath.startsWith("http")
-              ? bannerPath
-              : `${getImageUrl()}${
-                  bannerPath.startsWith("/") ? bannerPath.slice(1) : bannerPath
-                }`;
+            return `${getImageUrl()}${bannerPath}`;
           })
           .filter(Boolean); // Remove null values
         setBannerPreviews(bannerUrls);
@@ -352,11 +340,7 @@ export default function EditStoreInfoForm() {
     // Reset image previews to original
     if (storeInfo?.data?.logo) {
       const logoImage = storeInfo.data.logo;
-      const logoUrl = logoImage.startsWith("http")
-        ? logoImage
-        : `${getImageUrl()}${
-            logoImage.startsWith("/") ? logoImage.slice(1) : logoImage
-          }`;
+      const logoUrl = `${getImageUrl()}${logoImage}`;
       setLogoPreview(logoUrl);
     } else {
       setLogoPreview(null);
@@ -364,11 +348,7 @@ export default function EditStoreInfoForm() {
 
     if (storeInfo?.data?.coverPhoto || storeInfo?.data?.cover) {
       const coverImage = storeInfo.data.coverPhoto || storeInfo.data.cover;
-      const coverUrl = coverImage.startsWith("http")
-        ? coverImage
-        : `${getImageUrl()}${
-            coverImage.startsWith("/") ? coverImage.slice(1) : coverImage
-          }`;
+      const coverUrl = `${getImageUrl()}${coverImage}`;
       setCoverPreview(coverUrl);
     } else {
       setCoverPreview(null);
@@ -382,11 +362,7 @@ export default function EditStoreInfoForm() {
       const bannerUrls = banners
         .map((banner) => {
           if (!banner) return null;
-          return banner.startsWith("http")
-            ? banner
-            : `${getImageUrl()}${
-                banner.startsWith("/") ? banner.slice(1) : banner
-              }`;
+          return `${getImageUrl()}${banner}`;
         })
         .filter(Boolean); // Remove null values
       setBannerPreviews(bannerUrls);
