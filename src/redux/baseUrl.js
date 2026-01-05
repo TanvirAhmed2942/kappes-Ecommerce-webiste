@@ -22,12 +22,7 @@ export const getImageUrl = () => {
   // const baseUrl = "asif7001.binarybards.online";
   // const baseUrl = "api.thecanuckmall.ca";
 
-  // Detect protocol: use current page protocol if in browser, otherwise default to http
-  if (typeof window !== "undefined") {
-    const protocol = window.location.protocol;
-    return `${protocol}//${baseUrl}/`;
-  }
-
-  // Server-side or default: use http
+  // Always use http:// for image URLs since backend images are served over HTTP
+  // Even if the frontend is served over HTTPS (like on Vercel), images use HTTP
   return `http://${baseUrl}/`;
 };
