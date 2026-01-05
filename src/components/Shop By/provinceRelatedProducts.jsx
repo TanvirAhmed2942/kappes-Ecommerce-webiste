@@ -1,7 +1,6 @@
 "use client";
 import useVirtualizedList from "../../hooks/VirtualizedList";
 import { useState, useMemo } from "react";
-import Image from "next/image";
 
 import { Card, CardContent } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
@@ -14,6 +13,7 @@ export default function ProvinceRelatedProducts({
   isLoading = false,
   selectedLocation = "",
   selectedTab = "province",
+  bannerImage = null,
 }) {
   const [sortOption, setSortOption] = useState("featured");
 
@@ -152,7 +152,7 @@ export default function ProvinceRelatedProducts({
                       <Card className="overflow-hidden rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer h-full flex flex-col bg-white">
                         {/* Background Image Container */}
                         <div className="relative w-full h-56 bg-gray-200 rounded-lg">
-                          <Image
+                          <img
                             src={coverUrl}
                             alt={shopItem.name}
                             fill
@@ -162,7 +162,7 @@ export default function ProvinceRelatedProducts({
                           {/* Logo Badge - Bottom Left */}
                           <div className="absolute -bottom-6 left-3 bg-white rounded-lg p-1 shadow-lg">
                             <div className="relative w-14 h-14 perspective-1000">
-                              <Image
+                              <img
                                 src={logoUrl}
                                 alt={`${shopItem.name} logo`}
                                 width={80}

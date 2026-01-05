@@ -103,6 +103,15 @@ const shopApi = api.injectEndpoints({
         };
       },
     }),
+    getLocationList: builder.query({
+      query: () => {
+        // Fetch all locations - set high limit to get all results (no pagination)
+        return {
+          url: `/province?limit=40`,
+          method: "GET",
+        };
+      },
+    }),
   }),
   overrideExisting: true,
 });
@@ -112,4 +121,5 @@ export const {
   useGetShopListProvinceQuery,
   useGetProductsByShopQuery,
   useGetShopbyIdQuery,
+  useGetLocationListQuery,
 } = shopApi;

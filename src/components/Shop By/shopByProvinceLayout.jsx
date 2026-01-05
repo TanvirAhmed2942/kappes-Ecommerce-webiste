@@ -11,8 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useGetShopListProvinceQuery } from "../../redux/shopApi/shopApi";
-
+import {
+  useGetShopListProvinceQuery,
+  useGetLocationListQuery,
+} from "../../redux/shopApi/shopApi";
+import { getImageUrl } from "../../redux/baseUrl";
 // All locations data with flags
 const locationsData = {
   province: [
@@ -73,6 +76,10 @@ function ShopByProvinceLayout() {
   const [selectedLocation, setSelectedLocation] = useState(
     locationParam ? decodeURIComponent(locationParam) : "Manitoba"
   );
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Fetch all locations from API (no pagination)
+  const { data: locationListData } = useGetLocationListQuery();
 
   // Update state when URL params change
   useEffect(() => {
@@ -84,15 +91,61 @@ function ShopByProvinceLayout() {
     }
   }, [typeParam, locationParam]);
 
+  // Reset image index when location changes
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [selectedLocation]);
+
   // Get current locations based on selected type
   const currentLocations = useMemo(() => {
     return locationsData[selectedType] || [];
   }, [selectedType]);
 
-  // Get selected location image
+  // Get selected location data - combine hardcoded flag with API banner image
   const selectedLocationData = useMemo(() => {
-    return currentLocations.find((loc) => loc.name === selectedLocation);
-  }, [currentLocations, selectedLocation]);
+    // Get hardcoded location data (for flag image)
+    const hardcodedLocation = currentLocations.find(
+      (loc) => loc.name === selectedLocation
+    );
+
+    // Find matching location in API response by title (matches name)
+    // Try exact match first, then case-insensitive match, also trim whitespace
+    const apiLocation = locationListData?.data?.result?.find((loc) => {
+      const apiTitle = loc.title?.trim();
+      const selected = selectedLocation?.trim();
+      return (
+        apiTitle === selected ||
+        apiTitle?.toLowerCase() === selected?.toLowerCase()
+      );
+    });
+
+    // Get all banner images from API
+    const bannerImages = [];
+    if (
+      apiLocation?.image &&
+      Array.isArray(apiLocation.image) &&
+      apiLocation.image.length > 0
+    ) {
+      apiLocation.image.forEach((imagePath) => {
+        // Construct full URL - getImageUrl() already includes trailing slash
+        if (imagePath.startsWith("http")) {
+          bannerImages.push(imagePath); // Already a full URL
+        } else {
+          // Remove leading slash if present, then construct full URL
+          const cleanPath = imagePath.startsWith("/")
+            ? imagePath.slice(1)
+            : imagePath;
+          bannerImages.push(`${getImageUrl()}${cleanPath}`);
+        }
+      });
+    }
+
+    return {
+      ...hardcodedLocation,
+      bannerImages, // All API images for banner display
+      bannerImage: bannerImages[0] || null, // First image for backward compatibility
+    };
+  }, [currentLocations, selectedLocation, locationListData]);
 
   // Handle type change
   const handleTypeChange = (value) => {
@@ -184,7 +237,7 @@ function ShopByProvinceLayout() {
                 {currentLocations.map((location) => (
                   <SelectItem key={location.id} value={location.name}>
                     <div className="flex items-center gap-2">
-                      <Image
+                      <img
                         src={location.image}
                         alt={location.name}
                         width={24}
@@ -200,23 +253,139 @@ function ShopByProvinceLayout() {
           </div>
         </div>
 
-        {/* Selected Location Flag Display */}
-        {selectedLocationData && (
-          <div className="flex justify-center mt-6">
-            <div className="flex flex-col items-center">
-              <Image
-                src={selectedLocationData.image}
-                alt={selectedLocationData.name}
-                width={120}
-                height={120}
-                className="object-contain"
-              />
-              <span className="mt-2 text-lg font-medium text-gray-700">
-                {selectedLocationData.name}
-              </span>
+        {/* Banner Image Display (like see all category) */}
+        {selectedLocationData &&
+          selectedLocationData.bannerImages &&
+          selectedLocationData.bannerImages.length > 0 && (
+            <div className="w-full mt-6 mb-6 flex flex-col items-center">
+              <div className="w-full md:w-3/3">
+                <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-lg overflow-hidden border-2 border-gray-300">
+                  <img
+                    src={selectedLocationData.bannerImages[currentImageIndex]}
+                    alt={`${selectedLocationData.name} - Image ${
+                      currentImageIndex + 1
+                    }`}
+                    className="w-full h-full object-cover"
+                  />
+
+                  {/* Navigation arrows for multiple images */}
+                  {selectedLocationData.bannerImages.length > 1 && (
+                    <>
+                      {/* Previous button */}
+                      {currentImageIndex > 0 && (
+                        <button
+                          onClick={() =>
+                            setCurrentImageIndex((prev) => prev - 1)
+                          }
+                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all z-10"
+                          aria-label="Previous image"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="m15 18-6-6 6-6" />
+                          </svg>
+                        </button>
+                      )}
+
+                      {/* Next button */}
+                      {currentImageIndex <
+                        selectedLocationData.bannerImages.length - 1 && (
+                        <button
+                          onClick={() =>
+                            setCurrentImageIndex((prev) => prev + 1)
+                          }
+                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all z-10"
+                          aria-label="Next image"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="m9 18 6-6-6-6" />
+                          </svg>
+                        </button>
+                      )}
+
+                      {/* Dots indicator */}
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                        {selectedLocationData.bannerImages.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentImageIndex(index)}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              index === currentImageIndex
+                                ? "bg-white w-6"
+                                : "bg-white/50 hover:bg-white/75"
+                            }`}
+                            aria-label={`Go to image ${index + 1}`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Overlay with location name and flag */}
+                  {/* Background overlay with opacity - separate from content */}
+                  <div className="absolute inset-0 bg-black opacity-30"></div>
+
+                  {/* Content overlay - fully opaque */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                    {/* Flag icon in top-left */}
+                    {selectedLocationData.image && (
+                      <div className="absolute top-4 left-4 w-20 h-20 md:w-24 md:h-24 z-20">
+                        <Image
+                          src={selectedLocationData.image}
+                          alt={selectedLocationData.name}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    )}
+                    {/* Logo/Icon in center */}
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="relative w-16 h-16 md:w-20 md:h-20">
+                        <Image
+                          src="/assets/logo.png"
+                          alt="THE CANUCK MALL"
+                          fill
+                          className="object-contain"
+                          style={{
+                            filter:
+                              "grayscale(100%)" +
+                              " " +
+                              "brightness(0) invert(1)",
+                          }}
+                        />
+                      </div>
+                      <h1 className="text-white text-2xl md:text-3xl font-bold text-center drop-shadow-lg">
+                        THE CANUCK MALL
+                      </h1>
+                    </div>
+                    {/* Location name */}
+                    <h2 className="text-white text-xl md:text-2xl lg:text-3xl font-bold text-center mt-2 drop-shadow-lg">
+                      Shop Stores across {selectedLocationData.name}
+                    </h2>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       {/* Shops Display */}
@@ -227,6 +396,7 @@ function ShopByProvinceLayout() {
           isLoading={isLoading}
           selectedLocation={selectedLocation}
           selectedTab={selectedType}
+          bannerImage={selectedLocationData?.bannerImage}
         />
       </div>
     </div>
