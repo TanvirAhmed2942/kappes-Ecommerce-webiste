@@ -239,8 +239,8 @@ const RelatedProducts = () => {
 
                 {/* Product Image */}
                 <div className="w-full h-52 flex justify-center items-center">
-                  <Image
-                    src={`${getImageUrl()}/${product.images?.[0]}`}
+                  <img
+                    src={`${getImageUrl()}${product.images?.[0]}`}
                     alt={product.name || "Product"}
                     width={1200}
                     height={1200}
@@ -258,13 +258,13 @@ const RelatedProducts = () => {
                   </h3>
                   <div className="flex items-center gap-2">
                     <span className="text-red-600 font-bold text-base">
-                      ${(product.basePrice || 0).toFixed(2)}
+                      C$ {(product.basePrice || 0).toFixed(2)}
                     </span>
                     {product.product_variant_Details?.[0]?.variantPrice &&
                       product.product_variant_Details[0].variantPrice >
                         product.basePrice && (
                         <span className="text-gray-400 line-through text-sm">
-                          $
+                          C$
                           {product.product_variant_Details[0].variantPrice.toFixed(
                             2
                           )}

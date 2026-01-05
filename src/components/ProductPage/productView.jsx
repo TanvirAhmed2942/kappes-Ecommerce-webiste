@@ -362,10 +362,10 @@ export default React.memo(function ProductView() {
           {/* Left - Images */}
           <div className="w-full md:w-1/2">
             <div className="relative mb-4 bg-white rounded-lg overflow-hidden">
-              <Image
+              <img
                 width={500}
                 height={500}
-                src={`${getImageUrl()}/${productImages[mainImage]}`}
+                src={`${getImageUrl()}${productImages[mainImage]}`}
                 alt={productDetails.name}
                 className="w-full h-[20rem] md:h-[30rem] lg:h-[40rem] object-contain transition-transform duration-300 hover:scale-110"
                 priority
@@ -394,8 +394,8 @@ export default React.memo(function ProductView() {
                   }`}
                   onClick={() => setMainImage(index)}
                 >
-                  <Image
-                    src={`${getImageUrl()}/${image}`}
+                  <img
+                    src={`${getImageUrl()}${image}`}
                     alt={`Thumbnail ${index + 1}`}
                     width={500}
                     height={500}
@@ -432,11 +432,11 @@ export default React.memo(function ProductView() {
 
             <div className="flex items-center gap-2 mb-6">
               <span className="text-2xl font-bold text-red-600">
-                ${pricing.currentPrice.toFixed(2)}
+                C$ {pricing.currentPrice.toFixed(2)}
               </span>
               {pricing.hasDiscount && (
                 <span className="text-gray-500 line-through">
-                  ${pricing.originalPrice.toFixed(2)}
+                  C$ {pricing.originalPrice.toFixed(2)}
                 </span>
               )}
               {pricing.hasDiscount && (
