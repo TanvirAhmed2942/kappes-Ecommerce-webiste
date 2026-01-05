@@ -183,15 +183,11 @@ function TopNav() {
               </VisuallyHidden>
               <div className="ml-4 mt-4">
                 <Avatar className="w-25 h-25">
-                  <Image
+                  <img
                     width={1000}
                     height={1000}
                     alt={userName || "User profile"}
-                    src={
-                      userImage
-                        ? `${getImageUrl()}/${userImage}`
-                        : "/assets/userProfile/profileImage.jpg"
-                    }
+                    src={`${getImageUrl()}${userImage}`}
                   />
                   <AvatarFallback>
                     {userName ? userName.charAt(0) : "U"}

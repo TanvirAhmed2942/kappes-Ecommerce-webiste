@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { HiOutlineUser } from "react-icons/hi";
 import { LuShoppingCart, LuHeart } from "react-icons/lu";
 import { FiLock, FiLogOut } from "react-icons/fi";
@@ -179,14 +178,10 @@ const Sidebar = ({ setSelectedMenu, selectedMenu }) => {
       <div className="bg-white min-w-52 h-[30rem] flex-col items-center justify-center rounded-lg border shadow-sm hidden md:flex z-10">
         <div className="flex flex-col items-center pt-4 py-4">
           <div className="relative">
-            <Image
+            <img
               src={
                 user?.image
-                  ? `${getImageUrl()}${
-                      user?.image.startsWith("/")
-                        ? user.image.slice(1)
-                        : user.image
-                    }`
+                  ? `${getImageUrl()}${user?.image}`
                   : "/assets/userProfile/profileImage.jpg"
               }
               width={100}

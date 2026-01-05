@@ -181,16 +181,8 @@ const StoreCover = ({ shopInfo }) => {
       {/* Banner Image */}
       <div className="relative h-40 md:h-52 lg:h-64 w-full bg-gray-200 overflow-hidden">
         {shopInfo?.shopCover && (
-          <Image
-            src={
-              shopInfo.shopCover.startsWith("http")
-                ? shopInfo.shopCover
-                : `${getImageUrl()}${
-                    shopInfo.shopCover.startsWith("/")
-                      ? shopInfo.shopCover.slice(1)
-                      : shopInfo.shopCover
-                  }`
-            }
+          <img
+            src={`${getImageUrl()}${shopInfo.shopCover}`}
             width={5000}
             height={5000}
             alt="Store cover"
@@ -205,16 +197,8 @@ const StoreCover = ({ shopInfo }) => {
           {/* <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white bg-white"> */}
           <div className="flex items-center justify-center h-full w-full  text-white">
             {shopInfo?.logo && (
-              <Image
-                src={
-                  shopInfo.logo.startsWith("http")
-                    ? shopInfo.logo
-                    : `${getImageUrl()}${
-                        shopInfo.logo.startsWith("/")
-                          ? shopInfo.logo.slice(1)
-                          : shopInfo.logo
-                      }`
-                }
+              <img
+                src={`${getImageUrl()}${shopInfo.logo}`}
                 width={1000}
                 height={1000}
                 alt="storeLogo"

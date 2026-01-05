@@ -95,12 +95,8 @@ function AdvertisementBanner() {
                 className="relative w-full h-[150px] sm:h-[280px] md:h-[350px] lg:h-[350px] overflow-hidden group cursor-pointer"
                 onClick={() => handleBannerClick(banner.shopId)}
               >
-                <Image
-                  src={`${getImageUrl()}${
-                    banner.imageUrl.startsWith("/")
-                      ? banner.imageUrl.slice(1)
-                      : banner.imageUrl
-                  }`}
+                <img
+                  src={`${getImageUrl()}${banner.imageUrl}`}
                   alt={`${banner.shopName} Advertisement`}
                   fill
                   className="object-cover object-center transition-transform duration-500 group-hover:scale-105"

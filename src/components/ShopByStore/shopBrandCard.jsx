@@ -1,6 +1,5 @@
-import { Card, CardContent, CardFooter } from "../../components/ui/card";
+import { Card, CardFooter } from "../../components/ui/card";
 import { GrLocation } from "react-icons/gr";
-import Image from "next/image";
 import Link from "next/link";
 import { getImageUrl } from "../../redux/baseUrl";
 
@@ -14,7 +13,7 @@ export default function ShopBrandCard({ brandInfo }) {
           <Card className="p-0 overflow-hidden relative hover:scale-101">
             {/* Cover Image */}
             <div>
-              <Image
+              <img
                 src={`${getImageUrl()}${cover}`}
                 width={1000}
                 height={1000}
@@ -27,7 +26,7 @@ export default function ShopBrandCard({ brandInfo }) {
             <div className="absolute left-4 right-4 bottom-8 sm:bottom-10 md:bottom-14">
               {/* Mobile Layout: Center everything */}
               <div className="flex flex-col items-center text-center sm:hidden">
-                <Image
+                <img
                   src={`${getImageUrl()}${logo}`}
                   width={1000}
                   height={1000}
@@ -45,7 +44,7 @@ export default function ShopBrandCard({ brandInfo }) {
 
               {/* Desktop Layout: Side by side (original) */}
               <div className="hidden sm:flex items-end gap-4">
-                <Image
+                <img
                   src={`${getImageUrl()}${logo}`}
                   width={500}
                   height={500}
