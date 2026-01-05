@@ -200,7 +200,7 @@ const ProductList = () => {
                           {product.subcategoryId?.name || "N/A"}
                         </TableCell>
                         <TableCell className="text-gray-900">
-                          ${product.basePrice?.toFixed(2) || "0.00"}
+                          C$ {product.basePrice?.toFixed(2) || "0.00"}
                         </TableCell>
                         <TableCell className="text-gray-900">
                           {product.totalStock ??
@@ -393,7 +393,7 @@ const ProductList = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h3 className="font-semibold text-gray-700">Base Price</h3>
-                    <p>${selectedProduct.basePrice?.toFixed(2) || "0.00"}</p>
+                    <p>C$ {selectedProduct.basePrice?.toFixed(2) || "0.00"}</p>
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-700">Total Stock</h3>
@@ -459,7 +459,7 @@ const ProductList = () => {
                                 Variant Price:
                               </span>{" "}
                               <span className="text-gray-900">
-                                $
+                                C${" "}
                                 {variant.variantPrice || variant.price || "N/A"}
                               </span>
                             </div>

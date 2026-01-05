@@ -1,21 +1,21 @@
-import { Package, TrendingUp } from 'lucide-react';
+import { Package, TrendingUp } from "lucide-react";
 
 const StatCards = ({ data }) => {
   const stats = [
     {
-      title: 'Total Order',
+      title: "Total Order",
       value: data?.totalOrders || 0,
       icon: Package,
-      bgColor: 'bg-orange-50',
-      iconColor: 'text-orange-500'
+      bgColor: "bg-orange-50",
+      iconColor: "text-orange-500",
     },
     {
-      title: 'Total Earning',
-      value: `€${data?.totalEarnings?.toFixed(2) || 0}`,
+      title: "Total Earning",
+      value: `C$ ${data?.totalEarnings?.toFixed(2) || 0}`,
       icon: TrendingUp,
-      bgColor: 'bg-green-50',
-      iconColor: 'text-green-500'
-    }
+      bgColor: "bg-green-50",
+      iconColor: "text-green-500",
+    },
   ];
 
   return (
@@ -28,8 +28,13 @@ const StatCards = ({ data }) => {
               className="bg-white w-full rounded-2xl shadow-sm p-6 flex items-center gap-6 hover:shadow-md transition-shadow"
             >
               {/* Icon Container */}
-              <div className={`${stat.bgColor} rounded-2xl p-5 flex items-center justify-center`}>
-                <stat.icon className={`w-10 h-10 ${stat.iconColor}`} strokeWidth={2} />
+              <div
+                className={`${stat.bgColor} rounded-2xl p-5 flex items-center justify-center`}
+              >
+                <stat.icon
+                  className={`w-10 h-10 ${stat.iconColor}`}
+                  strokeWidth={2}
+                />
               </div>
 
               {/* Content */}

@@ -242,16 +242,16 @@ const CouponList = () => {
                           <TableCell className="text-gray-900">
                             {coupon?.discountType === "Percentage"
                               ? `${coupon?.discountValue || 0}%`
-                              : `$${coupon?.discountValue || 0}`}
+                              : `C$ ${coupon?.discountValue || 0}`}
                           </TableCell>
                           <TableCell className="text-gray-900">
                             {coupon?.minOrderAmount
-                              ? `$${coupon.minOrderAmount}`
+                              ? `C$ ${coupon.minOrderAmount}`
                               : "N/A"}
                           </TableCell>
                           <TableCell className="text-gray-900">
                             {coupon?.maxDiscountAmount
-                              ? `$${coupon.maxDiscountAmount}`
+                              ? `C$ ${coupon.maxDiscountAmount}`
                               : "N/A"}
                           </TableCell>
                           <TableCell className="text-gray-900">

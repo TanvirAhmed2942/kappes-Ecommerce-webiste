@@ -113,7 +113,7 @@ const MonthlyEarningChart = ({ data }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg font-semibold text-base">
-          €{payload[0].value.toFixed(2)}
+          C$ {payload[0].value.toFixed(2)}
         </div>
       );
     }
@@ -217,7 +217,7 @@ const MonthlyEarningChart = ({ data }) => {
                 tickLine={false}
                 tick={{ fill: "#9ca3af", fontSize: 14 }}
                 domain={[0, yAxisMax]}
-                tickFormatter={(value) => `€${value / 1000}K`}
+                tickFormatter={(value) => `C$ ${value / 1000}K`}
               />
               <Tooltip
                 content={<CustomTooltip />}

@@ -74,7 +74,7 @@ const AppSidebar = () => {
     { icon: Heart, label: "Owner info", path: "/seller/owner" },
     { icon: Star, label: "Reviews", path: "/seller/review" },
     { icon: MdAdsClick, label: "Advertisement", path: "/seller/advertise" },
-    { icon: UserCog, label: "Admin Role", path: "/seller/admin" },
+    // { icon: UserCog, label: "Admin Role", path: "/seller/admin" },
     { icon: Lock, label: "Change Password", path: "/seller/change-password" },
     { icon: LogOut, label: "Logout" },
   ];

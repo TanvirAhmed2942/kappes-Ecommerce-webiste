@@ -77,7 +77,7 @@ const OrderTableList = () => {
         day: "numeric",
       }),
       customer: order.user?.full_name || "Unknown Customer",
-      amount: `$${order.finalAmount?.toFixed(2) || "0.00"}`,
+      amount: `C$ ${order.finalAmount?.toFixed(2) || "0.00"}`,
       status: order.status,
       rawData: order, // Keep original data for reference
     }));

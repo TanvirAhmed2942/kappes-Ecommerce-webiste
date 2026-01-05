@@ -74,7 +74,7 @@ const CouponViewModal = ({ open, onOpenChange, coupon }) => {
               <div className="text-base text-gray-900 bg-gray-50 px-4 py-2 rounded-md">
                 {coupon.discountType === "Percentage"
                   ? `${coupon.discountValue}%`
-                  : `$${coupon.discountValue}`}
+                  : `C$ ${coupon.discountValue}`}
               </div>
             </div>
           </div>
@@ -86,7 +86,7 @@ const CouponViewModal = ({ open, onOpenChange, coupon }) => {
                 Minimum Order Amount
               </Label>
               <div className="text-base text-gray-900 bg-gray-50 px-4 py-2 rounded-md">
-                {coupon.minOrderAmount ? `$${coupon.minOrderAmount}` : "N/A"}
+                {coupon.minOrderAmount ? `C$ ${coupon.minOrderAmount}` : "N/A"}
               </div>
             </div>
             <div className="space-y-2">
@@ -95,7 +95,7 @@ const CouponViewModal = ({ open, onOpenChange, coupon }) => {
               </Label>
               <div className="text-base text-gray-900 bg-gray-50 px-4 py-2 rounded-md">
                 {coupon.maxDiscountAmount
-                  ? `$${coupon.maxDiscountAmount}`
+                  ? `C$ ${coupon.maxDiscountAmount}`
                   : "N/A"}
               </div>
             </div>

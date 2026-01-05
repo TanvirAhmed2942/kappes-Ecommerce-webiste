@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "../../../../../components/ui/select";
 import { Textarea } from "../../../../../components/ui/textarea";
-
+import { useGetStoreInfoQuery } from "../../../../../redux/sellerApi/storeInfoApi/storeInfoApi";
 import { IoArrowBack } from "react-icons/io5";
 import { useGetAllBrandQuery } from "../../../../../redux/sellerApi/brand/brandApi";
 import { useGetAllCategoryQuery } from "../../../../../redux/sellerApi/category/categoryApi";
@@ -36,11 +36,11 @@ import {
   DialogFooter,
 } from "../../../../../components/ui/dialog";
 import useToast from "../../../../../hooks/useShowToast";
-
+import { TbCurrencyDollarCanadian } from "react-icons/tb";
 const AddProductForm = () => {
   const router = useRouter();
   const toast = useToast();
-
+  const { data: storeInfo } = useGetStoreInfoQuery();
   // Basic Info States
   const [productName, setProductName] = useState("");
   const [description, setDescription] = useState("");
@@ -423,9 +423,18 @@ const AddProductForm = () => {
         chitchats_currency_code: chitchatsCurrencyCode,
         chitchats_hs_tariff_code: chitchatsHsTariffCode,
         chitchats_origin_country: chitchatsOriginCountry,
+
+        // chitchats_client_id: storeInfo?.data?.chitchats_client_id,
+        // chitchats_access_token: storeInfo?.data?.chitchats_access_token,
       };
 
       console.log("Product Data:", productData);
+      console.log("ChitChat Credentials:", {
+        client_id: storeInfo?.data?.chitchats_client_id,
+        access_token: storeInfo?.data?.chitchats_access_token
+          ? "***"
+          : undefined,
+      });
       console.log("FormData entries:");
       formData.append("data", JSON.stringify(productData));
 
@@ -766,9 +775,9 @@ const AddProductForm = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="g">g (Grams)</SelectItem>
-                          <SelectItem value="kg">kg (Kilograms)</SelectItem>
+                          {/* <SelectItem value="kg">kg (Kilograms)</SelectItem>
                           <SelectItem value="lb">lb (Pounds)</SelectItem>
-                          <SelectItem value="oz">oz (Ounces)</SelectItem>
+                          <SelectItem value="oz">oz (Ounces)</SelectItem> */}
                         </SelectContent>
                       </Select>
                     </div>
@@ -830,9 +839,9 @@ const AddProductForm = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="cm">cm</SelectItem>
-                            <SelectItem value="m">m</SelectItem>
+                            {/* <SelectItem value="m">m</SelectItem>
                             <SelectItem value="in">in</SelectItem>
-                            <SelectItem value="ft">ft</SelectItem>
+                            <SelectItem value="ft">ft</SelectItem> */}
                           </SelectContent>
                         </Select>
                       </div>
@@ -983,10 +992,10 @@ const AddProductForm = () => {
                               <SelectItem value="CAD">
                                 CAD (Canadian Dollar)
                               </SelectItem>
-                              <SelectItem value="USD">
+                              {/* <SelectItem value="USD">
                                 USD (US Dollar)
                               </SelectItem>
-                              <SelectItem value="EUR">EUR (Euro)</SelectItem>
+                              <SelectItem value="EUR">EUR (Euro)</SelectItem> */}
                             </SelectContent>
                           </Select>
                         </div>
@@ -1020,14 +1029,14 @@ const AddProductForm = () => {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="CA">CA (Canada)</SelectItem>
-                              <SelectItem value="US">
+                              {/* <SelectItem value="US">
                                 US (United States)
                               </SelectItem>
                               <SelectItem value="MX">MX (Mexico)</SelectItem>
                               <SelectItem value="CN">CN (China)</SelectItem>
                               <SelectItem value="GB">
                                 GB (United Kingdom)
-                              </SelectItem>
+                              </SelectItem> */}
                             </SelectContent>
                           </Select>
                         </div>
