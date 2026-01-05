@@ -12,7 +12,6 @@ import {
 } from "../../../../redux/userprofileApi/userprofileApi";
 import useToast from "../../../../hooks/useShowToast";
 import { getImageUrl } from "../../../../redux/baseUrl";
-import Image from "next/image";
 
 export default function EditStoreOwnerForm() {
   const { data: profileData, isLoading: isLoadingProfile } =
@@ -257,10 +256,8 @@ export default function EditStoreOwnerForm() {
                   </label>
                   {(imagePreview || originalImage) && (
                     <div className="mt-4">
-                      <Image
-                        src={
-                          imagePreview || `${getImageUrl()}/${originalImage}`
-                        }
+                      <img
+                        src={imagePreview || `${getImageUrl()}${originalImage}`}
                         alt="Owner preview"
                         width={500}
                         height={500}
@@ -277,8 +274,8 @@ export default function EditStoreOwnerForm() {
               <div className="space-y-2">
                 <Label className="text-base">Current Image</Label>
                 <div className="mt-2">
-                  <Image
-                    src={`${getImageUrl()}/${originalImage}`}
+                  <img
+                    src={`${getImageUrl()}${originalImage}`}
                     alt="Owner image"
                     width={500}
                     height={500}
