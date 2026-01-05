@@ -153,8 +153,8 @@ const TrendingProduct = () => {
 
                 {/* Product Image */}
                 <div className="w-full h-52 flex justify-center items-center">
-                  <Image
-                    src={`${getImageUrl()}/${product.images?.[0]}`}
+                  <img
+                    src={`${getImageUrl()}${product.images?.[0]}`}
                     alt={product.name}
                     width={1200}
                     height={1200}
@@ -181,11 +181,11 @@ const TrendingProduct = () => {
                       return (
                         <>
                           <span className="text-red-600 font-bold text-base">
-                            ${displayPrice.toFixed(2)}
+                            C$ {displayPrice.toFixed(2)}
                           </span>
                           {hasVariant && (
                             <span className="text-gray-400 line-through text-sm">
-                              ${product.basePrice.toFixed(2)}
+                              C$ {product.basePrice.toFixed(2)}
                             </span>
                           )}
                         </>
