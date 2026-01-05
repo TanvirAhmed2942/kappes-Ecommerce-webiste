@@ -11,8 +11,14 @@ export const getSocketUrl = () => {
 };
 
 export const getImageUrl = () => {
-  // Get the base URL without protocol
-  const baseUrl = "10.10.7.103:7001";
+  // Extract domain and port from getBaseUrl() (remove protocol and /api/v1)
+  const fullBaseUrl = getBaseUrl();
+  // Remove protocol (http:// or https://) and /api/v1 path
+  const baseUrlWithoutProtocol = fullBaseUrl
+    .replace(/^https?:\/\//, "") // Remove http:// or https://
+    .replace(/\/api\/v1$/, ""); // Remove /api/v1
+
+  const baseUrl = baseUrlWithoutProtocol || "10.10.7.103:7001";
   // const baseUrl = "asif7001.binarybards.online";
   // const baseUrl = "api.thecanuckmall.ca";
 
