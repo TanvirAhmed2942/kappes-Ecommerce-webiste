@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { MessageSquare, Heart, HeartOff } from "lucide-react";
 import { Button } from "../../components/ui/button";
-import Image from "next/image";
 import { getImageUrl } from "../../redux/baseUrl";
 import { useCreateChatMutation } from "../../redux/shopuserChatApi/shopuserChatApi";
 import useToast from "../../hooks/useShowToast";
